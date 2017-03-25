@@ -7,13 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FA07DB401E84CDBD00FEC042 /* Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA07DB3F1E84CDBD00FEC042 /* Currency.swift */; };
 		FA520AE41E6CC62D00AABE68 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520AE31E6CC62D00AABE68 /* AppDelegate.swift */; };
-		FA520AE61E6CC62D00AABE68 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520AE51E6CC62D00AABE68 /* ViewController.swift */; };
 		FA520AE91E6CC62D00AABE68 /* lnd_gui.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FA520AE71E6CC62D00AABE68 /* lnd_gui.xcdatamodeld */; };
 		FA520AEB1E6CC62D00AABE68 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */; };
 		FA520AEE1E6CC62D00AABE68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA520AEC1E6CC62D00AABE68 /* Main.storyboard */; };
 		FA520AF91E6CC62D00AABE68 /* lnd_guiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520AF81E6CC62D00AABE68 /* lnd_guiTests.swift */; };
 		FA520B041E6CC62D00AABE68 /* lnd_guiUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B031E6CC62D00AABE68 /* lnd_guiUITests.swift */; };
+		FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */; };
+		FA520B151E6CCF1900AABE68 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B141E6CCF1900AABE68 /* MainWindowController.swift */; };
+		FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B161E6CDB1F00AABE68 /* SendViewController.swift */; };
+		FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */; };
+		FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA759F9D1E6E74C70024DF80 /* MainViewController.swift */; };
+		FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,9 +40,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FA07DB3F1E84CDBD00FEC042 /* Currency.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Currency.swift; sourceTree = "<group>"; };
 		FA520AE01E6CC62D00AABE68 /* lnd-gui.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lnd-gui.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA520AE31E6CC62D00AABE68 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		FA520AE51E6CC62D00AABE68 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		FA520AE81E6CC62D00AABE68 /* lnd_gui.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = lnd_gui.xcdatamodel; sourceTree = "<group>"; };
 		FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FA520AED1E6CC62D00AABE68 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -47,6 +53,12 @@
 		FA520AFF1E6CC62D00AABE68 /* lnd-guiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lnd-guiUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA520B031E6CC62D00AABE68 /* lnd_guiUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lnd_guiUITests.swift; sourceTree = "<group>"; };
 		FA520B051E6CC62D00AABE68 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainTabViewController.swift; path = NavigationControllers/MainTabViewController.swift; sourceTree = "<group>"; };
+		FA520B141E6CCF1900AABE68 /* MainWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
+		FA520B161E6CDB1F00AABE68 /* SendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendViewController.swift; path = ViewControllers/SendViewController.swift; sourceTree = "<group>"; };
+		FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReceiveViewController.swift; sourceTree = "<group>"; };
+		FA759F9D1E6E74C70024DF80 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainViewController.swift; path = ViewControllers/MainViewController.swift; sourceTree = "<group>"; };
+		FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionsViewController.swift; path = ViewControllers/TransactionsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +86,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FA07DB3E1E84CCE800FEC042 /* Blockchain */ = {
+			isa = PBXGroup;
+			children = (
+				FA07DB3F1E84CDBD00FEC042 /* Currency.swift */,
+			);
+			name = Blockchain;
+			sourceTree = "<group>";
+		};
 		FA520AD71E6CC62D00AABE68 = {
 			isa = PBXGroup;
 			children = (
@@ -97,12 +117,14 @@
 		FA520AE21E6CC62D00AABE68 /* lnd-gui */ = {
 			isa = PBXGroup;
 			children = (
+				FA07DB3E1E84CCE800FEC042 /* Blockchain */,
 				FA520AE31E6CC62D00AABE68 /* AppDelegate.swift */,
-				FA520AE51E6CC62D00AABE68 /* ViewController.swift */,
 				FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */,
-				FA520AEC1E6CC62D00AABE68 /* Main.storyboard */,
 				FA520AEF1E6CC62D00AABE68 /* Info.plist */,
 				FA520AE71E6CC62D00AABE68 /* lnd_gui.xcdatamodeld */,
+				FA520AEC1E6CC62D00AABE68 /* Main.storyboard */,
+				FA520B131E6CC83200AABE68 /* NavigationControllers */,
+				FA520B181E6CDB2400AABE68 /* ViewControllers */,
 			);
 			path = "lnd-gui";
 			sourceTree = "<group>";
@@ -123,6 +145,26 @@
 				FA520B051E6CC62D00AABE68 /* Info.plist */,
 			);
 			path = "lnd-guiUITests";
+			sourceTree = "<group>";
+		};
+		FA520B131E6CC83200AABE68 /* NavigationControllers */ = {
+			isa = PBXGroup;
+			children = (
+				FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */,
+				FA520B141E6CCF1900AABE68 /* MainWindowController.swift */,
+			);
+			name = NavigationControllers;
+			sourceTree = "<group>";
+		};
+		FA520B181E6CDB2400AABE68 /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				FA759F9D1E6E74C70024DF80 /* MainViewController.swift */,
+				FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */,
+				FA520B161E6CDB1F00AABE68 /* SendViewController.swift */,
+				FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */,
+			);
+			name = ViewControllers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -261,9 +303,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FA520AE61E6CC62D00AABE68 /* ViewController.swift in Sources */,
+				FA07DB401E84CDBD00FEC042 /* Currency.swift in Sources */,
+				FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */,
+				FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */,
+				FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */,
+				FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */,
 				FA520AE91E6CC62D00AABE68 /* lnd_gui.xcdatamodeld in Sources */,
 				FA520AE41E6CC62D00AABE68 /* AppDelegate.swift in Sources */,
+				FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */,
+				FA520B151E6CCF1900AABE68 /* MainWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -509,6 +557,7 @@
 				FA520B0A1E6CC62D00AABE68 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		FA520B0B1E6CC62D00AABE68 /* Build configuration list for PBXNativeTarget "lnd-guiTests" */ = {
 			isa = XCConfigurationList;
@@ -517,6 +566,7 @@
 				FA520B0D1E6CC62D00AABE68 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		FA520B0E1E6CC62D00AABE68 /* Build configuration list for PBXNativeTarget "lnd-guiUITests" */ = {
 			isa = XCConfigurationList;
@@ -525,6 +575,7 @@
 				FA520B101E6CC62D00AABE68 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
