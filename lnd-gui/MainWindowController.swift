@@ -11,7 +11,7 @@ import Cocoa
 /** MainWindowController is the controller that manages the containing main window.
  */
 class MainWindowController: NSWindowController {
-  /** Dimension 
+  /** Dimension defines sizes in the main window controller.
    */
   enum Dimension {
     static let bottomBarHeight: CGFloat = 24

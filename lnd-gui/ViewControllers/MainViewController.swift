@@ -25,6 +25,12 @@ class MainViewController: NSViewController {
     }
   }
   
+  /** mainTabViewController is the tab view controller for the main view
+   */
+  weak var mainTabViewController: MainTabViewController?
+
+  // MARK: - UIViewController
+  
   /** initWalletPolling kicks off wallet polling
     
    FIXME: - switch to sockets
@@ -47,20 +53,6 @@ class MainViewController: NSViewController {
     refreshChannelBalance {}
     
     initWalletPolling()
-  }
-  
-  weak var mainTabViewController: MainTabViewController?
-  
-  override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
-    super.prepare(for: segue, sender: sender)
-
-    guard let mainTabViewController = segue.destinationController as? MainTabViewController else {
-      return print("Expected main tab view controller")
-    }
-    
-    mainTabViewController.updateBalance = { [weak self] in self?.refreshChannelBalance() {} }
-    
-    self.mainTabViewController = mainTabViewController
   }
 
   @IBOutlet weak var balanceLabelTextField: NSTextField?
@@ -170,5 +162,28 @@ class MainViewController: NSViewController {
     
     task.resume()
   }
+}
 
+// MARK: - Errors
+extension MainViewController {
+  enum Failure: String, Error {
+    case expectedMainTabViewController
+  }
+}
+
+// MARK: - Navigation
+extension MainViewController {
+  /** prepare performs setup for the navigated-to view controller.
+   */
+  override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
+    super.prepare(for: segue, sender: sender)
+    
+    guard let mainTabViewController = segue.destinationController as? MainTabViewController else {
+      return print(Failure.expectedMainTabViewController.localizedDescription)
+    }
+    
+    mainTabViewController.updateBalance = { [weak self] in self?.refreshChannelBalance() {} }
+    
+    self.mainTabViewController = mainTabViewController
+  }
 }
