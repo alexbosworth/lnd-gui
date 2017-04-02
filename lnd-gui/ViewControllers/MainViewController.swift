@@ -15,13 +15,25 @@ import Cocoa
 class MainViewController: NSViewController {
   // MARK: - Properties
   
+  private var chainBalance: Value? {
+    didSet {
+      updateVisibleBalance()
+    }
+  }
+  
   /** channelBalance is the value of the total funds in channels.
    
    FIXME: - use localizable string
    */
   private var channelBalance: Value? {
     didSet {
-      balanceLabelTextField?.stringValue = "Balance: \(((channelBalance ?? Value()) as Value).formatted) tBTC"
+      updateVisibleBalance()
+    }
+  }
+  
+  private var connected: Bool? {
+    didSet {
+      updateConnectedStatus()
     }
   }
   
@@ -53,9 +65,25 @@ class MainViewController: NSViewController {
     refreshChannelBalance {}
     
     initWalletPolling()
+    
+    connected = false
+    
+    balanceLabelTextField?.stringValue = String()
+  }
+  
+  private func updateVisibleBalance() {
+    let chainBalance = (self.chainBalance ?? Value()) as Value
+    let channelBalance = (self.channelBalance ?? Value()) as Value
+    
+    let formattedBalance = "⚡️ Balance: \(channelBalance.formatted) tBTC" +
+      ((chainBalance > Value()) ? " (+\(chainBalance.formatted) tBTC chain)" : "")
+    
+    balanceLabelTextField?.stringValue = formattedBalance
   }
 
   @IBOutlet weak var balanceLabelTextField: NSTextField?
+  
+  @IBOutlet weak var connectedBox: NSBox?
   
   struct ReceivedPayment {
     let amount: UInt64
@@ -67,7 +95,6 @@ class MainViewController: NSViewController {
   
   // FIXME: - switch to sockets
   public func refreshInvoices() {
-    
     let url = URL(string: "http://localhost:10553/v0/invoices/")!
     let session = URLSession.shared
     
@@ -75,6 +102,12 @@ class MainViewController: NSViewController {
     request.httpMethod = "GET"
     
     let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
+      guard error == nil else { return DispatchQueue.main.async { self?.connected = false } }
+      
+      guard (urlResponse as? HTTPURLResponse)?.statusCode == 200 else {
+        return DispatchQueue.main.async { self?.connected = false }
+      }
+      
       guard let data = data else { return print("Expected data") }
       
       guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
@@ -84,6 +117,8 @@ class MainViewController: NSViewController {
       guard let json = jsonObject as? [[String: Any]] else {
         return print("INVALID JSON PARSED")
       }
+      
+      DispatchQueue.main.async { self?.connected = true }
       
       let receivedPayments: [ReceivedPayment] = json.map { payment in
         let dateFormatter = DateFormatter()
@@ -137,6 +172,12 @@ class MainViewController: NSViewController {
     }
   }
   
+  func updateConnectedStatus() {
+    let connected = (self.connected ?? false) as Bool
+    
+    connectedBox?.fillColor = connected ? .green : .red
+  }
+  
   // FIXME: - switch to sockets
   func refreshChannelBalance(completion: (() -> ())?) {
     let url = URL(string: "http://localhost:10553/v0/balance/")!
@@ -152,10 +193,21 @@ class MainViewController: NSViewController {
       let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: balanceData, options: .allowFragments)
       
       let balance = dataDownloadedAsJson as? [String: Any]
+
+      enum BalanceResponseJsonKey: String {
+        case chainBalance = "chain_balance"
+        case channelBalance = "channel_balance"
+        
+        var key: String { return rawValue }
+      }
+
+      let chainBalance = (balance?[BalanceResponseJsonKey.chainBalance.key] as? NSNumber)?.uint64Value
+      let channelBalance = (balance?[BalanceResponseJsonKey.channelBalance.key] as? NSNumber)?.uint64Value
       
-      let channelBalance = (balance?["channel_balance"] as? NSNumber)?.uint64Value
-      
-      DispatchQueue.main.async { self?.channelBalance = channelBalance }
+      DispatchQueue.main.async {
+        self?.chainBalance = chainBalance
+        self?.channelBalance = channelBalance
+      }
       
       completion?()
     }
