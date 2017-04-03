@@ -21,6 +21,7 @@
 		FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B161E6CDB1F00AABE68 /* SendViewController.swift */; };
 		FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */; };
 		FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA759F9D1E6E74C70024DF80 /* MainViewController.swift */; };
+		FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */; };
 		FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +63,7 @@
 		FA520B161E6CDB1F00AABE68 /* SendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendViewController.swift; path = ViewControllers/SendViewController.swift; sourceTree = "<group>"; };
 		FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReceiveViewController.swift; sourceTree = "<group>"; };
 		FA759F9D1E6E74C70024DF80 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainViewController.swift; path = ViewControllers/MainViewController.swift; sourceTree = "<group>"; };
+		FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceivedPayment.swift; path = Lightning/ReceivedPayment.swift; sourceTree = "<group>"; };
 		FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionsViewController.swift; path = ViewControllers/TransactionsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -129,14 +131,15 @@
 		FA520AE21E6CC62D00AABE68 /* lnd-gui */ = {
 			isa = PBXGroup;
 			children = (
-				2157F75F1E8851BB00847E4C /* Vendor */,
-				FA07DB3E1E84CCE800FEC042 /* Blockchain */,
 				FA520AE31E6CC62D00AABE68 /* AppDelegate.swift */,
 				FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */,
+				FA07DB3E1E84CCE800FEC042 /* Blockchain */,
 				FA520AEF1E6CC62D00AABE68 /* Info.plist */,
+				FA7857EA1E91CE5E00E834D3 /* Lightning */,
 				FA520AE71E6CC62D00AABE68 /* lnd_gui.xcdatamodeld */,
 				FA520AEC1E6CC62D00AABE68 /* Main.storyboard */,
 				FA520B131E6CC83200AABE68 /* NavigationControllers */,
+				2157F75F1E8851BB00847E4C /* Vendor */,
 				FA520B181E6CDB2400AABE68 /* ViewControllers */,
 			);
 			path = "lnd-gui";
@@ -179,6 +182,14 @@
 				FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */,
 			);
 			name = ViewControllers;
+			sourceTree = "<group>";
+		};
+		FA7857EA1E91CE5E00E834D3 /* Lightning */ = {
+			isa = PBXGroup;
+			children = (
+				FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */,
+			);
+			name = Lightning;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -322,6 +333,7 @@
 				FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */,
 				FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */,
 				FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */,
+				FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */,
 				2157F7611E8851CD00847E4C /* TaskQueue.swift in Sources */,
 				FA520AE91E6CC62D00AABE68 /* lnd_gui.xcdatamodeld in Sources */,
 				FA520AE41E6CC62D00AABE68 /* AppDelegate.swift in Sources */,
