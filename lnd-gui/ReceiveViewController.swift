@@ -8,67 +8,88 @@
 
 import Cocoa
 
-// FIXME: - clean up
-struct Invoice {
-  let id: String // rhash
-  let paymentRequest: String
-  
-  enum JsonParseError: String, Error {
-    case expectedId
-    case expectedPaymentRequest
-  }
-  
-  init(from json: [String: Any]) throws {
-    guard let id = json["id"] as? String else { throw JsonParseError.expectedId }
-    
-    guard let paymentRequest = json["payment_request"] as? String else { throw JsonParseError.expectedPaymentRequest }
-    
-    self.id = id
-    self.paymentRequest = paymentRequest
-  }
-}
-
-// FIXME: - cleanup
+/** ReceiveViewController is a view controller for creating invoices
+ */
 class ReceiveViewController: NSViewController {
+  // MARK: - @IBActions
+
+  /** pressedClearButton triggers clearing the current payment request.
+   */
   @IBAction func pressedClearButton(_ button: NSButton) {
-    amountTextField?.stringValue = String()
-    memoTextField?.stringValue = String()
-    paymentRequestHeadingTextField?.isHidden = true
-    paymentRequestTextField?.isHidden = true
+    clear()
   }
   
+  /** pressedRequestButton triggers the creation of a new request
+   */
   @IBAction func pressedRequestButton(_ button: NSButton) {
-    guard let amountString = amountTextField?.stringValue, let amount = Float(amountString) else { return }
+    guard let amountString = amountTextField?.stringValue, let amount = Float(amountString), amount > Float() else {
+      return
+    }
     
     do { try addInvoice(amount: amount, memo: memoTextField?.stringValue) } catch { print(error) }
   }
-  
+
+  // MARK: - @IBOutlets
+
+  /** amountTextField is the input text field for the invoice amount.
+   */
   @IBOutlet weak var amountTextField: NSTextField?
 
+  /** memoTextField is the input text field for the memo.
+   */
   @IBOutlet weak var memoTextField: NSTextField?
   
+  /** paymentRequestHeadingTextField is the label showing the payment request header.
+   */
   @IBOutlet weak var paymentRequestHeadingTextField: NSTextField?
   
+  /** paymentRequestTextField is the label showing the full payment request.
+   */
   @IBOutlet weak var paymentRequestTextField: NSTextField?
   
+  /** requestButton is the button that triggers the creation of a new payment request
+   */
   @IBOutlet weak var requestButton: NSButton?
   
-  var invoice: Invoice? {
-    didSet {
-      paymentRequestTextField?.stringValue = invoice?.paymentRequest ?? String()
-    }
+  // MARK: - Properties
+  
+  /** invoice is the created invoice to receive funds to.
+   */
+  var invoice: Invoice? { didSet { updatePaymentRequest() } }
+
+  // MARK: - UIViewController
+  
+  /** clear eliminates the input and previous created invoice from the view.
+   */
+  private func clear() {
+    let addedInvoiceViews = [paymentRequestHeadingTextField, paymentRequestTextField]
+    let inputTextFields = [amountTextField, memoTextField]
+    
+    inputTextFields.forEach { $0?.stringValue = String() }
+    
+    addedInvoiceViews.forEach { $0?.isHidden = true }
+  }
+
+  /** updatePaymentRequest updates the payment request label
+   */
+  private func updatePaymentRequest() {
+    paymentRequestTextField?.stringValue = (invoice?.paymentRequest ?? String()) as String
   }
   
+  /** viewDidLoad triggers to initialize the view.
+   */
   override func viewDidLoad() {
     super.viewDidLoad()
     // Do view setup here.
     
-    paymentRequestTextField?.isHidden = true
-    paymentRequestHeadingTextField?.isHidden = true
+    clear()
   }
 }
 
+// MARK: - Networking
 extension ReceiveViewController {
+  /** addInvoice sends a request to make an invoice.
+   */
   func addInvoice(amount: Float, memo: String? = nil) throws {
     let session = URLSession.shared
     let sendUrl = URL(string: "http://localhost:10553/v0/invoices/")!

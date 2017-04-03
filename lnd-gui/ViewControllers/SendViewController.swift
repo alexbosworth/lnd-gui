@@ -8,68 +8,66 @@
 
 import Cocoa
 
-// FIXME: - cleanup - localization prep
-extension SendViewController: NSTextFieldDelegate {
-  override func controlTextDidChange(_ obj: Notification) {
-    sendAmount = nil
-    sendToPublicKey = String()
-    
-    guard let destination = destinationTextField?.stringValue else { return }
-
-    getDecoded(paymentRequest: destination)
-  }
-}
-
+/** SendViewController is a view controller for performing a send.
+ */
 class SendViewController: NSViewController {
+  // MARK: - @IBActions
+
+  /** pressedClearButton triggers a reset on the send form to remove input.
+   */
   @IBAction func pressedClearButton(_ button: NSButton) {
-    destinationTextField?.stringValue = String()
-    
-    sendButton?.isEnabled = true
-    sendButton?.state = NSOnState
-    sendButton?.title = "Send"
-    
-    destinationTextField?.stringValue = String()
-    sendToPublicKey = String()
-    sendAmount = nil
-    
-    payment(on: false)
+    clear()
   }
   
+  /** pressedSendButton triggers a send.
+   */
   @IBAction func pressedSendButton(_ button: NSButton) {
     sendCoins()
   }
   
+  // MARK: - @IBOutlets
+  
+  /** clearPaymentButton clears the current payment details.
+   */
   @IBOutlet weak var clearPaymentButton: NSButton?
   
+  /** iconImageView represents the send destination with an icon image.
+   */
   @IBOutlet weak var iconImageView: NSImageView?
   
+  /** destinationTextField is the input for payment destination entry.
+   */
   @IBOutlet weak var destinationTextField: NSTextField?
   
+  /** paymentHeadingTextField is the label for the payment invoice heading.
+   */
   @IBOutlet weak var paymentHeadingTextField: NSTextField?
   
+  /** sendToPublicKeyTextField is the label for the payment invoice public key.
+   */
   @IBOutlet weak var sendToPublicKeyTextField: NSTextField?
   
+  /** sendForPaymentTextField is the label for the payment invoice id.
+   */
   @IBOutlet weak var sendForPaymentTextField: NSTextField?
   
+  /** sendAmountTextField is the label for the payment invoice amount.
+   */
   @IBOutlet weak var sendAmountTextField: NSTextField?
   
+  /** sendButton is the button that triggers sending.
+   */
   @IBOutlet weak var sendButton: NSButton?
   
-  // FIXME: - astract currency formatting
-  fileprivate var sendAmount: UInt64? {
+  // MARK: - Properties
+  
+  /** sendAmount is the amount to send.
+   */
+  fileprivate var sendAmount: Value? {
     didSet {
       guard let sendAmount = sendAmount else { sendAmountTextField?.stringValue = String(); return }
       
-      let largeUnitValue: Double = Double(sendAmount) / 100_000_000
-
-      let formatter = NumberFormatter()
-      
-      formatter.minimumFractionDigits = 8
-      formatter.minimumIntegerDigits = 1
-      
-      let formattedAmount = formatter.string(from: NSNumber(value: largeUnitValue)) ?? String()
-      
-      sendAmountTextField?.stringValue = "\(formattedAmount) tBTC"
+      sendAmountTextField?.stringValue = "\(sendAmount.formatted) tBTC"
     }
   }
   
@@ -194,6 +192,22 @@ class SendViewController: NSViewController {
     
     sendTask.resume()
   }
+
+  /** clear resets the send input and removes information about a previous send.
+   */
+  private func clear() {
+    destinationTextField?.stringValue = String()
+    
+    sendButton?.isEnabled = true
+    sendButton?.state = NSOnState
+    sendButton?.title = "Send"
+    
+    destinationTextField?.stringValue = String()
+    sendToPublicKey = String()
+    sendAmount = nil
+    
+    payment(on: false)
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -205,5 +219,17 @@ class SendViewController: NSViewController {
     iconImageView?.layer?.masksToBounds = true
     
     sendToPublicKey = String()
+  }
+}
+
+// FIXME: - cleanup - localization prep
+extension SendViewController: NSTextFieldDelegate {
+  override func controlTextDidChange(_ obj: Notification) {
+    sendAmount = nil
+    sendToPublicKey = String()
+    
+    guard let destination = destinationTextField?.stringValue else { return }
+    
+    getDecoded(paymentRequest: destination)
   }
 }
