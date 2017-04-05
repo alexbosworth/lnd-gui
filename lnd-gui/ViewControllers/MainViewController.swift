@@ -96,17 +96,18 @@ class MainViewController: NSViewController {
    FIXME: - use nicer colors
    */
   func updateConnectedStatus() {
-    connectedBox?.fillColor = (connected ?? false) as Bool ? .green : .red
+    let disconnectedColor = NSColor(calibratedRed: 204 / 255, green: 57 / 255, blue: 57 / 255, alpha: 1)
+    let connectedColor = NSColor(calibratedRed: 107 / 255, green: 234 / 255, blue: 107 / 255, alpha: 1)
+    
+    connectedBox?.fillColor = (connected ?? false) as Bool ? connectedColor : disconnectedColor
   }
 
   /** updateVisibleBalance updates the view to show the last retrieved balances
    */
   private func updateVisibleBalance() {
-    let chainBalance = (self.chainBalance ?? Value()) as Value
     let channelBalance = (self.channelBalance ?? Value()) as Value
     
-    let formattedBalance = "⚡️ Balance: \(channelBalance.formatted) tBTC" +
-      ((chainBalance > Value()) ? " (+\(chainBalance.formatted) tBTC chain)" : "")
+    let formattedBalance = "Balance: \(channelBalance.formatted) tBTC"
     
     balanceLabelTextField?.stringValue = formattedBalance
   }
