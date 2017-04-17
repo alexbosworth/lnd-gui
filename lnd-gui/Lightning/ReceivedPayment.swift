@@ -11,9 +11,9 @@ import Foundation
 /** ReceivedPayment represents an invoiced payment.
  */
 struct ReceivedPayment {
-  let amount: UInt64
   let confirmed: Bool
   let createdAt: Date
   let memo: String
   let payment: String
+  let tokens: Tokens
 }

@@ -63,7 +63,7 @@ class SendViewController: NSViewController {
   
   /** sendAmount is the amount to send.
    */
-  fileprivate var sendAmount: Value? {
+  fileprivate var sendAmount: Tokens? {
     didSet {
       guard let sendAmount = sendAmount else { sendAmountTextField?.stringValue = String(); return }
       
@@ -124,10 +124,6 @@ class SendViewController: NSViewController {
       
       let paymentRequestJson = dataDownloadedAsJson as? [String: Any]
       
-      guard let amount = paymentRequestJson?["amount"] as? NSNumber else {
-        return
-      }
-      
       guard let destinationPublicKey = paymentRequestJson?["destination"] as? String else {
         return
       }
@@ -136,8 +132,12 @@ class SendViewController: NSViewController {
         return
       }
       
+      guard let tokens = paymentRequestJson?["tokens"] as? NSNumber else {
+        return
+      }
+      
       DispatchQueue.main.async {
-        self?.sendAmount = amount.uint64Value
+        self?.sendAmount = tokens.tokensValue
         self?.sendForPayment = paymentRequestId
         self?.sendToPublicKey = destinationPublicKey
       }
@@ -148,7 +148,7 @@ class SendViewController: NSViewController {
   
   private func sendCoins() {
     let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/channels/")!
+    let sendUrl = URL(string: "http://localhost:10553/v0/payments/")!
     var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
     sendUrlRequest.httpMethod = "POST"
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")

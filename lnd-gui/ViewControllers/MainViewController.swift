@@ -27,11 +27,11 @@ class MainViewController: NSViewController {
   
   /** chainBalance represents the amount of available value on chain.
    */
-  fileprivate var chainBalance: Value? { didSet { updateVisibleBalance() } }
+  fileprivate var chainBalance: Tokens? { didSet { updateVisibleBalance() } }
   
   /** channelBalance represents the value of the total funds in channels.
    */
-  fileprivate var channelBalance: Value? { didSet { updateVisibleBalance() } }
+  fileprivate var channelBalance: Tokens? { didSet { updateVisibleBalance() } }
 
   /** connected represents whether or not there a connection is present to the backing ln daemon.
    */
@@ -67,7 +67,7 @@ class MainViewController: NSViewController {
         let notification = NSUserNotification()
         
         notification.title = "Payment for \(payment.memo)"
-        notification.informativeText = "Received \(payment.amount)"
+        notification.informativeText = "Received \(payment.tokens.formatted)"
         notification.soundName = NSUserNotificationDefaultSoundName
         
         NSUserNotificationCenter.default.deliver(notification)
@@ -105,9 +105,10 @@ class MainViewController: NSViewController {
   /** updateVisibleBalance updates the view to show the last retrieved balances
    */
   private func updateVisibleBalance() {
-    let channelBalance = (self.channelBalance ?? Value()) as Value
+    let chainBalance = (self.chainBalance ?? Tokens()) as Tokens
+    let channelBalance = (self.channelBalance ?? Tokens()) as Tokens
     
-    let formattedBalance = "Balance: \(channelBalance.formatted) tBTC"
+    let formattedBalance = "Lightning Balance: \(channelBalance.formatted) tBTC - Chain Balance: \(chainBalance.formatted) tBTC"
     
     balanceLabelTextField?.stringValue = formattedBalance
   }
@@ -232,11 +233,11 @@ extension MainViewController {
         let createdAt = dateFormatter.date(from: createdAtString)!
         
         return ReceivedPayment(
-          amount: (payment["amount"] as? NSNumber)?.uint64Value ?? UInt64(),
           confirmed: (payment["confirmed"] as? Bool) ?? false,
           createdAt: createdAt,
           memo: payment["memo"] as? String ?? String(),
-          payment: payment["payment"] as! String
+          payment: payment["payment"] as! String,
+          tokens: ((payment["tokens"] as? NSNumber)?.tokensValue ?? Tokens()) as Tokens
         )
       }
       

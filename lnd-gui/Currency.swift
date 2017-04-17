@@ -8,9 +8,9 @@
 
 import Foundation
 
-typealias Value = UInt64
+typealias Tokens = UInt64
 
-extension Value {
+extension Tokens {
   /** Formatting defines currency formatting definitions.
    */
   private enum Formatting {
@@ -30,4 +30,8 @@ extension Value {
     
     return (formatter.string(from: NSNumber(value: largeUnitValue)) ?? String()) as String
   }
+}
+
+extension NSNumber {
+  var tokensValue: Tokens { return uint64Value }
 }

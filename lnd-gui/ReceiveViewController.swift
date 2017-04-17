@@ -97,10 +97,10 @@ extension ReceiveViewController {
     sendUrlRequest.httpMethod = "POST"
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
-    let amount = Int(amount * 100_000_000)
-    let memo = memo ?? String()
+    let memo = (memo ?? String()) as String
+    let tokens = Int(amount * 100_000_000)
     
-    let json: [String: Any] = ["amount": amount, "memo": memo]
+    let json: [String: Any] = ["memo": memo, "tokens": tokens]
     
     let data = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
     

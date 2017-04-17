@@ -8,65 +8,6 @@
 
 import Cocoa
 
-// FIXME: - include fee, hops and payment req
-// FIXME: - reorganize
-struct Transaction {
-  let amount: UInt64
-  let confirmed: Bool
-  let destination: DestinationType
-  let createdAt: Date
-  let outgoing: Bool
-
-  enum DestinationType {
-    case received(memo: String)
-    case sent(publicKey: String, paymentId: String)
-  }
-  
-  enum JsonParseError: String, Error {
-    case expectedAmount
-    case expectedConfirmedFlag
-    case expectedCreatedAtDate
-    case expectedMemo
-    case expectedOutgoingFlag
-    case expectedSentDestination
-  }
-  
-  init(from json: [String: Any]) throws {
-    guard let amount = (json["amount"] as? NSNumber)?.uint64Value else { throw JsonParseError.expectedAmount }
-    
-    guard let confirmed = (json["confirmed"] as? Bool) else { throw JsonParseError.expectedConfirmedFlag }
-    
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-
-    guard
-      let createdAtString = (json["created_at"] as? String),
-      let createdAt = dateFormatter.date(from: createdAtString) else { throw JsonParseError.expectedCreatedAtDate }
-    
-    guard let outgoing = (json["outgoing"] as? Bool) else { throw JsonParseError.expectedOutgoingFlag }
-    
-    self.amount = amount
-    self.confirmed = confirmed
-    self.createdAt = createdAt
-    self.outgoing = outgoing
-
-    switch outgoing {
-    case false:
-      guard let memo = json["memo"] as? String else { throw JsonParseError.expectedMemo }
-      
-      destination = DestinationType.received(memo: memo)
-      
-    case true:
-      guard let publicKey = json["destination"] as? String, let paymentId = json["id"] as? String else {
-        throw JsonParseError.expectedSentDestination
-      }
-      
-      destination = DestinationType.sent(publicKey: publicKey, paymentId: paymentId)
-    }
-  }
-}
-
 // FIXME: - abstract
 class TransactionsViewController: NSViewController {
   @IBOutlet weak var transactionsTableView: NSTableView?
@@ -205,7 +146,7 @@ extension TransactionsViewController: NSTableViewDataSource {
     case .amount:
       let modifier = tx.outgoing ? "-" : "+"
       
-      let largeUnitValue: Double = Double(tx.amount) / 100_000_000
+      let largeUnitValue: Double = Double(tx.tokens) / 100_000_000
       
       let formatter = NumberFormatter()
       

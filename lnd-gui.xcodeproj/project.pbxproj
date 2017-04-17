@@ -19,11 +19,18 @@
 		FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */; };
 		FA520B151E6CCF1900AABE68 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B141E6CCF1900AABE68 /* MainWindowController.swift */; };
 		FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B161E6CDB1F00AABE68 /* SendViewController.swift */; };
+		FA65A3731EA291D1002B2A17 /* Peer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3721EA291D1002B2A17 /* Peer.swift */; };
+		FA65A3751EA2965B002B2A17 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3741EA2965B002B2A17 /* Transaction.swift */; };
+		FA65A3771EA3239C002B2A17 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3761EA3239C002B2A17 /* Connection.swift */; };
+		FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3781EA3246B002B2A17 /* Channel.swift */; };
+		FA65A37B1EA32918002B2A17 /* Outpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A37A1EA32918002B2A17 /* Outpoint.swift */; };
+		FA65A37D1EA3292B002B2A17 /* TransactionHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A37C1EA3292B002B2A17 /* TransactionHash.swift */; };
+		FA65A3801EA32A60002B2A17 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A37F1EA32A60002B2A17 /* PublicKey.swift */; };
 		FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */; };
 		FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA759F9D1E6E74C70024DF80 /* MainViewController.swift */; };
 		FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */; };
 		FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857ED1E91F41A00E834D3 /* Invoice.swift */; };
-		FA7A72241E94A1FD000DA993 /* PeersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7A72231E94A1FD000DA993 /* PeersViewController.swift */; };
+		FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */; };
 		FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -63,11 +70,18 @@
 		FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainTabViewController.swift; path = NavigationControllers/MainTabViewController.swift; sourceTree = "<group>"; };
 		FA520B141E6CCF1900AABE68 /* MainWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		FA520B161E6CDB1F00AABE68 /* SendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendViewController.swift; path = ViewControllers/SendViewController.swift; sourceTree = "<group>"; };
+		FA65A3721EA291D1002B2A17 /* Peer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Peer.swift; sourceTree = "<group>"; };
+		FA65A3741EA2965B002B2A17 /* Transaction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
+		FA65A3761EA3239C002B2A17 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
+		FA65A3781EA3246B002B2A17 /* Channel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Channel.swift; path = Lightning/Channel.swift; sourceTree = "<group>"; };
+		FA65A37A1EA32918002B2A17 /* Outpoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Outpoint.swift; path = Blockchain/Outpoint.swift; sourceTree = "<group>"; };
+		FA65A37C1EA3292B002B2A17 /* TransactionHash.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionHash.swift; sourceTree = "<group>"; };
+		FA65A37F1EA32A60002B2A17 /* PublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicKey.swift; sourceTree = "<group>"; };
 		FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReceiveViewController.swift; sourceTree = "<group>"; };
 		FA759F9D1E6E74C70024DF80 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainViewController.swift; path = ViewControllers/MainViewController.swift; sourceTree = "<group>"; };
 		FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceivedPayment.swift; path = Lightning/ReceivedPayment.swift; sourceTree = "<group>"; };
 		FA7857ED1E91F41A00E834D3 /* Invoice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Invoice.swift; sourceTree = "<group>"; };
-		FA7A72231E94A1FD000DA993 /* PeersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PeersViewController.swift; sourceTree = "<group>"; };
+		FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionsViewController.swift; sourceTree = "<group>"; };
 		FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionsViewController.swift; path = ViewControllers/TransactionsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -108,6 +122,8 @@
 			isa = PBXGroup;
 			children = (
 				FA07DB3F1E84CDBD00FEC042 /* Currency.swift */,
+				FA65A37A1EA32918002B2A17 /* Outpoint.swift */,
+				FA65A37C1EA3292B002B2A17 /* TransactionHash.swift */,
 			);
 			name = Blockchain;
 			sourceTree = "<group>";
@@ -138,6 +154,7 @@
 				FA520AE31E6CC62D00AABE68 /* AppDelegate.swift */,
 				FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */,
 				FA07DB3E1E84CCE800FEC042 /* Blockchain */,
+				FA65A37E1EA32A49002B2A17 /* Crypto */,
 				FA520AEF1E6CC62D00AABE68 /* Info.plist */,
 				FA7857EA1E91CE5E00E834D3 /* Lightning */,
 				FA520AE71E6CC62D00AABE68 /* lnd_gui.xcdatamodeld */,
@@ -180,8 +197,8 @@
 			isa = PBXGroup;
 			children = (
 				2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */,
+				FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */,
 				FA759F9D1E6E74C70024DF80 /* MainViewController.swift */,
-				FA7A72231E94A1FD000DA993 /* PeersViewController.swift */,
 				FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */,
 				FA520B161E6CDB1F00AABE68 /* SendViewController.swift */,
 				FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */,
@@ -189,11 +206,23 @@
 			name = ViewControllers;
 			sourceTree = "<group>";
 		};
+		FA65A37E1EA32A49002B2A17 /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				FA65A37F1EA32A60002B2A17 /* PublicKey.swift */,
+			);
+			name = Crypto;
+			sourceTree = "<group>";
+		};
 		FA7857EA1E91CE5E00E834D3 /* Lightning */ = {
 			isa = PBXGroup;
 			children = (
+				FA65A3781EA3246B002B2A17 /* Channel.swift */,
+				FA65A3761EA3239C002B2A17 /* Connection.swift */,
 				FA7857ED1E91F41A00E834D3 /* Invoice.swift */,
+				FA65A3721EA291D1002B2A17 /* Peer.swift */,
 				FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */,
+				FA65A3741EA2965B002B2A17 /* Transaction.swift */,
 			);
 			name = Lightning;
 			sourceTree = "<group>";
@@ -336,13 +365,20 @@
 			files = (
 				FA07DB401E84CDBD00FEC042 /* Currency.swift in Sources */,
 				FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */,
+				FA65A3751EA2965B002B2A17 /* Transaction.swift in Sources */,
 				FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */,
 				FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */,
 				FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */,
 				FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */,
-				FA7A72241E94A1FD000DA993 /* PeersViewController.swift in Sources */,
+				FA65A3801EA32A60002B2A17 /* PublicKey.swift in Sources */,
+				FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */,
+				FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */,
 				FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */,
 				2157F7611E8851CD00847E4C /* TaskQueue.swift in Sources */,
+				FA65A37B1EA32918002B2A17 /* Outpoint.swift in Sources */,
+				FA65A3731EA291D1002B2A17 /* Peer.swift in Sources */,
+				FA65A3771EA3239C002B2A17 /* Connection.swift in Sources */,
+				FA65A37D1EA3292B002B2A17 /* TransactionHash.swift in Sources */,
 				FA520AE91E6CC62D00AABE68 /* lnd_gui.xcdatamodeld in Sources */,
 				FA520AE41E6CC62D00AABE68 /* AppDelegate.swift in Sources */,
 				FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */,

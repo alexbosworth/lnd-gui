@@ -12,31 +12,31 @@ import Cocoa
 
 struct BlockchainTransactionOutput {
   let address: String
-  let value: Value
+  let tokens: Tokens
   
-  init(address: String, value: Value) {
+  init(address: String, tokens: Tokens) {
     self.address = address
-    self.value = value
+    self.tokens = tokens
   }
   
   enum Failure: Error {
     case expectedAddress
-    case expectedValue
+    case expectedTokens
   }
   
   init(from json: [String: Any]) throws {
     enum JsonAttribute: String {
-      case address, value
+      case address, tokens
       
       var key: String { return rawValue }
     }
     
     guard let address = json[JsonAttribute.address.key] as? String else { throw Failure.expectedAddress }
 
-    guard let value = json[JsonAttribute.value.key] as? NSNumber else { throw Failure.expectedValue }
+    guard let tokens = json[JsonAttribute.tokens.key] as? NSNumber else { throw Failure.expectedTokens }
     
     self.address = address
-    self.value = value.uint64Value
+    self.tokens = tokens.tokensValue
   }
 }
 
@@ -183,7 +183,7 @@ class BlockchainInfoViewController: NSViewController {
   
   func pay(paymentRequest: String, completion: @escaping (Error?) -> ()) {
     let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/channels/")!
+    let sendUrl = URL(string: "http://localhost:10553/v0/payments/")!
     var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
     sendUrlRequest.httpMethod = "POST"
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -328,7 +328,7 @@ class BlockchainInfoViewController: NSViewController {
       
       let confidentConfirmations = 6
 
-      let sentValue = transaction.outputs.reduce(Value()) { $0 + $1.value }
+      let sentValue = transaction.outputs.reduce(Tokens()) { $0 + $1.tokens }
       
       transactionIdTextField?.stringValue = transaction.id
       transactionConfirmationProgressIndicator?.doubleValue = Double(100) * (Double(transaction.confirmationCount) / Double(confidentConfirmations))
@@ -513,7 +513,7 @@ extension BlockchainInfoViewController: NSTableViewDataSource {
         title = output.address
         
       case .outputValue:
-        title = "\(output.value.formatted) tBTC"
+        title = "\(output.tokens.formatted) tBTC"
       }
 
     default:
