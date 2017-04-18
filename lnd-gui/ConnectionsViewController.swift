@@ -221,7 +221,7 @@ extension ConnectionsViewController: NSTableViewDataSource {
         break
       }
       
-      title = String(ping)
+      title = "\(ping)ms"
     }
     
     return column.makeCell(inTableView: tableView, withTitle: title)
