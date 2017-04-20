@@ -126,7 +126,7 @@ extension ConnectionsViewController: NSMenuDelegate {
     
     let sendCloseChannelTask = session.dataTask(with: sendUrlRequest) { [weak self] data, urlResponse, error in
       DispatchQueue.main.async {
-        print("CONNECTION CLOSED", data, urlResponse, error)
+        print("CONNECTION CLOSED", urlResponse, error)
 
         self?.refreshConnections()
       }
@@ -160,6 +160,12 @@ extension ConnectionsViewController: NSMenuDelegate {
     
     menu.addItem(NSMenuItem(title: "Decrease Channel Balance", action: #selector(decreaseChannelBalance), keyEquivalent: String()))
     menu.addItem(NSMenuItem(title: "Increase Channel Balance", action: #selector(increaseChannelBalance), keyEquivalent: String()))
+    
+    menu.addItem(NSMenuItem(title: "Add Peer", action: #selector(segueToAddPeer), keyEquivalent: String()))
+  }
+  
+  func segueToAddPeer() {
+    performSegue(withIdentifier: "AddPeerSegue", sender: self)
   }
   
   func openChannel(with connection: Connection) {

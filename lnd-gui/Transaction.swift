@@ -18,6 +18,7 @@ struct Transaction {
   let tokens: Tokens
   
   enum DestinationType {
+    case chain
     case received(memo: String)
     case sent(publicKey: String, paymentId: String)
   }
@@ -26,9 +27,7 @@ struct Transaction {
     case expectedAmount
     case expectedConfirmedFlag
     case expectedCreatedAtDate
-    case expectedMemo
     case expectedOutgoingFlag
-    case expectedSentDestination
   }
   
   init(from json: [String: Any]) throws {
@@ -53,13 +52,15 @@ struct Transaction {
     
     switch outgoing {
     case false:
-      guard let memo = json["memo"] as? String else { throw JsonParseError.expectedMemo }
+      let memo = (json["memo"] as? String ?? String()) as String
       
       destination = DestinationType.received(memo: memo)
       
     case true:
       guard let publicKey = json["destination"] as? String, let paymentId = json["id"] as? String else {
-        throw JsonParseError.expectedSentDestination
+        destination = DestinationType.chain
+        
+        break
       }
       
       destination = DestinationType.sent(publicKey: publicKey, paymentId: paymentId)

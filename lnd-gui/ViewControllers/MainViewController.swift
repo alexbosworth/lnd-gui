@@ -107,8 +107,13 @@ class MainViewController: NSViewController {
   private func updateVisibleBalance() {
     let chainBalance = (self.chainBalance ?? Tokens()) as Tokens
     let channelBalance = (self.channelBalance ?? Tokens()) as Tokens
+    let formattedBalance: String
     
-    let formattedBalance = "Lightning Balance: \(channelBalance.formatted) tBTC - Chain Balance: \(chainBalance.formatted) tBTC"
+    if chainBalance < 100_000 {
+      formattedBalance = "Lightning Balance: \(channelBalance.formatted) tBTC"
+    } else {
+      formattedBalance = "Lightning Balance: \(channelBalance.formatted) tBTC - Chain Balance: \(chainBalance.formatted) tBTC"
+    }
     
     balanceLabelTextField?.stringValue = formattedBalance
   }

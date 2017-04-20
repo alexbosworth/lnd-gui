@@ -169,6 +169,9 @@ extension TransactionsViewController: NSTableViewDataSource {
       
     case .description:
       switch tx.destination {
+      case .chain:
+        title = " "
+        
       case .received(memo: let memo):
         title = memo
         

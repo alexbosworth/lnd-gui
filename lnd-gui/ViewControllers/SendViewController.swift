@@ -9,6 +9,8 @@
 import Cocoa
 
 /** SendViewController is a view controller for performing a send.
+ 
+  FIXME: - auto detect sending to a blockchain address
  */
 class SendViewController: NSViewController {
   // MARK: - @IBActions

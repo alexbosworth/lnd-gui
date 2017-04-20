@@ -31,6 +31,7 @@
 		FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */; };
 		FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857ED1E91F41A00E834D3 /* Invoice.swift */; };
 		FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */; };
+		FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */; };
 		FADD7C9B1EA5C49B00FEA12C /* ChainWalletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */; };
 		FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */; };
 /* End PBXBuildFile section */
@@ -83,6 +84,7 @@
 		FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceivedPayment.swift; path = Lightning/ReceivedPayment.swift; sourceTree = "<group>"; };
 		FA7857ED1E91F41A00E834D3 /* Invoice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Invoice.swift; sourceTree = "<group>"; };
 		FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionsViewController.swift; sourceTree = "<group>"; };
+		FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPeerViewController.swift; sourceTree = "<group>"; };
 		FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ChainWalletViewController.swift; path = ViewControllers/ChainWalletViewController.swift; sourceTree = "<group>"; };
 		FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionsViewController.swift; path = ViewControllers/TransactionsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -198,6 +200,7 @@
 		FA520B181E6CDB2400AABE68 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
+				FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */,
 				2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */,
 				FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */,
 				FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */,
@@ -380,6 +383,7 @@
 				FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */,
 				2157F7611E8851CD00847E4C /* TaskQueue.swift in Sources */,
 				FA65A37B1EA32918002B2A17 /* Outpoint.swift in Sources */,
+				FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */,
 				FA65A3731EA291D1002B2A17 /* Peer.swift in Sources */,
 				FA65A3771EA3239C002B2A17 /* Connection.swift in Sources */,
 				FA65A37D1EA3292B002B2A17 /* TransactionHash.swift in Sources */,
