@@ -39,6 +39,7 @@ extension ConnectionsViewController {
     case balance = "BalanceColumn"
     case online = "OnlineColumn"
     case ping = "PingColumn"
+    case publicKey = "PublicKeyColumn"
     
     /** Create from a table column
      */
@@ -58,6 +59,9 @@ extension ConnectionsViewController {
         
       case .ping:
         return "PingCell"
+        
+      case .publicKey:
+        return "PublicKeyCell"
       }
     }
     
@@ -119,7 +123,7 @@ extension ConnectionsViewController {
 extension ConnectionsViewController: NSMenuDelegate {
   func close(_ channel: Channel) {
     let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/channels/\(channel.id)")!
+    let sendUrl = URL(string: "http://localhost:10553/v0/channels/\(channel.id!)")!
     var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
     sendUrlRequest.httpMethod = "DELETE"
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -148,7 +152,7 @@ extension ConnectionsViewController: NSMenuDelegate {
     
     guard let connection = connection(at: clickedConnectionAtRow) else { return print("expectedConnection") }
 
-    guard let peer = connection.peers.first else { return print("expectedPeer") }
+    guard let _ = connection.peers.first else { return print("expectedPeer") }
 
     openChannel(with: connection)
   }
@@ -178,10 +182,10 @@ extension ConnectionsViewController: NSMenuDelegate {
     let data = "{\"partner_public_key\": \"\(connection.publicKey.hexEncoded)\"}".data(using: .utf8)
     
     // FIXME: - cleanup
-    let sendTask = session.uploadTask(with: sendUrlRequest, from: data) { [weak self] data, urlResponse, error in
+    let sendTask = session.uploadTask(with: sendUrlRequest, from: data) { data, urlResponse, error in
       if let error = error { return print("ERROR \(error)") }
 
-      print("OPENED CHANNEL", data, urlResponse as? HTTPURLResponse, error)
+      print("OPENED CHANNEL")
     }
     
     sendTask.resume()
@@ -218,7 +222,23 @@ extension ConnectionsViewController: NSTableViewDataSource {
       title = "\(connection.balance.formatted) tBTC"
       
     case .online:
-      title = connection.peers.isEmpty ? "Offline": "Online"
+      let hasActivePeer = !connection.peers.isEmpty
+      
+      guard hasActivePeer else { title = "Offline"; break }
+      
+      let hasActiveChannel = connection.channels.contains { $0.state == .active }
+      
+      guard !hasActiveChannel else { title = "Online"; break }
+      
+      let hasOpeningChannel = connection.channels.contains { $0.state == .opening }
+      
+      guard !hasOpeningChannel else { title = "Connecting"; break }
+      
+      let hasClosingChannel = connection.channels.contains { $0.state == .closing }
+      
+      guard !hasClosingChannel else { title = "Closing"; break }
+      
+      title = "Online"
       
     case .ping:
       guard let ping = connection.bestPing else {
@@ -228,6 +248,9 @@ extension ConnectionsViewController: NSTableViewDataSource {
       }
       
       title = "\(ping)ms"
+      
+    case .publicKey:
+      title = connection.publicKey.hexEncoded
     }
     
     return column.makeCell(inTableView: tableView, withTitle: title)
@@ -247,3 +270,9 @@ extension ConnectionsViewController: NSTableViewDataSource {
 }
 
 extension ConnectionsViewController: NSTableViewDelegate {}
+
+extension ConnectionsViewController: WalletListener {
+  func wallet(updated: Wallet) {
+    refreshConnections()
+  }
+}

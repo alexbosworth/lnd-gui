@@ -12,8 +12,9 @@ import Foundation
 // FIXME: - reorganize
 struct Transaction {
   let confirmed: Bool
+  let createdAt: Date?
   let destination: DestinationType
-  let createdAt: Date
+  let id: String
   let outgoing: Bool
   let tokens: Tokens
   
@@ -26,8 +27,30 @@ struct Transaction {
   enum JsonParseError: String, Error {
     case expectedAmount
     case expectedConfirmedFlag
-    case expectedCreatedAtDate
+    case expectedDestination
+    case expectedId
     case expectedOutgoingFlag
+    case expectedType
+  }
+  
+  enum NetworkType {
+    case chain
+    case channel
+    
+    init?(from transactionType: String?) {
+      guard let transactionType = transactionType else { return nil }
+      
+      switch transactionType {
+      case "chain_transaction":
+        self = .chain
+        
+      case "channel_transaction":
+        self = .channel
+        
+      default:
+        return nil
+      }
+    }
   }
   
   init(from json: [String: Any]) throws {
@@ -37,33 +60,39 @@ struct Transaction {
     dateFormatter.locale = Locale(identifier: "en_US_POSIX")
     dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
     
-    guard
-      let createdAtString = (json["created_at"] as? String),
-      let createdAt = dateFormatter.date(from: createdAtString) else { throw JsonParseError.expectedCreatedAtDate }
+    let createdAtString = json["created_at"] as? String
+    let createdAt: Date?
+      
+    if let str = createdAtString { createdAt = dateFormatter.date(from: str) } else { createdAt = nil }
+
+    guard let id = json["id"] as? String else { throw JsonParseError.expectedId }
     
     guard let outgoing = (json["outgoing"] as? Bool) else { throw JsonParseError.expectedOutgoingFlag }
     
     guard let tokens = (json["tokens"] as? NSNumber)?.tokensValue else { throw JsonParseError.expectedAmount }
     
+    let memo = json["memo"] as? String
+    let destinationId = json["destination"] as? String
+
+    guard let networkType = NetworkType(from: json["type"] as? String) else { throw JsonParseError.expectedType }
+    
+    switch (networkType, outgoing) {
+    case (.chain, _):
+      destination = DestinationType.chain
+      
+    case (.channel, false):
+      destination = DestinationType.received(memo: (memo ?? String()) as String)
+      
+    case (.channel, true):
+      guard let publicKey = destinationId else { throw JsonParseError.expectedDestination }
+      
+      destination = DestinationType.sent(publicKey: publicKey, paymentId: id)
+    }
+  
     self.confirmed = confirmed
     self.createdAt = createdAt
+    self.id = id
     self.outgoing = outgoing
     self.tokens = tokens
-    
-    switch outgoing {
-    case false:
-      let memo = (json["memo"] as? String ?? String()) as String
-      
-      destination = DestinationType.received(memo: memo)
-      
-    case true:
-      guard let publicKey = json["destination"] as? String, let paymentId = json["id"] as? String else {
-        destination = DestinationType.chain
-        
-        break
-      }
-      
-      destination = DestinationType.sent(publicKey: publicKey, paymentId: paymentId)
-    }
   }
 }

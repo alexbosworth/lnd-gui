@@ -61,7 +61,7 @@ class ReceiveViewController: NSViewController {
   
   /** clear eliminates the input and previous created invoice from the view.
    */
-  private func clear() {
+  fileprivate func clear() {
     let addedInvoiceViews = [paymentRequestHeadingTextField, paymentRequestTextField]
     let inputTextFields = [amountTextField, memoTextField]
     
@@ -126,9 +126,10 @@ extension ReceiveViewController {
         
         invoice = try Invoice(from: json)
       } catch {
-        return print(error)
+        return print("PARSE INVOICE ERROR", error)
       }
-      
+
+      // FIXME: - on error, reset the form, show error
       DispatchQueue.main.async {
         self?.invoice = invoice
         self?.paymentRequestHeadingTextField?.isHidden = false
@@ -140,5 +141,21 @@ extension ReceiveViewController {
     }
     
     task.resume()
+  }
+}
+
+extension ReceiveViewController: WalletListener {
+  func wallet(updated wallet: Wallet) {
+    let hasSettledInvoice = wallet.transactions.contains { transaction in
+      switch transaction.destination {
+      case .chain, .sent(_, _):
+        return false
+        
+      case .received(_):
+        return transaction.id == invoice?.id && transaction.confirmed
+      }
+    }
+    
+    if hasSettledInvoice { clear() }
   }
 }

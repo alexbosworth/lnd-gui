@@ -8,6 +8,10 @@
 
 import Cocoa
 
+/** Add peer dialog
+ 
+ FIXME: - default to a normal port, allow changing port
+ */
 class AddPeerViewController: NSViewController {
   @IBAction func pressedAddPeerButton(_ sender: NSButton) {
     guard let host = hostTextField?.stringValue, !host.isEmpty else { return }
@@ -48,7 +52,7 @@ extension AddPeerViewController {
       if let error = error {
         return print("ERROR \(error)")
       }
-
+      
       self?.dismiss(self)
     }
     

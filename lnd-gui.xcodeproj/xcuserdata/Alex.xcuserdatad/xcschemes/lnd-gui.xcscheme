@@ -33,8 +33,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "FA520AF31E6CC62D00AABE68"
-               BuildableName = "lnd-guiTests.xctest"
-               BlueprintName = "lnd-guiTests"
+               BuildableName = "lnd-guiTestsUnit.xctest"
+               BlueprintName = "lnd-guiTestsUnit"
                ReferencedContainer = "container:lnd-gui.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -43,8 +43,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "FA520AFE1E6CC62D00AABE68"
-               BuildableName = "lnd-guiUITests.xctest"
-               BlueprintName = "lnd-guiUITests"
+               BuildableName = "lnd-guiUITestsUI.xctest"
+               BlueprintName = "lnd-guiUITestsUI"
                ReferencedContainer = "container:lnd-gui.xcodeproj">
             </BuildableReference>
          </TestableReference>

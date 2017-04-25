@@ -181,3 +181,9 @@ extension ChainWalletViewController {
 
   }
 }
+
+extension ChainWalletViewController: WalletListener {
+  func wallet(updated: Wallet) {
+    refreshChainBalance()
+  }
+}

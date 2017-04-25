@@ -8,6 +8,18 @@
 
 import Cocoa
 
+struct Wallet {
+  var transactions: [Transaction]
+  
+  init() {
+    transactions = []
+  }
+}
+
+protocol WalletListener {
+  func wallet(updated: Wallet)
+}
+
 /** MainViewController is the controller for the main view.
  
  FIXME: - cleanup, comment
@@ -41,6 +53,8 @@ class MainViewController: NSViewController {
    */
   weak var mainTabViewController: MainTabViewController?
 
+  lazy var wallet = Wallet()
+  
   /** receivedPayments represents payments received.
    
     FIXME: - abstract out notification
@@ -77,20 +91,6 @@ class MainViewController: NSViewController {
   
   // MARK: - UIViewController
   
-  /** initWalletPolling kicks off wallet polling
-    
-   FIXME: - switch to sockets
-   */
-  private func initWalletPolling() {
-    _ = Timer.scheduledTimer(
-      timeInterval: 0.3,
-      target: self,
-      selector: #selector(refreshInvoices),
-      userInfo: nil,
-      repeats: true
-    )
-  }
-  
   /** updateConnectedStatus updates the view to reflect the current connected state.
    
    FIXME: - use nicer colors
@@ -125,11 +125,117 @@ class MainViewController: NSViewController {
     
     refreshBalances {}
     
-    initWalletPolling()
-    
     connected = false
     
     balanceLabelTextField?.stringValue = String()
+    
+    initWalletServiceConnection()
+
+    refreshHistory()
+  }
+
+  func initWalletServiceConnection(){
+    var messageNum = 0
+    let ws = WebSocket("ws://localhost:10554")
+    let send: () -> () = {
+      messageNum += 1
+      let msg = "\(messageNum): \(NSDate().description)"
+      print("send: \(msg)")
+      ws.send(msg)
+    }
+    ws.event.open = {
+      print("opened")
+      send()
+    }
+    ws.event.close = { code, reason, clean in
+      print("close")
+      ws.open()
+    }
+    ws.event.error = { error in
+      print("error \(error)")
+    }
+    ws.event.message = { [weak self] message in
+      if let message = message as? String { self?.received(message: message) }
+      
+      self?.refreshInvoices()
+
+      self?.refreshBalances() {}
+      
+      self?.refreshHistory()
+    }
+  }
+}
+
+extension MainViewController {
+  func received(message: String) {
+    print("RECEIVED MESSAGE", message)
+
+    guard let data = message.data(using: .utf8, allowLossyConversion: false) else { return }
+    
+    guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else { return }
+
+    guard let json = jsonObject as? [String: Any] else { return }
+
+    enum RowType: String {
+      case chainTransaction = "chain_transaction"
+      case channelTransaction = "channel_transaction"
+      
+      init?(from string: String) {
+        if let type = type(of: self).init(rawValue: string) { self = type } else { return nil }
+      }
+    }
+    
+    guard let rowType = json["type"] as? String, let type = RowType(from: rowType) else { return }
+    
+    switch type {
+    case .chainTransaction, .channelTransaction:
+      do {
+        let transaction = try Transaction(from: json)
+        
+        guard !transaction.outgoing else { return }
+        
+        notifyReceived(transaction)
+      } catch {
+        print(error)
+      }
+    }
+  }
+}
+
+extension MainViewController {
+  func notifyReceived(_ transaction: Transaction) {
+    switch transaction.destination {
+    case .chain:
+      guard !transaction.outgoing else { break }
+      
+      let notification = NSUserNotification()
+      
+      switch transaction.confirmed {
+      case false:
+        notification.title = "Incoming blockchain transaction"
+        notification.informativeText = "Receiving \(transaction.tokens.formatted)"
+
+      case true:
+        notification.title = "Received funds"
+        notification.informativeText = "Received \(transaction.tokens.formatted)"
+      }
+      
+      notification.soundName = NSUserNotificationDefaultSoundName
+      
+      NSUserNotificationCenter.default.deliver(notification)
+      
+    case .received(memo: let memo):
+      let notification = NSUserNotification()
+      
+      notification.title = "Payment for \(memo)"
+      notification.informativeText = "Received \(transaction.tokens.formatted)"
+      notification.soundName = NSUserNotificationDefaultSoundName
+      
+      NSUserNotificationCenter.default.deliver(notification)
+      
+    case .sent(_, _):
+      break
+    }
   }
 }
 
@@ -247,6 +353,46 @@ extension MainViewController {
       }
       
       DispatchQueue.main.async { self?.receivedPayments = receivedPayments }
+    }
+    
+    task.resume()
+  }
+}
+
+extension MainViewController {
+  func refreshHistory() {
+    let url = URL(string: "http://localhost:10553/v0/history/")!
+    let session = URLSession.shared
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    
+    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
+      guard let historyData = data else { return print("Expected history data") }
+      
+      let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: historyData, options: .allowFragments)
+      
+      guard let history = dataDownloadedAsJson as? [[String: Any]] else {
+        return print("Expected history json")
+      }
+      
+      do {
+        let transactions = try history.map { try Transaction(from: $0) }
+        
+        DispatchQueue.main.async {
+          self?.wallet.transactions = transactions
+
+          guard let wallet = self?.wallet else { return }
+          
+          self?.mainTabViewController?.tabViewItems.forEach { tabViewItem in
+            guard let walletListener = tabViewItem.viewController as? WalletListener else { return }
+
+            walletListener.wallet(updated: wallet)
+          }
+        }
+      } catch {
+        print("Failed to parse transaction history \(error)")
+      }
     }
     
     task.resume()

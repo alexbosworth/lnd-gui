@@ -14,8 +14,6 @@
 		FA520AE91E6CC62D00AABE68 /* lnd_gui.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FA520AE71E6CC62D00AABE68 /* lnd_gui.xcdatamodeld */; };
 		FA520AEB1E6CC62D00AABE68 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */; };
 		FA520AEE1E6CC62D00AABE68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA520AEC1E6CC62D00AABE68 /* Main.storyboard */; };
-		FA520AF91E6CC62D00AABE68 /* lnd_guiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520AF81E6CC62D00AABE68 /* lnd_guiTests.swift */; };
-		FA520B041E6CC62D00AABE68 /* lnd_guiUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B031E6CC62D00AABE68 /* lnd_guiUITests.swift */; };
 		FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */; };
 		FA520B151E6CCF1900AABE68 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B141E6CCF1900AABE68 /* MainWindowController.swift */; };
 		FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B161E6CDB1F00AABE68 /* SendViewController.swift */; };
@@ -34,24 +32,9 @@
 		FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */; };
 		FADD7C9B1EA5C49B00FEA12C /* ChainWalletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */; };
 		FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */; };
+		FAF93BB41EABE49600864A6F /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FAF93BB31EABE49600864A6F /* libz.tbd */; };
+		FAF93BB61EABE4C600864A6F /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF93BB51EABE4C600864A6F /* WebSocket.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		FA520AF51E6CC62D00AABE68 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = FA520AD81E6CC62D00AABE68 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = FA520ADF1E6CC62D00AABE68;
-			remoteInfo = "lnd-gui";
-		};
-		FA520B001E6CC62D00AABE68 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = FA520AD81E6CC62D00AABE68 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = FA520ADF1E6CC62D00AABE68;
-			remoteInfo = "lnd-gui";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlockchainInfoViewController.swift; sourceTree = "<group>"; };
@@ -63,12 +46,6 @@
 		FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FA520AED1E6CC62D00AABE68 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		FA520AEF1E6CC62D00AABE68 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FA520AF41E6CC62D00AABE68 /* lnd-guiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lnd-guiTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FA520AF81E6CC62D00AABE68 /* lnd_guiTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lnd_guiTests.swift; sourceTree = "<group>"; };
-		FA520AFA1E6CC62D00AABE68 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FA520AFF1E6CC62D00AABE68 /* lnd-guiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lnd-guiUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FA520B031E6CC62D00AABE68 /* lnd_guiUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = lnd_guiUITests.swift; sourceTree = "<group>"; };
-		FA520B051E6CC62D00AABE68 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainTabViewController.swift; path = NavigationControllers/MainTabViewController.swift; sourceTree = "<group>"; };
 		FA520B141E6CCF1900AABE68 /* MainWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		FA520B161E6CDB1F00AABE68 /* SendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendViewController.swift; path = ViewControllers/SendViewController.swift; sourceTree = "<group>"; };
@@ -87,6 +64,8 @@
 		FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPeerViewController.swift; sourceTree = "<group>"; };
 		FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ChainWalletViewController.swift; path = ViewControllers/ChainWalletViewController.swift; sourceTree = "<group>"; };
 		FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionsViewController.swift; path = ViewControllers/TransactionsViewController.swift; sourceTree = "<group>"; };
+		FAF93BB31EABE49600864A6F /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		FAF93BB51EABE4C600864A6F /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,20 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		FA520AF11E6CC62D00AABE68 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		FA520AFC1E6CC62D00AABE68 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				FAF93BB41EABE49600864A6F /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				2157F7601E8851CD00847E4C /* TaskQueue.swift */,
+				FAF93BB51EABE4C600864A6F /* WebSocket.swift */,
 			);
 			name = Vendor;
 			sourceTree = "<group>";
@@ -136,9 +103,8 @@
 			isa = PBXGroup;
 			children = (
 				FA520AE21E6CC62D00AABE68 /* lnd-gui */,
-				FA520AF71E6CC62D00AABE68 /* lnd-guiTests */,
-				FA520B021E6CC62D00AABE68 /* lnd-guiUITests */,
 				FA520AE11E6CC62D00AABE68 /* Products */,
+				FAF93BB21EABE49600864A6F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -146,8 +112,6 @@
 			isa = PBXGroup;
 			children = (
 				FA520AE01E6CC62D00AABE68 /* lnd-gui.app */,
-				FA520AF41E6CC62D00AABE68 /* lnd-guiTests.xctest */,
-				FA520AFF1E6CC62D00AABE68 /* lnd-guiUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -168,24 +132,6 @@
 				FA520B181E6CDB2400AABE68 /* ViewControllers */,
 			);
 			path = "lnd-gui";
-			sourceTree = "<group>";
-		};
-		FA520AF71E6CC62D00AABE68 /* lnd-guiTests */ = {
-			isa = PBXGroup;
-			children = (
-				FA520AF81E6CC62D00AABE68 /* lnd_guiTests.swift */,
-				FA520AFA1E6CC62D00AABE68 /* Info.plist */,
-			);
-			path = "lnd-guiTests";
-			sourceTree = "<group>";
-		};
-		FA520B021E6CC62D00AABE68 /* lnd-guiUITests */ = {
-			isa = PBXGroup;
-			children = (
-				FA520B031E6CC62D00AABE68 /* lnd_guiUITests.swift */,
-				FA520B051E6CC62D00AABE68 /* Info.plist */,
-			);
-			path = "lnd-guiUITests";
 			sourceTree = "<group>";
 		};
 		FA520B131E6CC83200AABE68 /* NavigationControllers */ = {
@@ -233,6 +179,14 @@
 			name = Lightning;
 			sourceTree = "<group>";
 		};
+		FAF93BB21EABE49600864A6F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FAF93BB31EABE49600864A6F /* libz.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -253,42 +207,6 @@
 			productReference = FA520AE01E6CC62D00AABE68 /* lnd-gui.app */;
 			productType = "com.apple.product-type.application";
 		};
-		FA520AF31E6CC62D00AABE68 /* lnd-guiTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = FA520B0B1E6CC62D00AABE68 /* Build configuration list for PBXNativeTarget "lnd-guiTests" */;
-			buildPhases = (
-				FA520AF01E6CC62D00AABE68 /* Sources */,
-				FA520AF11E6CC62D00AABE68 /* Frameworks */,
-				FA520AF21E6CC62D00AABE68 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				FA520AF61E6CC62D00AABE68 /* PBXTargetDependency */,
-			);
-			name = "lnd-guiTests";
-			productName = "lnd-guiTests";
-			productReference = FA520AF41E6CC62D00AABE68 /* lnd-guiTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		FA520AFE1E6CC62D00AABE68 /* lnd-guiUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = FA520B0E1E6CC62D00AABE68 /* Build configuration list for PBXNativeTarget "lnd-guiUITests" */;
-			buildPhases = (
-				FA520AFB1E6CC62D00AABE68 /* Sources */,
-				FA520AFC1E6CC62D00AABE68 /* Frameworks */,
-				FA520AFD1E6CC62D00AABE68 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				FA520B011E6CC62D00AABE68 /* PBXTargetDependency */,
-			);
-			name = "lnd-guiUITests";
-			productName = "lnd-guiUITests";
-			productReference = FA520AFF1E6CC62D00AABE68 /* lnd-guiUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -303,18 +221,6 @@
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = 726K4AHK5D;
 						ProvisioningStyle = Automatic;
-					};
-					FA520AF31E6CC62D00AABE68 = {
-						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = 726K4AHK5D;
-						ProvisioningStyle = Automatic;
-						TestTargetID = FA520ADF1E6CC62D00AABE68;
-					};
-					FA520AFE1E6CC62D00AABE68 = {
-						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = 726K4AHK5D;
-						ProvisioningStyle = Automatic;
-						TestTargetID = FA520ADF1E6CC62D00AABE68;
 					};
 				};
 			};
@@ -332,8 +238,6 @@
 			projectRoot = "";
 			targets = (
 				FA520ADF1E6CC62D00AABE68 /* lnd-gui */,
-				FA520AF31E6CC62D00AABE68 /* lnd-guiTests */,
-				FA520AFE1E6CC62D00AABE68 /* lnd-guiUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -348,20 +252,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FA520AF21E6CC62D00AABE68 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		FA520AFD1E6CC62D00AABE68 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -370,6 +260,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA07DB401E84CDBD00FEC042 /* Currency.swift in Sources */,
+				FAF93BB61EABE4C600864A6F /* WebSocket.swift in Sources */,
 				FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */,
 				FA65A3751EA2965B002B2A17 /* Transaction.swift in Sources */,
 				FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */,
@@ -395,36 +286,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FA520AF01E6CC62D00AABE68 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				FA520AF91E6CC62D00AABE68 /* lnd_guiTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		FA520AFB1E6CC62D00AABE68 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				FA520B041E6CC62D00AABE68 /* lnd_guiUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		FA520AF61E6CC62D00AABE68 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = FA520ADF1E6CC62D00AABE68 /* lnd-gui */;
-			targetProxy = FA520AF51E6CC62D00AABE68 /* PBXContainerItemProxy */;
-		};
-		FA520B011E6CC62D00AABE68 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = FA520ADF1E6CC62D00AABE68 /* lnd-gui */;
-			targetProxy = FA520B001E6CC62D00AABE68 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		FA520AEC1E6CC62D00AABE68 /* Main.storyboard */ = {
@@ -556,68 +418,6 @@
 			};
 			name = Release;
 		};
-		FA520B0C1E6CC62D00AABE68 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 726K4AHK5D;
-				INFOPLIST_FILE = "lnd-guiTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "adylitica.lnd-guiTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lnd-gui.app/Contents/MacOS/lnd-gui";
-			};
-			name = Debug;
-		};
-		FA520B0D1E6CC62D00AABE68 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 726K4AHK5D;
-				INFOPLIST_FILE = "lnd-guiTests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "adylitica.lnd-guiTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lnd-gui.app/Contents/MacOS/lnd-gui";
-			};
-			name = Release;
-		};
-		FA520B0F1E6CC62D00AABE68 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 726K4AHK5D;
-				INFOPLIST_FILE = "lnd-guiUITests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "adylitica.lnd-guiUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_TARGET_NAME = "lnd-gui";
-			};
-			name = Debug;
-		};
-		FA520B101E6CC62D00AABE68 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 726K4AHK5D;
-				INFOPLIST_FILE = "lnd-guiUITests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "adylitica.lnd-guiUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_TARGET_NAME = "lnd-gui";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -635,24 +435,6 @@
 			buildConfigurations = (
 				FA520B091E6CC62D00AABE68 /* Debug */,
 				FA520B0A1E6CC62D00AABE68 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		FA520B0B1E6CC62D00AABE68 /* Build configuration list for PBXNativeTarget "lnd-guiTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				FA520B0C1E6CC62D00AABE68 /* Debug */,
-				FA520B0D1E6CC62D00AABE68 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		FA520B0E1E6CC62D00AABE68 /* Build configuration list for PBXNativeTarget "lnd-guiUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				FA520B0F1E6CC62D00AABE68 /* Debug */,
-				FA520B101E6CC62D00AABE68 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -35,7 +35,7 @@ struct Connection {
     guard let channels = json[JsonAttribute.channels.key] as? [[String: Any]] else {
       throw ParseJsonFailure.expectedChannels
     }
-    
+
     guard let peers = json[JsonAttribute.peers.key] as? [[String: Any]] else { throw ParseJsonFailure.expectedPeers }
     
     guard let publicKey = json[JsonAttribute.publicKey.key] as? String else { throw ParseJsonFailure.expectedPublicKey }

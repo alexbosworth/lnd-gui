@@ -13,52 +13,9 @@ class TransactionsViewController: NSViewController {
   @IBOutlet weak var transactionsTableView: NSTableView?
   
   lazy var transactions: [Transaction] = [Transaction]()
-  
-  override func viewDidLoad() {
-    super.viewDidLoad()
-  }
-  
-  override func viewDidAppear() {
-    super.viewDidAppear()
-    
-    refreshHistory()
-  }
 }
 
-extension TransactionsViewController {
-  func refreshHistory() {
-    let url = URL(string: "http://localhost:10553/v0/history/")!
-    let session = URLSession.shared
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    
-    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
-      guard let historyData = data else { return print("Expected history data") }
-      
-      let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: historyData, options: .allowFragments)
-      
-      guard let history = dataDownloadedAsJson as? [[String: Any]] else {
-        return print("Expected history json")
-      }
-
-      do {
-        let transactions = try history.map { try Transaction(from: $0) }
-        
-        DispatchQueue.main.async {
-          self?.transactions = transactions
-          
-          self?.transactionsTableView?.reloadData()
-        }
-      } catch {
-        print("Failed to parse transaction history \(error)")
-      }
-    }
-    
-    task.resume()
-  }
-}
-
+// FIXME: - reload transactions when sending is complete
 extension TransactionsViewController {
   /** Table columns
    */
@@ -165,7 +122,13 @@ extension TransactionsViewController: NSTableViewDataSource {
       formatter.dateStyle = .short
       formatter.timeStyle = .short
       
-      title = "\(formatter.string(from: tx.createdAt))"
+      guard let createdAt = tx.createdAt else {
+        title = " "
+        
+        break
+      }
+      
+      title = "\(formatter.string(from: createdAt))"
       
     case .description:
       switch tx.destination {
@@ -199,5 +162,13 @@ extension TransactionsViewController: NSTableViewDataSource {
 
 extension TransactionsViewController: NSTableViewDelegate {
   
+}
+
+extension TransactionsViewController: WalletListener {
+  func wallet(updated wallet: Wallet) {
+    transactions = wallet.transactions
+    
+    transactionsTableView?.reloadData()
+  }
 }
 
