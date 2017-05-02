@@ -9,6 +9,12 @@
 import Cocoa
 
 /** ReceiveViewController is a view controller for creating invoices
+ 
+ FIXME: - disable the clear button when there is nothing to clear
+ FIXME: - disable the create invoice button when there is nothing to create
+ FIXME: - add copy button
+ FIXME: - don't allow entering too much or too little Satoshis
+ FIXME: - when received, show received notification
  */
 class ReceiveViewController: NSViewController {
   // MARK: - @IBActions

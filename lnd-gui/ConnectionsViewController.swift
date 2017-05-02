@@ -8,26 +8,37 @@
 
 import Cocoa
 
-
 /** ConnectionsViewController is a view controller for creating invoices.
  */
 class ConnectionsViewController: NSViewController {
+  // MARK: - @IBOutlets
+  
+  /** Connections table view
+   */
   @IBOutlet weak var connectionsTableView: NSTableView?
 
-  override func viewDidAppear() {
-    super.viewDidAppear()
+  // MARK: - NSViewController
+
+  /** View will appear
+   */
+  override func viewWillAppear() {
+    super.viewWillAppear()
     
     refreshConnections()
   }
   
+  /** View loaded
+   */
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    connectionsTableView?.menu = NSMenu()
-    
-    connectionsTableView?.menu?.delegate = self
+    initMenu()
   }
   
+  // MARK: - Properties
+
+  /** Connections
+   */
   lazy var connections: [Connection] = []
 }
 
@@ -43,8 +54,8 @@ extension ConnectionsViewController {
     
     /** Create from a table column
      */
-    init?(fromTableColumn: NSTableColumn?) {
-      if let id = fromTableColumn?.identifier, let c = type(of: self).init(rawValue: id) { self = c } else { return nil }
+    init?(fromTableColumn col: NSTableColumn?) {
+      if let id = col?.identifier, let column = type(of: self).init(rawValue: id) { self = column } else { return nil }
     }
     
     /** Cell identifier for column cell
@@ -83,11 +94,15 @@ extension ConnectionsViewController {
 
 // MARK: - Networking
 extension ConnectionsViewController {
+  /** Get connections JSON errors
+   */
   private enum GetJsonFailure: String, Error {
     case expectedData
     case expectedJson
   }
 
+  /** Refresh connections
+   */
   func refreshConnections() {
     let url = URL(string: "http://localhost:10553/v0/connections/")!
     let session = URLSession.shared
@@ -157,15 +172,30 @@ extension ConnectionsViewController: NSMenuDelegate {
     openChannel(with: connection)
   }
   
+  fileprivate func initMenu() {
+    connectionsTableView?.menu = NSMenu()
+    
+    connectionsTableView?.menu?.delegate = self
+  }
+  
   /** Context menu is appearing
    */
   func menuNeedsUpdate(_ menu: NSMenu) {
     menu.removeAllItems()
-    
-    menu.addItem(NSMenuItem(title: "Decrease Channel Balance", action: #selector(decreaseChannelBalance), keyEquivalent: String()))
-    menu.addItem(NSMenuItem(title: "Increase Channel Balance", action: #selector(increaseChannelBalance), keyEquivalent: String()))
-    
-    menu.addItem(NSMenuItem(title: "Add Peer", action: #selector(segueToAddPeer), keyEquivalent: String()))
+
+    guard let selected = connectionsTableView?.selectedRow, let connection = connection(at: selected) else {
+      menu.addItem(NSMenuItem(title: "Add Peer", action: #selector(segueToAddPeer), keyEquivalent: String()))
+      
+      return
+    }
+
+    switch connection.balance > Tokens() {
+    case false:
+      menu.addItem(NSMenuItem(title: "Increase Channel Balance", action: #selector(increaseChannelBalance), keyEquivalent: String()))
+      
+    case true:
+      menu.addItem(NSMenuItem(title: "Decrease Channel Balance", action: #selector(decreaseChannelBalance), keyEquivalent: String()))
+    }
   }
   
   func segueToAddPeer() {

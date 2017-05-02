@@ -8,6 +8,7 @@
 
 import Cocoa
 
+// FIXME: - cleanup
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 

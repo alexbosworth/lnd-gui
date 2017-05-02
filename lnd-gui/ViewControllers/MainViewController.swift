@@ -10,9 +10,11 @@ import Cocoa
 
 struct Wallet {
   var transactions: [Transaction]
+  var unconfirmedTransactions: [Transaction]
   
   init() {
     transactions = []
+    unconfirmedTransactions = []
   }
 }
 
@@ -143,12 +145,18 @@ class MainViewController: NSViewController {
       print("send: \(msg)")
       ws.send(msg)
     }
-    ws.event.open = {
-      print("opened")
+    ws.event.open = { [weak self] in
+      self?.connected = true
+      
+      self?.refreshHistory()
+      
+      self?.refreshBalances() {}
+      
       send()
     }
-    ws.event.close = { code, reason, clean in
-      print("close")
+    ws.event.close = { [weak self] code, reason, clean in
+      self?.connected = false
+      
       ws.open()
     }
     ws.event.error = { error in
@@ -156,6 +164,8 @@ class MainViewController: NSViewController {
     }
     ws.event.message = { [weak self] message in
       if let message = message as? String { self?.received(message: message) }
+
+      print("RECEIVED MESSAGE: \(message)")
       
       self?.refreshInvoices()
 
@@ -193,6 +203,12 @@ extension MainViewController {
         let transaction = try Transaction(from: json)
         
         guard !transaction.outgoing else { return }
+        
+        if type == .chainTransaction && !transaction.confirmed { wallet.unconfirmedTransactions += [transaction] }
+
+        if transaction.confirmed && type == .chainTransaction {
+          wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0.id != transaction.id }
+        }
         
         notifyReceived(transaction)
       } catch {

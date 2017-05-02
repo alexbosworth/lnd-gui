@@ -8,10 +8,16 @@
 
 import Foundation
 
+/** Transaction hash, also known as transaction id.
+ */
 struct TransactionHash {
-  init(from hexEncoded: String) {
-    value = hexEncoded
+  /** Create hash
+   */
+  init(from hexEncoded: HexEncodedData) throws {
+    value = try hexEncoded.asDataFromHexEncoding()
   }
   
-  private let value: String
+  /** Raw value
+   */
+  private let value: Data
 }

@@ -16,6 +16,7 @@ class TransactionsViewController: NSViewController {
 }
 
 // FIXME: - reload transactions when sending is complete
+// FIXME: - need a menu so that for invoices I can get a payment request
 extension TransactionsViewController {
   /** Table columns
    */
@@ -115,7 +116,11 @@ extension TransactionsViewController: NSTableViewDataSource {
       title = "\(modifier)\(formattedAmount) tBTC"
       
     case .confirmed:
-      title = tx.confirmed ? "✅" : "❔"
+      let cell = column.makeCell(inTableView: tableView, withTitle: " ") as? TransactionStatusCell
+
+      cell?.transaction = tx
+
+      return cell
       
     case .createdAt:
       let formatter = DateFormatter()

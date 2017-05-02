@@ -8,6 +8,8 @@
 
 import Foundation
 
+/** Connection
+ */
 struct Connection {
   let channels: [Channel]
   let peers: [Peer]
@@ -42,6 +44,6 @@ struct Connection {
 
     self.channels = try channels.map { try Channel(from: $0) }
     self.peers = try peers.map { try Peer(from: $0) }
-    self.publicKey = PublicKey(from: publicKey)
+    self.publicKey = try PublicKey(from: publicKey)
   }
 }

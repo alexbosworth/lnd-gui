@@ -9,22 +9,51 @@
 import Foundation
 
 struct Channel {
+  /** Active state
+   */
   enum State { case active, closing, inactive, opening }
 
+  /** Peer balance
+   */
   struct Balance {
     let local: Tokens
     let remote: Tokens
   }
   
+  /** Current channel token balance
+   */
   let balance: Balance
+
+  /** Channel id number
+   */
   let id: String?
+
+  /** Channel chain transaction output
+   */
   let outpoint: Outpoint
+
+  /** Total received tokens
+   */
   let received: Tokens
+  
+  /** Total sent tokens
+   */
   let sent: Tokens
+  
+  /** Current channel state
+   */
   let state: State
+  
+  /** Total channel transfers
+   */
   let transfersCount: UInt
+  
+  /** Total balance
+   */
   let unsettledBalance: Tokens?
   
+  /** Channel data JSON parse failures
+   */
   enum ParseJsonFailure: String, Error {
     case expectedIsActive
     case expectedIsClosing
@@ -38,23 +67,30 @@ struct Channel {
     case expectedTransfersCount
   }
 
+  /** Channel data JSON keys
+   */
+  enum JsonAttribute: String {
+    case id
+    case isActive = "is_active"
+    case isClosing = "is_closing"
+    case isOpening = "is_opening"
+    case localBalance = "local_balance"
+    case received
+    case remoteBalance = "remote_balance"
+    case sent
+    case transactionId = "transaction_id"
+    case transactionVout = "transaction_vout"
+    case transfersCount = "transfers_count"
+    case unsettledBalance = "unsettled_balance"
+    
+    /** Attribute String value
+     */
+    var key: String { return rawValue }
+  }
+
+  /** Create channel from JSON
+   */
   init(from json: [String: Any]) throws {
-    enum JsonAttribute: String {
-      case id
-      case isActive = "is_active"
-      case isClosing = "is_closing"
-      case isOpening = "is_opening"
-      case localBalance = "local_balance"
-      case received
-      case remoteBalance = "remote_balance"
-      case sent
-      case transactionId = "transaction_id"
-      case transactionVout = "transaction_vout"
-      case transfersCount = "transfers_count"
-      case unsettledBalance = "unsettled_balance"
-      
-      var key: String { return rawValue }
-    }
     
     let id = json[JsonAttribute.id.key] as? String
     
@@ -92,7 +128,7 @@ struct Channel {
     
     self.balance = Balance(local: localBalance.tokensValue, remote: remoteBalance.tokensValue)
     self.id = id
-    self.outpoint = Outpoint(transactionId: TransactionHash(from: transactionId), vout: transactionVout.uint32Value)
+    self.outpoint = Outpoint(transactionId: try TransactionHash(from: transactionId), vout: transactionVout.uint32Value)
     self.received = received.tokensValue
     self.sent = sent.tokensValue
 
@@ -109,5 +145,4 @@ struct Channel {
     self.transfersCount = transfersCount.uintValue
     self.unsettledBalance = unsettledBalance?.tokensValue
   }
-
 }

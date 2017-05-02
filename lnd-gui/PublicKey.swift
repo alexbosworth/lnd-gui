@@ -8,12 +8,20 @@
 
 import Foundation
 
+/** ECDSA Public Key
+ */
 struct PublicKey {
-  init(from hexEncodedString: String) {
-    value = hexEncodedString
+  /** Create from hex encoded string
+   */
+  init(from hexEncodedString: HexEncodedData) throws {
+    value = try hexEncodedString.asDataFromHexEncoding()
   }
   
-  private let value: String
+  /** Raw key value
+   */
+  private let value: Data
   
-  var hexEncoded: String { return value }
+  /** Hex encoded
+   */
+  var hexEncoded: String { return value.asHexString }
 }

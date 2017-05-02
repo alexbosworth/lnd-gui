@@ -1,5 +1,5 @@
 //
-//  Currency.swift
+//  Tokens.swift
 //  lnd-gui
 //
 //  Created by Alex Bosworth on 3/23/17.
@@ -8,8 +8,11 @@
 
 import Foundation
 
+/** Tokens represent a currency value using the base unit.
+ */
 typealias Tokens = UInt64
 
+// MARK: - Formatting
 extension Tokens {
   /** Formatting defines currency formatting definitions.
    */
@@ -32,6 +35,9 @@ extension Tokens {
   }
 }
 
+// MARK: - NSNumber
 extension NSNumber {
+  /** Get tokens from a NSNumber
+   */
   var tokensValue: Tokens { return uint64Value }
 }
