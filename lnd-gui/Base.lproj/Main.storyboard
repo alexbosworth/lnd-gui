@@ -738,10 +738,10 @@
         <!--Main Tab View Controller-->
         <scene sceneID="Gqu-ci-xzA">
             <objects>
-                <tabViewController selectedTabViewItemIndex="0" id="cG8-uR-Phm" customClass="MainTabViewController" customModule="lnd_gui" customModuleProvider="target" sceneMemberID="viewController">
+                <tabViewController selectedTabViewItemIndex="1" id="cG8-uR-Phm" customClass="MainTabViewController" customModule="lnd_gui" customModuleProvider="target" sceneMemberID="viewController">
                     <tabViewItems>
-                        <tabViewItem identifier="TransactionsTab" id="roW-m2-ewZ"/>
                         <tabViewItem identifier="SendTab" id="p3S-UR-FHj"/>
+                        <tabViewItem identifier="TransactionsTab" id="roW-m2-ewZ"/>
                         <tabViewItem identifier="ReceiveTab" id="Yxy-6r-ifP"/>
                         <tabViewItem id="xMq-FV-OED"/>
                         <tabViewItem id="e6A-PY-HGf"/>
@@ -753,8 +753,8 @@
                         <tabViewItems/>
                     </tabView>
                     <connections>
-                        <segue destination="Az9-zy-oaY" kind="relationship" relationship="tabItems" id="FtB-cL-cUP"/>
                         <segue destination="uok-4d-np8" kind="relationship" relationship="tabItems" id="Zyb-vI-Bcb"/>
+                        <segue destination="Az9-zy-oaY" kind="relationship" relationship="tabItems" id="FtB-cL-cUP"/>
                         <segue destination="zuS-DL-aA7" kind="relationship" relationship="tabItems" id="En5-rm-7le"/>
                         <segue destination="e41-qr-ANw" kind="relationship" relationship="tabItems" id="UhO-cm-ZuY"/>
                         <segue destination="Ucb-i2-waJ" kind="relationship" relationship="tabItems" id="xta-ZG-B9b"/>
@@ -977,7 +977,7 @@
                                     <constraint firstAttribute="width" constant="96" id="ch3-xl-pxz"/>
                                 </constraints>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="IP Address:" id="yHg-A9-klV">
-                                    <font key="font" metaFont="controlContent"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -993,7 +993,7 @@
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YWK-Hn-9py">
                                 <rect key="frame" x="18" y="69" width="100" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Public Key:" id="et6-GI-qL3">
-                                    <font key="font" metaFont="controlContent"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -1238,7 +1238,7 @@ Gw
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cnz-Ai-hcr">
                                 <rect key="frame" x="18" y="164" width="100" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Invoice:" id="FI8-9j-kF1">
-                                    <font key="font" metaFont="controlContent"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -1602,7 +1602,7 @@ Gw
                 </viewController>
                 <customObject id="IJ3-R8-67C" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1232.5" y="869"/>
+            <point key="canvasLocation" x="1285" y="702"/>
         </scene>
         <!--Send-->
         <scene sceneID="XsG-0i-aak">
@@ -1653,7 +1653,7 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RPw-2B-L2y">
-                                <rect key="frame" x="397" y="161" width="132" height="32"/>
+                                <rect key="frame" x="401" y="161" width="128" height="32"/>
                                 <buttonCell key="cell" type="push" title="Send Payment" bezelStyle="rounded" imagePosition="left" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="aHB-Sy-DZ6">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1730,7 +1730,7 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="xpC-HE-kzI">
-                                <rect key="frame" x="329" y="161" width="72" height="32"/>
+                                <rect key="frame" x="333" y="161" width="72" height="32"/>
                                 <buttonCell key="cell" type="push" title="Clear" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="caX-dg-qpE">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1887,7 +1887,7 @@ Gw
                                                                     <rect key="frame" x="0.0" y="0.0" width="109" height="17"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Date" id="uge-7V-y17">
-                                                                        <font key="font" metaFont="controlContent"/>
+                                                                        <font key="font" metaFont="cellTitle"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>
@@ -1920,7 +1920,7 @@ Gw
                                                                     <rect key="frame" x="0.0" y="0.0" width="221" height="17"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="ayB-D1-DkJ">
-                                                                        <font key="font" metaFont="controlContent"/>
+                                                                        <font key="font" metaFont="cellTitle"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>
@@ -1953,7 +1953,7 @@ Gw
                                                                     <rect key="frame" x="0.0" y="0.0" width="117" height="17"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" alignment="right" title="Amount" id="bOl-8K-uPm">
-                                                                        <font key="font" metaFont="controlContent"/>
+                                                                        <font key="font" metaFont="cellTitle"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>

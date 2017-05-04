@@ -150,7 +150,10 @@ extension ReceiveViewController {
   }
 }
 
+// MARK: - WalletListener
 extension ReceiveViewController: WalletListener {
+  /** Wallet was updated
+   */
   func wallet(updated wallet: Wallet) {
     let hasSettledInvoice = wallet.transactions.contains { transaction in
       switch transaction.destination {

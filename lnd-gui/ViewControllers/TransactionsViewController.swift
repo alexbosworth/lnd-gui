@@ -13,6 +13,12 @@ class TransactionsViewController: NSViewController {
   @IBOutlet weak var transactionsTableView: NSTableView?
   
   lazy var transactions: [Transaction] = [Transaction]()
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    title = "Transactions"
+  }
 }
 
 // FIXME: - reload transactions when sending is complete
@@ -70,15 +76,20 @@ extension TransactionsViewController {
   }
 }
 
+// MARK: - Errors
 extension TransactionsViewController {
+  /** Transaction view controller error
+   */
   enum TransactionsViewControllerError: String, Error {
     case expectedKnownColumn
     case expectedTransactionForRow
   }
 }
 
-// FIXME: - animate changes
+// MARK: - NSTableViewDataSource
 extension TransactionsViewController: NSTableViewDataSource {
+  /** Number of rows in table
+   */
   func numberOfRows(in tableView: NSTableView) -> Int {
     return transactions.count
   }
@@ -151,6 +162,8 @@ extension TransactionsViewController: NSTableViewDataSource {
     return column.makeCell(inTableView: tableView, withTitle: title)
   }
   
+  /** Object value at row
+   */
   func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
     return nil
   }
@@ -162,16 +175,21 @@ extension TransactionsViewController: NSTableViewDataSource {
     
     return transactions[row]
   }
-
 }
 
-extension TransactionsViewController: NSTableViewDelegate {
-  
-}
+// MARK: - NSTableViewDelegate
+extension TransactionsViewController: NSTableViewDelegate {}
 
+// MARK: - WalletListener
 extension TransactionsViewController: WalletListener {
+  /** Wallet updated
+   */
   func wallet(updated wallet: Wallet) {
-    transactions = wallet.transactions
+    transactions = (wallet.transactions + wallet.unconfirmedTransactions).uniqueElements
+
+    transactions.sort() { ($0.createdAt ?? Date()) as Date > ($1.createdAt ?? Date()) as Date }
+
+    // FIXME: - animate changes
     
     transactionsTableView?.reloadData()
   }

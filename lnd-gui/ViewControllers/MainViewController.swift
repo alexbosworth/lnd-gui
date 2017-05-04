@@ -8,20 +8,6 @@
 
 import Cocoa
 
-struct Wallet {
-  var transactions: [Transaction]
-  var unconfirmedTransactions: [Transaction]
-  
-  init() {
-    transactions = []
-    unconfirmedTransactions = []
-  }
-}
-
-protocol WalletListener {
-  func wallet(updated: Wallet)
-}
-
 /** MainViewController is the controller for the main view.
  
  FIXME: - cleanup, comment
@@ -34,6 +20,8 @@ class MainViewController: NSViewController {
   @IBOutlet weak var balanceLabelTextField: NSTextField?
 
   /** connectedBox is the box that reflects the last known connected state to the LN daemon.
+   
+   FIXME: - switch to active and inactive images
    */
   @IBOutlet weak var connectedBox: NSBox?
   
@@ -55,6 +43,8 @@ class MainViewController: NSViewController {
    */
   weak var mainTabViewController: MainTabViewController?
 
+  /** Wallet
+   */
   lazy var wallet = Wallet()
   
   /** receivedPayments represents payments received.
@@ -111,16 +101,18 @@ class MainViewController: NSViewController {
     let channelBalance = (self.channelBalance ?? Tokens()) as Tokens
     let formattedBalance: String
     
+    let lnBalance = "Lightning Balance: \(channelBalance.formatted) tBTC"
+    
     if chainBalance < 100_000 {
-      formattedBalance = "Lightning Balance: \(channelBalance.formatted) tBTC"
+      formattedBalance = lnBalance
     } else {
-      formattedBalance = "Lightning Balance: \(channelBalance.formatted) tBTC - Chain Balance: \(chainBalance.formatted) tBTC"
+      formattedBalance = "\(lnBalance) - Chain Balance: \(chainBalance.formatted) tBTC"
     }
     
     balanceLabelTextField?.stringValue = formattedBalance
   }
 
-  /** viewDidLoad method initializes the view controller.
+  /** View did load
    */
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -136,6 +128,8 @@ class MainViewController: NSViewController {
     refreshHistory()
   }
 
+  /** Initialize the wallet service connection
+   */
   func initWalletServiceConnection(){
     var messageNum = 0
     let ws = WebSocket("ws://localhost:10554")
@@ -177,6 +171,8 @@ class MainViewController: NSViewController {
 }
 
 extension MainViewController {
+  /** Received socket message
+   */
   func received(message: String) {
     print("RECEIVED MESSAGE", message)
 
@@ -207,7 +203,7 @@ extension MainViewController {
         if type == .chainTransaction && !transaction.confirmed { wallet.unconfirmedTransactions += [transaction] }
 
         if transaction.confirmed && type == .chainTransaction {
-          wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0.id != transaction.id }
+          wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0 != transaction }
         }
         
         notifyReceived(transaction)
@@ -219,6 +215,8 @@ extension MainViewController {
 }
 
 extension MainViewController {
+  /** Notify of received transaction
+   */
   func notifyReceived(_ transaction: Transaction) {
     switch transaction.destination {
     case .chain:
@@ -228,7 +226,7 @@ extension MainViewController {
       
       switch transaction.confirmed {
       case false:
-        notification.title = "Incoming blockchain transaction"
+        notification.title = "Incoming transaction"
         notification.informativeText = "Receiving \(transaction.tokens.formatted)"
 
       case true:

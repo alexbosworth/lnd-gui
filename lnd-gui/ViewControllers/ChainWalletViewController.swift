@@ -138,6 +138,8 @@ extension ChainWalletViewController {
     sendTask.resume()
   }
   
+  /** Create an address
+   */
   func populateAddress() {
     let session = URLSession.shared
     let sendUrl = URL(string: "http://localhost:10553/v0/addresses/")!
@@ -178,11 +180,13 @@ extension ChainWalletViewController {
     }
     
     createAddressTask.resume()
-
   }
 }
 
+// MARK: - WalletListener
 extension ChainWalletViewController: WalletListener {
+  /** Wallet was updated
+   */
   func wallet(updated: Wallet) {
     refreshChainBalance()
   }

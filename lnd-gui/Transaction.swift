@@ -96,3 +96,14 @@ struct Transaction {
     self.tokens = tokens
   }
 }
+
+extension Transaction: Equatable {}
+
+func ==(lhs: Transaction, rhs: Transaction) -> Bool {
+  return lhs.id == rhs.id
+}
+
+extension Transaction: Hashable {
+  var hashValue: Int { return id.hashValue }
+}
+

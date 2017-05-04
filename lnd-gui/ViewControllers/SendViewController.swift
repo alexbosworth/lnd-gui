@@ -8,26 +8,6 @@
 
 import Cocoa
 
-protocol JsonInitialized {}
-
-enum ParseJsonFailure: Error {
-  case expectedDictionary
-  case nilData
-}
-
-extension JsonInitialized {
-  
-  static func jsonDictionaryFromData(_ data: Data?) throws -> [String: Any] {
-    guard let data = data else { throw ParseJsonFailure.nilData }
-    
-    let dataDownloadedAsJson = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
-    
-    guard let json = dataDownloadedAsJson as? [String: Any] else { throw ParseJsonFailure.expectedDictionary }
-    
-    return json
-  }
-}
-
 class OnlyValidPaymentRequestValueFormatter: NumberFormatter {
   override func isPartialStringValid(_ partialString: String, newEditingString newString: AutoreleasingUnsafeMutablePointer<NSString?>?, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
     guard !partialString.isEmpty else { return true }
@@ -38,24 +18,6 @@ class OnlyValidPaymentRequestValueFormatter: NumberFormatter {
     
     return true
   }
-}
-
-/** Lightning Payment Hash
- */
-struct PaymentHash {
-  /** Create from hex encoded string
-   */
-  init(from hexEncodedString: HexEncodedData) throws {
-    value = try hexEncodedString.asDataFromHexEncoding()
-  }
-  
-  /** Raw key value
-   */
-  private let value: Data
-  
-  /** Hex encoded
-   */
-  var hexEncoded: String { return value.asHexString }
 }
 
 struct PaymentRequest: JsonInitialized {

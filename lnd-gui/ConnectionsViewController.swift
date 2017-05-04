@@ -105,13 +105,8 @@ extension ConnectionsViewController {
    */
   func refreshConnections() {
     let url = URL(string: "http://localhost:10553/v0/connections/")!
-    let session = URLSession.shared
     
-    var request = URLRequest(url: url)
-    
-    request.httpMethod = "GET"
-    
-    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
+    let task = URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] data, urlResponse, error in
       guard let data = data else { return print(GetJsonFailure.expectedData) }
       
       let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
@@ -135,7 +130,10 @@ extension ConnectionsViewController {
   }
 }
 
+// MARK: - NSMenuDelegate
 extension ConnectionsViewController: NSMenuDelegate {
+  /** Close channel
+   */
   func close(_ channel: Channel) {
     let session = URLSession.shared
     let sendUrl = URL(string: "http://localhost:10553/v0/channels/\(channel.id!)")!
@@ -144,16 +142,14 @@ extension ConnectionsViewController: NSMenuDelegate {
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
     let sendCloseChannelTask = session.dataTask(with: sendUrlRequest) { [weak self] data, urlResponse, error in
-      DispatchQueue.main.async {
-        print("CONNECTION CLOSED", urlResponse, error)
-
-        self?.refreshConnections()
-      }
+      DispatchQueue.main.async { self?.refreshConnections() }
     }
     
     sendCloseChannelTask.resume()
   }
   
+  /** Decrease channel balance
+   */
   func decreaseChannelBalance() {
     guard let clickedConnectionAtRow = connectionsTableView?.clickedRow else { return print("expectedClickedRow") }
     
@@ -162,6 +158,8 @@ extension ConnectionsViewController: NSMenuDelegate {
     connection.channels.forEach { close($0) }
   }
   
+  /** Increase channel balance
+   */
   func increaseChannelBalance() {
     guard let clickedConnectionAtRow = connectionsTableView?.clickedRow else { return print("expectedClickedRow") }
     
@@ -172,6 +170,8 @@ extension ConnectionsViewController: NSMenuDelegate {
     openChannel(with: connection)
   }
   
+  /** Init the connections table menu
+   */
   fileprivate func initMenu() {
     connectionsTableView?.menu = NSMenu()
     
@@ -198,10 +198,14 @@ extension ConnectionsViewController: NSMenuDelegate {
     }
   }
   
+  /** Navigate to add peer sheet
+   */
   func segueToAddPeer() {
     performSegue(withIdentifier: "AddPeerSegue", sender: self)
   }
   
+  /** Open a channel with a connection
+   */
   func openChannel(with connection: Connection) {
     let session = URLSession.shared
     let sendUrl = URL(string: "http://localhost:10553/v0/channels/")!
@@ -222,13 +226,16 @@ extension ConnectionsViewController: NSMenuDelegate {
   }
 }
 
-// FIXME: - animate changes
 extension ConnectionsViewController: NSTableViewDataSource {
+  /** Data source error
+   */
   enum DataSourceError: String, Error {
     case expectedKnownColumn
     case expectedConnectionForRow
   }
 
+  /** Number of rows in table
+   */
   func numberOfRows(in tableView: NSTableView) -> Int {
     return connections.count
   }
@@ -299,10 +306,16 @@ extension ConnectionsViewController: NSTableViewDataSource {
   }
 }
 
+// MARK: - NSTableViewDelegate
 extension ConnectionsViewController: NSTableViewDelegate {}
 
+// MARK: - WalletListener
 extension ConnectionsViewController: WalletListener {
+  /** Wallet was updated
+   */
   func wallet(updated: Wallet) {
     refreshConnections()
+
+    // FIXME: - animate changes
   }
 }
