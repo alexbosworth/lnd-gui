@@ -142,6 +142,8 @@ class MainViewController: NSViewController {
     ws.event.open = { [weak self] in
       self?.connected = true
       
+      self?.refreshInvoices()
+      
       self?.refreshHistory()
       
       self?.refreshBalances() {}

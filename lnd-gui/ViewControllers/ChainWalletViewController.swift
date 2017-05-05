@@ -13,6 +13,8 @@ import Cocoa
   FIXME: - eliminate this view
  */
 class ChainWalletViewController: NSViewController {
+  // MARK: - @IBActions
+  
   /** User pressed the button to send funds on the chain.
    */
   @IBAction func pressedSendButton(_ button: NSButton) {
@@ -26,6 +28,8 @@ class ChainWalletViewController: NSViewController {
     
     send(to: address, tokens: Tokens(tokens * 100_000_000))
   }
+  
+  // MARK: - @IBOutlets
   
   @IBOutlet weak var balanceTextField: NSTextField?
   

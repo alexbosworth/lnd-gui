@@ -198,10 +198,16 @@ extension ConnectionsViewController: NSMenuDelegate {
     }
   }
   
+  enum Segue: StoryboardIdentifier {
+    case addPeer = "AddPeerSegue"
+    
+    var storyboardIdentifier: StoryboardIdentifier { return rawValue }
+  }
+  
   /** Navigate to add peer sheet
    */
   func segueToAddPeer() {
-    performSegue(withIdentifier: "AddPeerSegue", sender: self)
+    performSegue(withIdentifier: Segue.addPeer.storyboardIdentifier, sender: self)
   }
   
   /** Open a channel with a connection

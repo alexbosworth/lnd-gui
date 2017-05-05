@@ -1236,7 +1236,7 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cnz-Ai-hcr">
-                                <rect key="frame" x="18" y="164" width="100" height="16"/>
+                                <rect key="frame" x="18" y="177" width="100" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Invoice:" id="FI8-9j-kF1">
                                     <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1273,16 +1273,75 @@ Gw
                                 </connections>
                             </button>
                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="x02-Kn-P4a">
-                                <rect key="frame" x="124" y="161" width="306" height="22"/>
+                                <rect key="frame" x="124" y="174" width="306" height="22"/>
                                 <textFieldCell key="cell" selectable="YES" allowsUndo="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="nBT-Mz-zuk">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <box title="Received Payment" translatesAutoresizingMaskIntoConstraints="NO" id="OlM-qm-LKR">
+                                <rect key="frame" x="121" y="120" width="312" height="76"/>
+                                <view key="contentView" id="okg-27-YNe">
+                                    <rect key="frame" x="2" y="2" width="308" height="59"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1IQ-ge-x8Y">
+                                            <rect key="frame" x="6" y="35" width="100" height="16"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="96" id="urr-2R-VcS"/>
+                                            </constraints>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Description:" id="6EI-W5-ekj">
+                                                <font key="font" metaFont="cellTitle"/>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="1000" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N2Q-LC-1px">
+                                            <rect key="frame" x="6" y="11" width="100" height="16"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Amount:" id="FKm-Oz-PWt">
+                                                <font key="font" metaFont="cellTitle"/>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yua-MV-tpM">
+                                            <rect key="frame" x="110" y="35" width="192" height="17"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Description" id="4ZM-7k-DIz">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cIP-9u-SWH">
+                                            <rect key="frame" x="110" y="11" width="192" height="17"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Amount" id="wyW-FA-jYU">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="N2Q-LC-1px" firstAttribute="leading" secondItem="1IQ-ge-x8Y" secondAttribute="leading" id="1e0-Rv-JVn"/>
+                                        <constraint firstAttribute="trailing" secondItem="yua-MV-tpM" secondAttribute="trailing" constant="8" id="Bsb-mQ-a5p"/>
+                                        <constraint firstItem="N2Q-LC-1px" firstAttribute="trailing" secondItem="1IQ-ge-x8Y" secondAttribute="trailing" id="dUe-js-jIj"/>
+                                        <constraint firstItem="cIP-9u-SWH" firstAttribute="leading" secondItem="N2Q-LC-1px" secondAttribute="trailing" constant="8" id="ddI-x9-0WZ"/>
+                                        <constraint firstItem="1IQ-ge-x8Y" firstAttribute="leading" secondItem="okg-27-YNe" secondAttribute="leading" constant="8" id="ey9-zD-5nf"/>
+                                        <constraint firstItem="1IQ-ge-x8Y" firstAttribute="top" secondItem="okg-27-YNe" secondAttribute="top" constant="8" id="fp2-Z1-RsF"/>
+                                        <constraint firstItem="yua-MV-tpM" firstAttribute="leading" secondItem="1IQ-ge-x8Y" secondAttribute="trailing" constant="8" id="geo-qy-okA"/>
+                                        <constraint firstItem="cIP-9u-SWH" firstAttribute="trailing" secondItem="yua-MV-tpM" secondAttribute="trailing" id="iUV-DZ-pfH"/>
+                                        <constraint firstItem="yua-MV-tpM" firstAttribute="baseline" secondItem="1IQ-ge-x8Y" secondAttribute="baseline" id="pjc-lN-8Pt"/>
+                                        <constraint firstItem="N2Q-LC-1px" firstAttribute="top" secondItem="1IQ-ge-x8Y" secondAttribute="bottom" constant="8" id="xAh-84-JKj"/>
+                                        <constraint firstItem="cIP-9u-SWH" firstAttribute="baseline" secondItem="N2Q-LC-1px" secondAttribute="baseline" id="zG7-z3-hgd"/>
+                                    </constraints>
+                                </view>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="72" id="Dav-5V-rW4"/>
+                                </constraints>
+                            </box>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="cnz-Ai-hcr" firstAttribute="top" secondItem="TIi-SZ-sJ0" secondAttribute="bottom" constant="32" id="0k2-w6-sqs"/>
                             <constraint firstItem="rIJ-c5-eze" firstAttribute="trailing" secondItem="LHH-kR-aEe" secondAttribute="trailing" id="3OC-XX-zqa"/>
                             <constraint firstItem="loM-cL-T30" firstAttribute="baseline" secondItem="TIi-SZ-sJ0" secondAttribute="baseline" id="4Li-bN-Psj"/>
                             <constraint firstItem="LHH-kR-aEe" firstAttribute="leading" secondItem="Rwj-o6-muN" secondAttribute="leading" constant="20" id="7iH-M4-fN9"/>
@@ -1294,15 +1353,19 @@ Gw
                             <constraint firstItem="x02-Kn-P4a" firstAttribute="leading" secondItem="J1v-J2-xfd" secondAttribute="leading" id="RTg-bZ-ffV"/>
                             <constraint firstItem="x02-Kn-P4a" firstAttribute="trailing" secondItem="J1v-J2-xfd" secondAttribute="trailing" id="RmC-ii-kre"/>
                             <constraint firstItem="rIJ-c5-eze" firstAttribute="leading" secondItem="LHH-kR-aEe" secondAttribute="leading" id="SAf-Qb-i91"/>
+                            <constraint firstItem="OlM-qm-LKR" firstAttribute="top" secondItem="TIi-SZ-sJ0" secondAttribute="bottom" constant="16" id="UMs-7k-Ack"/>
                             <constraint firstAttribute="trailing" secondItem="4YA-zg-jIv" secondAttribute="trailing" constant="20" id="Xbu-xh-kzB"/>
                             <constraint firstItem="ag6-jx-VDf" firstAttribute="baseline" secondItem="J1v-J2-xfd" secondAttribute="baseline" id="Zoo-MD-gj1"/>
                             <constraint firstItem="ag6-jx-VDf" firstAttribute="trailing" secondItem="J1v-J2-xfd" secondAttribute="trailing" constant="-8" id="afg-9g-dsA"/>
                             <constraint firstItem="x02-Kn-P4a" firstAttribute="baseline" secondItem="cnz-Ai-hcr" secondAttribute="baseline" id="cbj-Sk-aTN"/>
                             <constraint firstItem="cnz-Ai-hcr" firstAttribute="leading" secondItem="rIJ-c5-eze" secondAttribute="leading" id="edr-nm-E5F"/>
+                            <constraint firstItem="OlM-qm-LKR" firstAttribute="trailing" secondItem="J1v-J2-xfd" secondAttribute="trailing" id="ncN-Dc-VQh"/>
+                            <constraint firstItem="OlM-qm-LKR" firstAttribute="leading" secondItem="J1v-J2-xfd" secondAttribute="leading" id="pef-iT-e08"/>
                             <constraint firstItem="rIJ-c5-eze" firstAttribute="baseline" secondItem="J1v-J2-xfd" secondAttribute="baseline" id="qMx-tc-kMj"/>
                             <constraint firstItem="4YA-zg-jIv" firstAttribute="leading" secondItem="LHH-kR-aEe" secondAttribute="trailing" constant="8" id="rsf-OW-QzI"/>
                             <constraint firstItem="LHH-kR-aEe" firstAttribute="baseline" secondItem="4YA-zg-jIv" secondAttribute="baseline" id="rve-NO-Ysu"/>
                             <constraint firstItem="cnz-Ai-hcr" firstAttribute="trailing" secondItem="rIJ-c5-eze" secondAttribute="trailing" id="v7S-dw-jcU"/>
+                            <constraint firstItem="x02-Kn-P4a" firstAttribute="top" secondItem="TIi-SZ-sJ0" secondAttribute="bottom" constant="16" id="w4H-bO-cpV"/>
                             <constraint firstItem="J1v-J2-xfd" firstAttribute="top" secondItem="4YA-zg-jIv" secondAttribute="bottom" constant="8" id="wCd-8B-gB0"/>
                             <constraint firstItem="TIi-SZ-sJ0" firstAttribute="top" secondItem="J1v-J2-xfd" secondAttribute="bottom" constant="8" id="xaO-2T-1j2"/>
                         </constraints>
@@ -1310,6 +1373,9 @@ Gw
                     <connections>
                         <outlet property="amountTextField" destination="J1v-J2-xfd" id="hDt-TE-kkc"/>
                         <outlet property="memoTextField" destination="4YA-zg-jIv" id="h33-WQ-ikb"/>
+                        <outlet property="paymentReceivedAmount" destination="cIP-9u-SWH" id="7tU-Zt-AKu"/>
+                        <outlet property="paymentReceivedBox" destination="OlM-qm-LKR" id="COY-1z-3OT"/>
+                        <outlet property="paymentReceivedDescription" destination="yua-MV-tpM" id="CQS-hU-U1Z"/>
                         <outlet property="paymentRequestHeadingTextField" destination="cnz-Ai-hcr" id="sqq-MD-gw0"/>
                         <outlet property="paymentRequestTextField" destination="x02-Kn-P4a" id="Lhi-CI-vwJ"/>
                         <outlet property="requestButton" destination="TIi-SZ-sJ0" id="9Pn-be-38Z"/>

@@ -15,6 +15,7 @@ import Cocoa
  FIXME: - add copy button
  FIXME: - don't allow entering too much or too little Satoshis
  FIXME: - when received, show received notification
+ FIXME: - add fiat
  */
 class ReceiveViewController: NSViewController {
   // MARK: - @IBActions
@@ -44,6 +45,18 @@ class ReceiveViewController: NSViewController {
   /** memoTextField is the input text field for the memo.
    */
   @IBOutlet weak var memoTextField: NSTextField?
+
+  /** Payment received amount
+   */
+  @IBOutlet weak var paymentReceivedAmount: NSTextField?
+
+  /** Payment received box
+   */
+  @IBOutlet weak var paymentReceivedBox: NSBox?
+
+  /** Payment received description
+   */
+  @IBOutlet weak var paymentReceivedDescription: NSTextField?
   
   /** paymentRequestHeadingTextField is the label showing the payment request header.
    */
@@ -63,6 +76,10 @@ class ReceiveViewController: NSViewController {
    */
   var invoice: Invoice? { didSet { updatePaymentRequest() } }
 
+  /** Paid invoice
+   */
+  var paidInvoice: Transaction? { didSet { updatePaidInvoice() } }
+  
   // MARK: - UIViewController
   
   /** clear eliminates the input and previous created invoice from the view.
@@ -76,6 +93,20 @@ class ReceiveViewController: NSViewController {
     addedInvoiceViews.forEach { $0?.isHidden = true }
   }
 
+  /** Update paid invoice
+   */
+  private func updatePaidInvoice() {
+    guard let paidInvoice = paidInvoice else { paymentReceivedBox?.isHidden = true; return }
+
+    paymentReceivedBox?.isHidden = false
+    
+    paymentReceivedAmount?.stringValue = "\(paidInvoice.tokens.formatted) tBTC"
+    
+    guard case .received(let memo) = paidInvoice.destination else { return }
+    
+    paymentReceivedDescription?.stringValue = memo
+  }
+  
   /** updatePaymentRequest updates the payment request label
    */
   private func updatePaymentRequest() {
@@ -88,7 +119,17 @@ class ReceiveViewController: NSViewController {
     super.viewDidLoad()
     // Do view setup here.
     
+    paymentReceivedBox?.isHidden = true
+    
     clear()
+  }
+  
+  /** View is going to disappear
+   */
+  override func viewWillDisappear() {
+    super.viewWillDisappear()
+    
+    paidInvoice = nil
   }
 }
 
@@ -160,11 +201,18 @@ extension ReceiveViewController: WalletListener {
       case .chain, .sent(_, _):
         return false
         
+      case .received(_) where transaction.id == invoice?.id && transaction.confirmed:
+        paidInvoice = transaction
+        
+        return true
+
       case .received(_):
-        return transaction.id == invoice?.id && transaction.confirmed
+        return false
       }
     }
     
-    if hasSettledInvoice { clear() }
+    guard hasSettledInvoice else { return }
+    
+    clear()
   }
 }
