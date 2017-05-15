@@ -43,6 +43,10 @@ class MainViewController: NSViewController {
    */
   weak var mainTabViewController: MainTabViewController?
 
+  /** Show invoice
+   */
+  lazy var showInvoice: (Invoice) -> () = { _ in }
+  
   /** Wallet
    */
   lazy var wallet = Wallet()
@@ -159,9 +163,7 @@ class MainViewController: NSViewController {
       print("error \(error)")
     }
     ws.event.message = { [weak self] message in
-      if let message = message as? String { self?.received(message: message) }
-
-      print("RECEIVED MESSAGE: \(message)")
+      if let message = message as? String { self?.activity(message: message) }
       
       self?.refreshInvoices()
 
@@ -175,14 +177,17 @@ class MainViewController: NSViewController {
 extension MainViewController {
   /** Received socket message
    */
-  func received(message: String) {
+  func activity(message: String) {
     print("RECEIVED MESSAGE", message)
 
-    guard let data = message.data(using: .utf8, allowLossyConversion: false) else { return }
-    
-    guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else { return }
-
-    guard let json = jsonObject as? [String: Any] else { return }
+    guard
+      let data = message.data(using: .utf8, allowLossyConversion: false),
+      let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments),
+      let json = jsonObject as? [String: Any]
+      else
+    {
+      return
+    }
 
     enum RowType: String {
       case chainTransaction = "chain_transaction"
@@ -200,15 +205,13 @@ extension MainViewController {
       do {
         let transaction = try Transaction(from: json)
         
-        guard !transaction.outgoing else { return }
-        
         if type == .chainTransaction && !transaction.confirmed { wallet.unconfirmedTransactions += [transaction] }
 
         if transaction.confirmed && type == .chainTransaction {
           wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0 != transaction }
         }
         
-        notifyReceived(transaction)
+        if !transaction.outgoing { notifyReceived(transaction) }
       } catch {
         print(error)
       }
@@ -273,9 +276,19 @@ extension MainViewController {
       return print(Failure.expectedMainTabViewController.localizedDescription)
     }
     
+    mainTabViewController.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
+    
     mainTabViewController.updateBalance = { [weak self] in self?.refreshBalances() {} }
     
     self.mainTabViewController = mainTabViewController
+  }
+  
+  func showConnections() {
+    guard let mainTabViewController = mainTabViewController else {
+      return print("ERROR", "expected main tab view controller")
+    }
+    
+    mainTabViewController.showConnections()
   }
 }
 
@@ -363,7 +376,7 @@ extension MainViewController {
           confirmed: (payment["confirmed"] as? Bool) ?? false,
           createdAt: createdAt,
           memo: payment["memo"] as? String ?? String(),
-          payment: payment["payment"] as! String,
+          payment: payment["payment_request"] as! String,
           tokens: ((payment["tokens"] as? NSNumber)?.tokensValue ?? Tokens()) as Tokens
         )
       }

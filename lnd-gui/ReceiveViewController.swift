@@ -16,6 +16,7 @@ import Cocoa
  FIXME: - don't allow entering too much or too little Satoshis
  FIXME: - when received, show received notification
  FIXME: - add fiat
+ FIXME: - add receive on chain bitcoins method
  */
 class ReceiveViewController: NSViewController {
   // MARK: - @IBActions
@@ -26,12 +27,34 @@ class ReceiveViewController: NSViewController {
     clear()
   }
   
+  /** Pressed blockchain item
+   */
+  @IBAction func pressedInvoiceBlockchainItem(_ item: NSMenuItem) {
+    guard let chainAddress = invoice?.chainAddress else {
+      return print("ERROR", "expected chain address")
+    }
+    
+    paymentRequestTextField?.stringValue = chainAddress
+  }
+
+  /** Pressed lightning item
+   */
+  @IBAction func pressedInvoiceLightningItem(_ item: NSMenuItem) {
+    guard let paymentRequest = invoice?.paymentRequest else {
+      return print("ERROR", "expected payment request")
+    }
+    
+    paymentRequestTextField?.stringValue = paymentRequest
+  }
+  
   /** pressedRequestButton triggers the creation of a new request
    */
   @IBAction func pressedRequestButton(_ button: NSButton) {
-    guard let amountString = amountTextField?.stringValue, let amount = Float(amountString), amount > Float() else {
-      return
-    }
+    guard let amountString = amountTextField?.stringValue else { return }
+    
+    let number = (NSDecimalNumber(string: amountString) as Decimal) * (NSDecimalNumber(value: 100_000_00) as Decimal)
+    
+    let amount = Tokens((number as NSDecimalNumber).doubleValue)
     
     do { try addInvoice(amount: amount, memo: memoTextField?.stringValue) } catch { print(error) }
   }
@@ -41,10 +64,18 @@ class ReceiveViewController: NSViewController {
   /** amountTextField is the input text field for the invoice amount.
    */
   @IBOutlet weak var amountTextField: NSTextField?
+  
+  /** Switcher for invoice type
+   */
+  @IBOutlet weak var invoiceTypeButton: NSPopUpButton?
 
   /** memoTextField is the input text field for the memo.
    */
   @IBOutlet weak var memoTextField: NSTextField?
+  
+  /** Invoice date text field
+   */
+  @IBOutlet weak var paymentInvoiceDate: NSTextField?
 
   /** Payment received amount
    */
@@ -70,6 +101,10 @@ class ReceiveViewController: NSViewController {
    */
   @IBOutlet weak var requestButton: NSButton?
   
+  /** Select lightning invoice item
+   */
+  @IBOutlet weak var selectLightningItem: NSMenuItem?
+  
   // MARK: - Properties
   
   /** invoice is the created invoice to receive funds to.
@@ -85,12 +120,16 @@ class ReceiveViewController: NSViewController {
   /** clear eliminates the input and previous created invoice from the view.
    */
   fileprivate func clear() {
-    let addedInvoiceViews = [paymentRequestHeadingTextField, paymentRequestTextField]
+    let addedInvoiceViews: [NSView?] = [paymentRequestHeadingTextField, paymentRequestTextField, invoiceTypeButton]
     let inputTextFields = [amountTextField, memoTextField]
     
     inputTextFields.forEach { $0?.stringValue = String() }
     
     addedInvoiceViews.forEach { $0?.isHidden = true }
+    
+    invoiceTypeButton?.select(selectLightningItem)
+    
+    paidInvoice = nil
   }
 
   /** Update paid invoice
@@ -98,19 +137,39 @@ class ReceiveViewController: NSViewController {
   private func updatePaidInvoice() {
     guard let paidInvoice = paidInvoice else { paymentReceivedBox?.isHidden = true; return }
 
+    guard let invoiceDate = paidInvoice.createdAt else {
+      return print("ERROR", "expected paid invoice date")
+    }
+    
     paymentReceivedBox?.isHidden = false
+    
+    let formatter = DateFormatter()
+    formatter.dateStyle = .short
+    formatter.timeStyle = .short
+    
+    paymentInvoiceDate?.stringValue = formatter.string(from: invoiceDate)
     
     paymentReceivedAmount?.stringValue = "\(paidInvoice.tokens.formatted) tBTC"
     
-    guard case .received(let memo) = paidInvoice.destination else { return }
+    guard case .received(let invoice) = paidInvoice.destination else { return }
     
-    paymentReceivedDescription?.stringValue = memo
+    paymentReceivedDescription?.stringValue = (invoice.memo ?? " ") as String
   }
   
   /** updatePaymentRequest updates the payment request label
    */
   private func updatePaymentRequest() {
     paymentRequestTextField?.stringValue = (invoice?.paymentRequest ?? String()) as String
+
+    invoiceTypeButton?.isHidden = invoice?.paymentRequest == nil
+
+    guard let invoice = invoice else { return }
+    
+    paymentRequestHeadingTextField?.isHidden = false
+    paymentRequestTextField?.isHidden = false
+    requestButton?.isEnabled = true
+    requestButton?.state = NSOnState
+    requestButton?.title = "Create Invoice"
   }
   
   /** viewDidLoad triggers to initialize the view.
@@ -137,7 +196,7 @@ class ReceiveViewController: NSViewController {
 extension ReceiveViewController {
   /** addInvoice sends a request to make an invoice.
    */
-  func addInvoice(amount: Float, memo: String? = nil) throws {
+  func addInvoice(amount: Tokens, memo: String? = nil) throws {
     let session = URLSession.shared
     let sendUrl = URL(string: "http://localhost:10553/v0/invoices/")!
     var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
@@ -145,9 +204,8 @@ extension ReceiveViewController {
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
     let memo = (memo ?? String()) as String
-    let tokens = Int(amount * 100_000_000)
     
-    let json: [String: Any] = ["memo": memo, "tokens": tokens]
+    let json: [String: Any] = ["include_address": true, "memo": memo, "tokens": amount]
     
     let data = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
     
@@ -179,11 +237,6 @@ extension ReceiveViewController {
       // FIXME: - on error, reset the form, show error
       DispatchQueue.main.async {
         self?.invoice = invoice
-        self?.paymentRequestHeadingTextField?.isHidden = false
-        self?.paymentRequestTextField?.isHidden = false
-        self?.requestButton?.isEnabled = true
-        self?.requestButton?.state = NSOnState
-        self?.requestButton?.title = "Create Invoice"
       }
     }
     

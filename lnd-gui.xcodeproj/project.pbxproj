@@ -10,6 +10,11 @@
 		2157F75E1E87349F00847E4C /* BlockchainInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */; };
 		2157F7611E8851CD00847E4C /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2157F7601E8851CD00847E4C /* TaskQueue.swift */; };
 		FA07DB401E84CDBD00FEC042 /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA07DB3F1E84CDBD00FEC042 /* Tokens.swift */; };
+		FA0E27AF1EC7896300734661 /* Payment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0E27AE1EC7896300734661 /* Payment.swift */; };
+		FA0E27B11EC8F98700734661 /* SentTransactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0E27B01EC8F98700734661 /* SentTransactionViewController.swift */; };
+		FA0E27B91EC9204200734661 /* TransactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0E27B81EC9204200734661 /* TransactionViewController.swift */; };
+		FA0E27BB1EC92EF500734661 /* InvoiceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0E27BA1EC92EF500734661 /* InvoiceViewController.swift */; };
+		FA0E27BE1EC92F7200734661 /* Invoice.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA0E27BD1EC92F7200734661 /* Invoice.storyboard */; };
 		FA496C391EBAD82C0080FC7C /* Sequence+Unique.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA496C381EBAD82C0080FC7C /* Sequence+Unique.swift */; };
 		FA496C3D1EBADDB70080FC7C /* Wallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA496C3C1EBADDB70080FC7C /* Wallet.swift */; };
 		FA520AE41E6CC62D00AABE68 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520AE31E6CC62D00AABE68 /* AppDelegate.swift */; };
@@ -35,11 +40,15 @@
 		FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */; };
 		FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */; };
 		FABF354D1EB8286C00D8AC13 /* TransactionStatusCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABF354C1EB8286C00D8AC13 /* TransactionStatusCell.swift */; };
-		FADD7C9B1EA5C49B00FEA12C /* ChainWalletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */; };
+		FAD9C0931EC2B2AF00B10888 /* PaymentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */; };
 		FAEDC31B1EB503B5007DE94F /* String+asDataFromHexEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEDC31A1EB503B5007DE94F /* String+asDataFromHexEncoding.swift */; };
 		FAEDC31D1EB5080C007DE94F /* Data+asHexString.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEDC31C1EB5080C007DE94F /* Data+asHexString.swift */; };
 		FAEDC31F1EB50AAD007DE94F /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = FAEDC31E1EB50AAD007DE94F /* README.md */; };
 		FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */; };
+		FAF017F11EBE925A008FEA13 /* IpAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF017F01EBE925A008FEA13 /* IpAddress.swift */; };
+		FAF017F41EBE9F21008FEA13 /* Daemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF017F31EBE9F21008FEA13 /* Daemon.swift */; };
+		FAF017F61EC002EB008FEA13 /* SendOnChainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF017F51EC002EB008FEA13 /* SendOnChainViewController.swift */; };
+		FAF017FA1EC01FA4008FEA13 /* CommitSendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF017F91EC01FA4008FEA13 /* CommitSendViewController.swift */; };
 		FAF93BB41EABE49600864A6F /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FAF93BB31EABE49600864A6F /* libz.tbd */; };
 		FAF93BB61EABE4C600864A6F /* WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF93BB51EABE4C600864A6F /* WebSocket.swift */; };
 /* End PBXBuildFile section */
@@ -48,6 +57,11 @@
 		2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlockchainInfoViewController.swift; sourceTree = "<group>"; };
 		2157F7601E8851CD00847E4C /* TaskQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TaskQueue.swift; path = Vendor/TaskQueue.swift; sourceTree = "<group>"; };
 		FA07DB3F1E84CDBD00FEC042 /* Tokens.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
+		FA0E27AE1EC7896300734661 /* Payment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Payment.swift; sourceTree = "<group>"; };
+		FA0E27B01EC8F98700734661 /* SentTransactionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SentTransactionViewController.swift; path = ViewControllers/SentTransactionViewController.swift; sourceTree = "<group>"; };
+		FA0E27B81EC9204200734661 /* TransactionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionViewController.swift; path = ViewControllers/TransactionViewController.swift; sourceTree = "<group>"; };
+		FA0E27BA1EC92EF500734661 /* InvoiceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InvoiceViewController.swift; path = ViewControllers/InvoiceViewController.swift; sourceTree = "<group>"; };
+		FA0E27BD1EC92F7200734661 /* Invoice.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Invoice.storyboard; path = Storyboards/Invoice.storyboard; sourceTree = "<group>"; };
 		FA496C381EBAD82C0080FC7C /* Sequence+Unique.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Sequence+Unique.swift"; sourceTree = "<group>"; };
 		FA496C3C1EBADDB70080FC7C /* Wallet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Wallet.swift; path = Wallet/Wallet.swift; sourceTree = "<group>"; };
 		FA520AE01E6CC62D00AABE68 /* lnd-gui.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lnd-gui.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,11 +89,15 @@
 		FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionsViewController.swift; sourceTree = "<group>"; };
 		FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPeerViewController.swift; sourceTree = "<group>"; };
 		FABF354C1EB8286C00D8AC13 /* TransactionStatusCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionStatusCell.swift; path = Views/TransactionStatusCell.swift; sourceTree = "<group>"; };
-		FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ChainWalletViewController.swift; path = ViewControllers/ChainWalletViewController.swift; sourceTree = "<group>"; };
+		FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PaymentRequest.swift; path = Lightning/PaymentRequest.swift; sourceTree = "<group>"; };
 		FAEDC31A1EB503B5007DE94F /* String+asDataFromHexEncoding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+asDataFromHexEncoding.swift"; path = "Types/String+asDataFromHexEncoding.swift"; sourceTree = "<group>"; };
 		FAEDC31C1EB5080C007DE94F /* Data+asHexString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Data+asHexString.swift"; sourceTree = "<group>"; };
 		FAEDC31E1EB50AAD007DE94F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionsViewController.swift; path = ViewControllers/TransactionsViewController.swift; sourceTree = "<group>"; };
+		FAF017F01EBE925A008FEA13 /* IpAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IpAddress.swift; path = Networking/IpAddress.swift; sourceTree = "<group>"; };
+		FAF017F31EBE9F21008FEA13 /* Daemon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Daemon.swift; sourceTree = "<group>"; };
+		FAF017F51EC002EB008FEA13 /* SendOnChainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendOnChainViewController.swift; path = ViewControllers/SendOnChainViewController.swift; sourceTree = "<group>"; };
+		FAF017F91EC01FA4008FEA13 /* CommitSendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CommitSendViewController.swift; path = ViewControllers/CommitSendViewController.swift; sourceTree = "<group>"; };
 		FAF93BB31EABE49600864A6F /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		FAF93BB51EABE4C600864A6F /* WebSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -113,6 +131,15 @@
 				FA65A37C1EA3292B002B2A17 /* TransactionHash.swift */,
 			);
 			name = Blockchain;
+			sourceTree = "<group>";
+		};
+		FA0E27BC1EC92F3300734661 /* Storyboards */ = {
+			isa = PBXGroup;
+			children = (
+				FA0E27BD1EC92F7200734661 /* Invoice.storyboard */,
+				FA520AEC1E6CC62D00AABE68 /* Main.storyboard */,
+			);
+			name = Storyboards;
 			sourceTree = "<group>";
 		};
 		FA496C3A1EBADD140080FC7C /* Transactions */ = {
@@ -156,11 +183,13 @@
 				FA520AEA1E6CC62D00AABE68 /* Assets.xcassets */,
 				FA07DB3E1E84CCE800FEC042 /* Blockchain */,
 				FA65A37E1EA32A49002B2A17 /* Crypto */,
+				FAF017F21EBE9E68008FEA13 /* Daemon */,
 				FA520AEF1E6CC62D00AABE68 /* Info.plist */,
 				FA7857EA1E91CE5E00E834D3 /* Lightning */,
 				FA520AE71E6CC62D00AABE68 /* lnd_gui.xcdatamodeld */,
-				FA520AEC1E6CC62D00AABE68 /* Main.storyboard */,
 				FA520B131E6CC83200AABE68 /* NavigationControllers */,
+				FAF017EF1EBE9230008FEA13 /* Networking */,
+				FA0E27BC1EC92F3300734661 /* Storyboards */,
 				FA496C3A1EBADD140080FC7C /* Transactions */,
 				FAEDC3191EB5038D007DE94F /* Types */,
 				2157F75F1E8851BB00847E4C /* Vendor */,
@@ -185,12 +214,16 @@
 			children = (
 				FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */,
 				2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */,
-				FADD7C991EA5C49B00FEA12C /* ChainWalletViewController.swift */,
+				FAF017F91EC01FA4008FEA13 /* CommitSendViewController.swift */,
 				FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */,
+				FA0E27BA1EC92EF500734661 /* InvoiceViewController.swift */,
 				FA759F9D1E6E74C70024DF80 /* MainViewController.swift */,
 				FA6907641E76199C00F8A0F7 /* ReceiveViewController.swift */,
+				FAF017F51EC002EB008FEA13 /* SendOnChainViewController.swift */,
 				FA520B161E6CDB1F00AABE68 /* SendViewController.swift */,
+				FA0E27B01EC8F98700734661 /* SentTransactionViewController.swift */,
 				FAEE139C1E748571005B7A55 /* TransactionsViewController.swift */,
+				FA0E27B81EC9204200734661 /* TransactionViewController.swift */,
 			);
 			name = ViewControllers;
 			sourceTree = "<group>";
@@ -198,6 +231,7 @@
 		FA65A37E1EA32A49002B2A17 /* Crypto */ = {
 			isa = PBXGroup;
 			children = (
+				FA0E27AE1EC7896300734661 /* Payment.swift */,
 				FA65A37F1EA32A60002B2A17 /* PublicKey.swift */,
 			);
 			name = Crypto;
@@ -209,9 +243,10 @@
 				FA65A3781EA3246B002B2A17 /* Channel.swift */,
 				FA65A3761EA3239C002B2A17 /* Connection.swift */,
 				FA7857ED1E91F41A00E834D3 /* Invoice.swift */,
+				FA719F3E1EB988E70080F67E /* PaymentHash.swift */,
+				FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */,
 				FA65A3721EA291D1002B2A17 /* Peer.swift */,
 				FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */,
-				FA719F3E1EB988E70080F67E /* PaymentHash.swift */,
 			);
 			name = Lightning;
 			sourceTree = "<group>";
@@ -233,6 +268,22 @@
 				FA496C381EBAD82C0080FC7C /* Sequence+Unique.swift */,
 			);
 			name = Types;
+			sourceTree = "<group>";
+		};
+		FAF017EF1EBE9230008FEA13 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				FAF017F01EBE925A008FEA13 /* IpAddress.swift */,
+			);
+			name = Networking;
+			sourceTree = "<group>";
+		};
+		FAF017F21EBE9E68008FEA13 /* Daemon */ = {
+			isa = PBXGroup;
+			children = (
+				FAF017F31EBE9F21008FEA13 /* Daemon.swift */,
+			);
+			name = Daemon;
 			sourceTree = "<group>";
 		};
 		FAF93BB21EABE49600864A6F /* Frameworks */ = {
@@ -305,6 +356,7 @@
 			files = (
 				FA520AEB1E6CC62D00AABE68 /* Assets.xcassets in Resources */,
 				FA520AEE1E6CC62D00AABE68 /* Main.storyboard in Resources */,
+				FA0E27BE1EC92F7200734661 /* Invoice.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,27 +368,34 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA07DB401E84CDBD00FEC042 /* Tokens.swift in Sources */,
+				FAD9C0931EC2B2AF00B10888 /* PaymentRequest.swift in Sources */,
 				FAF93BB61EABE4C600864A6F /* WebSocket.swift in Sources */,
 				FA496C391EBAD82C0080FC7C /* Sequence+Unique.swift in Sources */,
 				FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */,
 				FA65A3751EA2965B002B2A17 /* Transaction.swift in Sources */,
 				FA6907661E76199C00F8A0F7 /* ReceiveViewController.swift in Sources */,
 				FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */,
+				FAF017F11EBE925A008FEA13 /* IpAddress.swift in Sources */,
 				FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */,
 				FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */,
 				FA719F3F1EB988E70080F67E /* PaymentHash.swift in Sources */,
-				FADD7C9B1EA5C49B00FEA12C /* ChainWalletViewController.swift in Sources */,
 				FA65A3801EA32A60002B2A17 /* PublicKey.swift in Sources */,
+				FAF017F41EBE9F21008FEA13 /* Daemon.swift in Sources */,
 				FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */,
+				FA0E27AF1EC7896300734661 /* Payment.swift in Sources */,
+				FAF017F61EC002EB008FEA13 /* SendOnChainViewController.swift in Sources */,
 				FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */,
+				FA0E27BB1EC92EF500734661 /* InvoiceViewController.swift in Sources */,
 				FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */,
 				2157F7611E8851CD00847E4C /* TaskQueue.swift in Sources */,
+				FAF017FA1EC01FA4008FEA13 /* CommitSendViewController.swift in Sources */,
 				FA496C3D1EBADDB70080FC7C /* Wallet.swift in Sources */,
 				FA65A37B1EA32918002B2A17 /* Outpoint.swift in Sources */,
 				FAEDC31F1EB50AAD007DE94F /* README.md in Sources */,
 				FABF354D1EB8286C00D8AC13 /* TransactionStatusCell.swift in Sources */,
 				FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */,
 				FAEDC31D1EB5080C007DE94F /* Data+asHexString.swift in Sources */,
+				FA0E27B11EC8F98700734661 /* SentTransactionViewController.swift in Sources */,
 				FA65A3731EA291D1002B2A17 /* Peer.swift in Sources */,
 				FA65A3771EA3239C002B2A17 /* Connection.swift in Sources */,
 				FA65A37D1EA3292B002B2A17 /* TransactionHash.swift in Sources */,
@@ -346,6 +405,7 @@
 				FAEE139D1E748571005B7A55 /* TransactionsViewController.swift in Sources */,
 				2157F75E1E87349F00847E4C /* BlockchainInfoViewController.swift in Sources */,
 				FA520B151E6CCF1900AABE68 /* MainWindowController.swift in Sources */,
+				FA0E27B91EC9204200734661 /* TransactionViewController.swift in Sources */,
 				FA719F3D1EB9884D0080F67E /* JsonInitialized.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

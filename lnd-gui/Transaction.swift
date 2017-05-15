@@ -20,7 +20,7 @@ struct Transaction {
   
   enum DestinationType {
     case chain
-    case received(memo: String)
+    case received(Invoice)
     case sent(publicKey: String, paymentId: String)
   }
   
@@ -71,7 +71,6 @@ struct Transaction {
     
     guard let tokens = (json["tokens"] as? NSNumber)?.tokensValue else { throw JsonParseError.expectedAmount }
     
-    let memo = json["memo"] as? String
     let destinationId = json["destination"] as? String
 
     guard let networkType = NetworkType(from: json["type"] as? String) else { throw JsonParseError.expectedType }
@@ -81,7 +80,7 @@ struct Transaction {
       destination = DestinationType.chain
       
     case (.channel, false):
-      destination = DestinationType.received(memo: (memo ?? String()) as String)
+      destination = DestinationType.received(try Invoice(from: json))
       
     case (.channel, true):
       guard let publicKey = destinationId else { throw JsonParseError.expectedDestination }

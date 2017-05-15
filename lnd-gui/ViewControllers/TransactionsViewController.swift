@@ -10,14 +10,35 @@ import Cocoa
 
 // FIXME: - abstract
 class TransactionsViewController: NSViewController {
+  // MARK: - @IBAction
+  
+  @IBAction func doubleClickTransaction(_ sender: AnyObject) {
+    guard let index = transactionsTableView?.clickedRow else { return }
+    
+    guard let transaction = transaction(at: index) else {
+      return print("ERROR", "expected transaction at index")
+    }
+    
+    showTransaction(transaction)
+  }
+  
+  // MARK: - @IBOutlets
+  
   @IBOutlet weak var transactionsTableView: NSTableView?
   
-  lazy var transactions: [Transaction] = [Transaction]()
+  // MARK: - Properties
+
+  lazy var showTransaction: (Transaction) -> () = { _ in }
   
+  lazy var transactions: [Transaction] = [Transaction]()
+}
+
+// MARK: - NSViewController
+extension TransactionsViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    title = "Transactions"
+    initMenu()
   }
 }
 
@@ -66,10 +87,12 @@ extension TransactionsViewController {
     
     /** Make a cell in column
      */
-    func makeCell(inTableView tableView: NSTableView, withTitle title: String) -> NSTableCellView? {
+    func makeCell(inTableView tableView: NSTableView, withTitle title: String, isEnabled: Bool) -> NSTableCellView? {
       let cell = tableView.make(withIdentifier: asCellIdentifier, owner: nil) as? NSTableCellView
       
       cell?.textField?.stringValue = title
+      
+      cell?.textField?.textColor = isEnabled ? .controlTextColor : .disabledControlTextColor
       
       return cell
     }
@@ -83,6 +106,39 @@ extension TransactionsViewController {
   enum TransactionsViewControllerError: String, Error {
     case expectedKnownColumn
     case expectedTransactionForRow
+  }
+}
+
+// MARK: - NSMenuDelegate
+extension TransactionsViewController: NSMenuDelegate {
+  /** Init the table menu
+   */
+  fileprivate func initMenu() {
+    transactionsTableView?.menu = NSMenu()
+    
+    transactionsTableView?.menu?.delegate = self
+  }
+  
+  /** Context menu is appearing
+   */
+  func menuNeedsUpdate(_ menu: NSMenu) {
+    menu.removeAllItems()
+    
+    guard let index = transactionsTableView?.clickedRow, let _ = transaction(at: index) else { return }
+
+    menu.addItem(NSMenuItem(title: "Details", action: #selector(showTransactionDetails), keyEquivalent: String()))
+  }
+  
+  func showTransactionDetails(_ item: NSMenuItem) {
+    guard let index = transactionsTableView?.clickedRow, let transaction = transaction(at: index) else { return }
+
+    showTransaction(transaction)
+  }
+  
+  func transaction(at index: Int) -> Transaction? {
+    guard !transactions.isEmpty, index >= transactions.startIndex, index < transactions.endIndex else { return nil }
+
+    return transactions[index]
   }
 }
 
@@ -127,7 +183,7 @@ extension TransactionsViewController: NSTableViewDataSource {
       title = "\(modifier)\(formattedAmount) tBTC"
       
     case .confirmed:
-      let cell = column.makeCell(inTableView: tableView, withTitle: " ") as? TransactionStatusCell
+      let cell = column.makeCell(inTableView: tableView, withTitle: " ", isEnabled: tx.confirmed) as? TransactionStatusCell
 
       cell?.transaction = tx
 
@@ -149,17 +205,17 @@ extension TransactionsViewController: NSTableViewDataSource {
     case .description:
       switch tx.destination {
       case .chain:
-        title = " "
+        title = tx.id
         
-      case .received(memo: let memo):
-        title = memo
+      case .received(let invoice):
+        title = invoice.memo ?? invoice.id
         
       case .sent(publicKey: let publicKey, paymentId: let paymentId):
         title = "Sent to \(publicKey) for \(paymentId)"
       }
     }
     
-    return column.makeCell(inTableView: tableView, withTitle: title)
+    return column.makeCell(inTableView: tableView, withTitle: title, isEnabled: tx.confirmed)
   }
   
   /** Object value at row

@@ -9,6 +9,9 @@
 import Cocoa
 
 /** ConnectionsViewController is a view controller for creating invoices.
+ 
+ FIXME: - when there is no chain balance, funds can't be increased, should prompt to lower from another channel
+ FIXME: - add disconnect option
  */
 class ConnectionsViewController: NSViewController {
   // MARK: - @IBOutlets
@@ -31,7 +34,7 @@ class ConnectionsViewController: NSViewController {
    */
   override func viewDidLoad() {
     super.viewDidLoad()
-
+    
     initMenu()
   }
   

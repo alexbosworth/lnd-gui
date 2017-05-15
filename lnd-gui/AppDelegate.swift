@@ -11,15 +11,52 @@ import Cocoa
 // FIXME: - cleanup
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+  /** Show connections view.
+   */
+  @IBAction func showConnections(_ sender: AnyObject) {
+    guard let mainViewController = mainViewController else {
+      return print("ERROR", "expected main view controller")
+    }
+    
+    mainViewController.showConnections()
+  }
+  
+  func showInvoice(_ invoice: Invoice) {
+    let storyboard = NSStoryboard(name: "Invoice", bundle: nil)
 
+    guard let vc = storyboard.instantiateController(withIdentifier: "InvoiceViewController") as? InvoiceViewController else {
+      return print("ERROR", "expected invoice view controller")
+    }
 
+    let window = NSWindow(contentViewController: vc)
+    
+    window.title = "Invoice"
+
+    window.makeKeyAndOrderFront(self)
+
+    let controller = NSWindowController(window: window)
+    
+    windowControllers += [controller]
+    
+    vc.invoice = invoice
+    
+    controller.showWindow(self)
+  }
+
+  /** Main view controller
+   */
+  private var mainViewController: MainViewController?
+  
+  lazy private var windowControllers: [NSWindowController] = []
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
     // Insert code here to initialize your application
     
-    let _ = NSApplication.shared().windows.first?.contentViewController as? MainViewController
+    mainViewController = NSApplication.shared().windows.first?.contentViewController as? MainViewController
 
-    
+    mainViewController?.showInvoice = { [weak self] invoice in
+      self?.showInvoice(invoice)
+    }
   }
 
   func applicationWillTerminate(_ aNotification: Notification) {

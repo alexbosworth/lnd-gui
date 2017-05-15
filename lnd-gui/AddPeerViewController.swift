@@ -9,8 +9,6 @@
 import Cocoa
 
 /** Add peer dialog
- 
- FIXME: - default to a normal port, allow changing port
  */
 class AddPeerViewController: NSViewController {
   // MARK: - @IBActions
@@ -18,17 +16,15 @@ class AddPeerViewController: NSViewController {
   /** Pressed add peer button
    */
   @IBAction func pressedAddPeerButton(_ sender: NSButton) {
-    guard
-      let host = hostTextField?.stringValue,
-      !host.isEmpty,
-      let publicKey = publicKeyTextField?.stringValue,
-      !publicKey.isEmpty
-      else
-    {
-      return
+    do {
+      guard let serializedIp = hostTextField?.stringValue, let publicKeyHex = publicKeyTextField?.stringValue else {
+        return
+      }
+
+      addPeer(ip: try IpAddress(from: serializedIp), publicKey: try PublicKey(from: publicKeyHex))
+    } catch {
+      print("ERROR", error)
     }
-    
-    addPeer(host: host, publicKey: publicKey)
   }
   
   // MARK: - @IBOutlets
@@ -46,28 +42,48 @@ class AddPeerViewController: NSViewController {
   @IBOutlet weak var publicKeyTextField: NSTextField?
 }
 
-extension AddPeerViewController {
-  func addPeer(host: String, publicKey: String) {
-    let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/peers/")!
-    var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
-    sendUrlRequest.httpMethod = "POST"
-    sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    let data = "{\"host\": \"\(host)\", \"public_key\": \"\(publicKey)\"}".data(using: .utf8)
-
+// MARK: - NSTextViewDelegate
+extension AddPeerViewController: NSTextViewDelegate {
+  /** Control text changed
+   */
+  override func controlTextDidChange(_ obj: Notification) {
     addPeerButton?.isEnabled = false
-    
-    let addPeer = session.uploadTask(with: sendUrlRequest, from: data) { [weak self] data, urlResponse, error in
-      self?.addPeerButton?.isEnabled = true
 
-      if let error = error {
-        return print("ERROR \(error)")
-      }
-      
-      self?.dismiss(self)
+    // Confirm that the public key and host look valid
+    guard
+      let host = hostTextField?.stringValue,
+      let _ = try? IpAddress(from: host),
+      let publicKey = publicKeyTextField?.stringValue,
+      let _ = try? PublicKey(from: publicKey)
+      else
+    {
+      return
     }
     
-    addPeer.resume()
+    addPeerButton?.isEnabled = true
+  }
+}
+
+extension AddPeerViewController {
+  func addPeer(ip: IpAddress, publicKey: PublicKey) {
+    addPeerButton?.isEnabled = false
+    
+    do {
+      try Daemon.addPeer(ip: ip, publicKey: publicKey) { [weak self] result in
+        DispatchQueue.main.async {
+          switch result {
+          case .error(let error):
+            self?.addPeerButton?.isEnabled = true
+
+            print("ERROR", error)
+            
+          case .success:
+            self?.dismiss(self)
+          }
+        }
+      }
+    } catch {
+      print("ERROR", error)
+    }
   }
 }
