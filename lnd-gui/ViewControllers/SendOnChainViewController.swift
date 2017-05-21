@@ -65,6 +65,10 @@ class SendOnChainViewController: NSViewController {
       commitSendViewController?.paymentToSend = .chainSend(paymentToSend.0, paymentToSend.1)
     }
   }
+  
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
 
   /** Commit send
    */
@@ -97,6 +101,8 @@ extension SendOnChainViewController {
     commitSendViewController.clearDestination = { [weak self] in self?.clear() }
     
     commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
+    
+    commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
   }
 }
 

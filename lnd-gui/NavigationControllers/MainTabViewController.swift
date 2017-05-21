@@ -8,21 +8,37 @@
 
 import Cocoa
 
-typealias StoryboardIdentifier = String
-
-/** MainTabViewController is the overall tab controller.
+/** Main Tab View Controller
  */
-class MainTabViewController: NSTabViewController {  
+class MainTabViewController: NSTabViewController, ErrorReporting {
   // MARK: - Properties
   
+  /** Connections view controller
+   */
   var connectionsViewController: ConnectionsViewController?
 
+  /** Receive view controller
+   */
   var receiveViewController: ReceiveViewController?
   
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
+  
+  /** Send view controller
+   */
   var sendViewController: SendViewController?
   
+  /** Show invoice
+   */
   lazy var showInvoice: (Invoice) -> () = { _ in }
   
+  /** Show payment
+   */
+  lazy var showPayment: (Transaction) -> () = { _ in }
+  
+  /** Transactions view controller
+   */
   var transactionsViewController: TransactionsViewController?
   
   /** updateBalance closure triggers a balance update
@@ -34,9 +50,9 @@ class MainTabViewController: NSTabViewController {
 extension MainTabViewController {
   /** Failure defines an encountered error.
    */
-  enum Failure: String, Error {
-    case expectedTab
-    case expectedViewController
+  enum Failure: Error {
+    case expectedTab(Tab)
+    case expectedViewControllerForTab(Tab)
   }
 }
 
@@ -69,9 +85,13 @@ extension MainTabViewController {
     }
   }
   
+  /** Show connections
+   
+   // FIXME: - Connections should be shown in a preferences window
+   */
   func showConnections() {
-    guard let connectionsViewController = connectionsViewController else {
-      return print("ERROR", "expected connections view controller")
+    guard let connections = connectionsViewController else {
+      return reportError(Failure.expectedViewControllerForTab(.connections))
     }
     
     let connectionsTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.connections.storyboardIdentifier)
@@ -80,54 +100,22 @@ extension MainTabViewController {
     
     let insertionIndex = tabViewItems.endIndex
 
-    // FIXME: - insert at a deterministic position
-    insertChildViewController(connectionsViewController, at: insertionIndex)
+    // Add connections view controller
+    insertChildViewController(connections, at: insertionIndex)
     
+    // Show tab
     selectedTabViewItemIndex = insertionIndex
   }
 
+  /** Show transaction
+   */
   func showTransaction(_ transaction: Transaction) {
     switch transaction.destination {
     case .chain, .sent(_, _):
-      break
+      return showPayment(transaction)
       
     case .received(let invoice):
       return showInvoice(invoice)
-    }
-    
-    switch transaction.outgoing {
-    case false:
-      let receiveTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.receive.storyboardIdentifier)
-
-      guard receiveTabIndex != NSNotFound else { return print("ERROR", "expected receive tab") }
-
-      selectedTabViewItemIndex = receiveTabIndex
-
-      guard let receiveViewController = receiveViewController else { return print("ERROR", "expected receive vc") }
-
-      do {
-        switch transaction.confirmed {
-        case false:
-          receiveViewController.invoice = try Invoice(from: transaction)
-          
-        case true:
-          receiveViewController.paidInvoice = transaction
-        }
-        
-      } catch {
-        print("ERROR", error)
-      }
-    
-    case true:
-      let sendTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.send.storyboardIdentifier)
-      
-      guard sendTabIndex != NSNotFound else { return print("ERROR", "expected send tab") }
-      
-      selectedTabViewItemIndex = sendTabIndex
-      
-      guard let sendViewController = sendViewController else { return print("ERROR", "expected send vc") }
-      
-      sendViewController.settledTransaction = transaction
     }
   }
 }
@@ -144,55 +132,59 @@ extension MainTabViewController {
     if connectionsTabIndex >= tabViewItems.startIndex && connectionsTabIndex < tabViewItems.endIndex {
       connectionsViewController = childViewControllers[connectionsTabIndex] as? ConnectionsViewController
       
+      connectionsViewController?.reportError = { [weak self] error in self?.reportError(error) }
+      
       removeChildViewController(at: connectionsTabIndex)
     }
     
     let receiveTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.receive.storyboardIdentifier)
     
     guard receiveTabIndex < tabViewItems.endIndex && receiveTabIndex >= tabViewItems.startIndex else {
-      return print("ERROR", Failure.expectedTab)
+      return reportError(Failure.expectedTab(.receive))
     }
     
     let receiveTab = tabViewItems[receiveTabIndex]
     
     guard let receiveViewController = receiveTab.viewController as? ReceiveViewController else {
-      return print("ERROR", Failure.expectedViewController)
+      return reportError(Failure.expectedViewControllerForTab(.receive))
     }
     
     self.receiveViewController = receiveViewController
+
+    receiveViewController.reportError = { [weak self] error in self?.reportError(error) }
     
     let sendTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.send.storyboardIdentifier)
     
     guard sendTabIndex < tabViewItems.endIndex && sendTabIndex >= tabViewItems.startIndex else {
-      return print("ERROR", Failure.expectedTab)
+      return reportError(Failure.expectedTab(.send))
     }
     
     let sendTab = tabViewItems[sendTabIndex]
     
     guard let sendViewController = sendTab.viewController as? SendViewController else {
-      return print("ERROR", Failure.expectedViewController)
+      return reportError(Failure.expectedViewControllerForTab(.send))
     }
     
     self.sendViewController = sendViewController
+    
+    sendViewController.reportError = { [weak self] error in self?.reportError(error) }
     
     sendViewController.updateBalance = { [weak self] in self?.updateBalance?() }
 
     let transactionsTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.transactions.storyboardIdentifier)
     
     guard transactionsTabIndex < tabViewItems.endIndex, transactionsTabIndex >= tabViewItems.startIndex else {
-      return print("ERROR", Failure.expectedTab)
+      return reportError(Failure.expectedTab(.transactions))
     }
     
     let transactionsTab = tabViewItems[transactionsTabIndex]
     
     guard let transactionsViewController = transactionsTab.viewController as? TransactionsViewController else {
-      return print("ERROR", Failure.expectedViewController)
+      return reportError(Failure.expectedViewControllerForTab(.transactions))
     }
 
     self.transactionsViewController = transactionsViewController
     
-    transactionsViewController.showTransaction = { [weak self] transaction in
-      self?.showTransaction(transaction)
-    }
+    transactionsViewController.showTransaction = { [weak self] transaction in self?.showTransaction(transaction) }
   }
 }

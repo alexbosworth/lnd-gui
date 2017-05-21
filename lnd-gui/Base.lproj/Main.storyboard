@@ -1058,7 +1058,7 @@ Gw
                 </viewController>
                 <customObject id="yaq-rC-aDI" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1263" y="-67.5"/>
+            <point key="canvasLocation" x="1349" y="-69"/>
         </scene>
         <!--Receive-->
         <scene sceneID="Xq2-D9-WOm">
@@ -1145,7 +1145,7 @@ Gw
                                     <action selector="pressedClearButton:" target="zuS-DL-aA7" id="LRm-Kc-kdR"/>
                                 </connections>
                             </button>
-                            <box title="Received Payment" translatesAutoresizingMaskIntoConstraints="NO" id="OlM-qm-LKR">
+                            <box hidden="YES" title="Received Payment" translatesAutoresizingMaskIntoConstraints="NO" id="OlM-qm-LKR">
                                 <rect key="frame" x="121" y="96" width="312" height="100"/>
                                 <view key="contentView" id="okg-27-YNe">
                                     <rect key="frame" x="2" y="2" width="308" height="83"/>
@@ -1910,7 +1910,7 @@ Gw
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aQV-bU-Z2U">
                                 <rect key="frame" x="435" y="281" width="33" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="tBTC" id="3E7-BO-4Hn">
-                                    <font key="font" metaFont="controlContent"/>
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -1988,7 +1988,7 @@ Gw
                                                 <constraint firstAttribute="width" constant="348" id="vWS-iy-pSz"/>
                                             </constraints>
                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" id="D2Z-8L-UJb">
-                                                <font key="font" metaFont="controlContent"/>
+                                                <font key="font" metaFont="cellTitle"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
@@ -2012,7 +2012,7 @@ Gw
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7OC-In-V4Y">
                                             <rect key="frame" x="102" y="8" width="352" height="16"/>
                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Free" id="b5q-I7-g24">
-                                                <font key="font" metaFont="controlContent"/>
+                                                <font key="font" metaFont="cellTitle"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
@@ -2020,7 +2020,7 @@ Gw
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" verticalCompressionResistancePriority="751" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1ck-Ox-ORh">
                                             <rect key="frame" x="102" y="57" width="352" height="16"/>
                                             <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" id="Qhb-0i-yjv">
-                                                <font key="font" metaFont="controlContent"/>
+                                                <font key="font" metaFont="cellTitle"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>

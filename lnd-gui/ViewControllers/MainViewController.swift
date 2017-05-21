@@ -43,9 +43,17 @@ class MainViewController: NSViewController {
    */
   weak var mainTabViewController: MainTabViewController?
 
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
+
   /** Show invoice
    */
   lazy var showInvoice: (Invoice) -> () = { _ in }
+  
+  /** Show payment
+   */
+  lazy var showPayment: (Transaction) -> () = { _ in }
   
   /** Wallet
    */
@@ -277,6 +285,8 @@ extension MainViewController {
     }
     
     mainTabViewController.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
+
+    mainTabViewController.showPayment = { [weak self] payment in self?.showPayment(payment) }
     
     mainTabViewController.updateBalance = { [weak self] in self?.refreshBalances() {} }
     

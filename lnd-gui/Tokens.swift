@@ -22,6 +22,14 @@ extension Tokens {
     static let valueDenominator: Double = 100_000_000
   }
   
+  /** Parse tokens from string
+   */
+  init(from amount: String) {
+    let number = (NSDecimalNumber(string: amount) as Decimal) * (NSDecimalNumber(value: 100_000_00) as Decimal)
+    
+    self = type(of: self).init((number as NSDecimalNumber).doubleValue)
+  }
+  
   /** formatted returns the string formatted version of the value.
    */
   var formatted: String {
@@ -32,6 +40,27 @@ extension Tokens {
     formatter.minimumIntegerDigits = Formatting.minimumIntegerDigits
     
     return (formatter.string(from: NSNumber(value: largeUnitValue)) ?? String()) as String
+  }
+
+  /** Formatted with a unit label
+   */
+  func formatted(with unit: Unit) -> String {
+    return "\(formatted) \(unit.symbol)"
+  }
+  
+  /** Token unit type
+   */
+  enum Unit {
+    case testBitcoin
+    
+    /** String symbol
+     */
+    var symbol: String {
+      switch self {
+      case .testBitcoin:
+        return "tBTC"
+      }
+    }
   }
 }
 

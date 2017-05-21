@@ -9,6 +9,7 @@
 import Cocoa
 
 // FIXME: - cleanup
+// FIXME: - exhaustive commenting
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
   /** Show connections view.
@@ -19,6 +20,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     mainViewController.showConnections()
+  }
+  
+  private func report(_ error: Error) {
+    print("ERROR", error)
   }
   
   func showInvoice(_ invoice: Invoice) {
@@ -40,9 +45,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     vc.invoice = invoice
     
+    vc.reportError = { [weak self] error in self?.report(error) }
+    
     controller.showWindow(self)
   }
-
+  
+  func showPayment(_ transaction: Transaction) {
+    let storyboard = NSStoryboard(name: "Payment", bundle: nil)
+    
+    guard let vc = storyboard.instantiateController(withIdentifier: "PaymentViewController") as? PaymentViewController else {
+      return print("ERROR", "expected payment view controller")
+    }
+    
+    let window = NSWindow(contentViewController: vc)
+    
+    window.title = "Payment"
+    
+    window.makeKeyAndOrderFront(self)
+    
+    let controller = NSWindowController(window: window)
+    
+    windowControllers += [controller]
+    
+    vc.transaction = transaction
+    
+    controller.showWindow(self)
+  }
+  
   /** Main view controller
    */
   private var mainViewController: MainViewController?
@@ -53,9 +82,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Insert code here to initialize your application
     
     mainViewController = NSApplication.shared().windows.first?.contentViewController as? MainViewController
+    
+    mainViewController?.reportError = { error in
+      print("ERROR", error)
+    }
 
     mainViewController?.showInvoice = { [weak self] invoice in
       self?.showInvoice(invoice)
+    }
+    
+    mainViewController?.showPayment = { [weak self] payment in
+      self?.showPayment(payment)
     }
   }
 

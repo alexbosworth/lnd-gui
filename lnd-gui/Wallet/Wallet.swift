@@ -20,8 +20,7 @@ struct Wallet {
     unconfirmedTransactions = []
   }
   
-  // MARK: - Properties
-  
+  // MARK: - Propertiesvar
   /** Confirmed transactions
    */
   var transactions: [Transaction]
@@ -35,4 +34,16 @@ struct Wallet {
  */
 protocol WalletListener {
   func wallet(updated: Wallet)
+}
+
+extension Wallet {
+  /** Determine if a payment is present
+   */
+  func invoice(_ invoice: Invoice) -> Transaction? {
+    return transactions.first { transaction in
+      guard case .received(_) = transaction.destination else { return false }
+      
+      return transaction.id == invoice.id
+    }
+  }
 }

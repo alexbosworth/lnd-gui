@@ -8,6 +8,10 @@
 
 import Cocoa
 
+protocol ErrorReporting {
+  var reportError: (Error) -> () { get }
+}
+
 /** SendViewController is a view controller for performing a send.
  
  FIXME: - auto detect sending to a blockchain address
@@ -15,7 +19,7 @@ import Cocoa
  FIXME: - remember who you send to and confirm on first send that you are sending to a new sender
  FIXME: - allow editing labels and images for senders
  */
-class SendViewController: NSViewController {
+class SendViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets
   
   /** destinationTextField is the input for payment destination entry.
@@ -43,6 +47,10 @@ class SendViewController: NSViewController {
   /** Commit send view controller
    */
   fileprivate var commitSendViewController: CommitSendViewController?
+
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
   
   /** Send on chain view controller
   */
@@ -59,6 +67,15 @@ class SendViewController: NSViewController {
   lazy var updateBalance: (() -> ()) = {}
 }
 
+extension SendViewController {
+  enum Failure: Error {
+    case expectedCommitSendViewController
+    case expectedSendOnChainController
+    case expectedSentTransactionViewController
+    case unknownSegue
+  }
+}
+
 // MARK: - Navigation
 extension SendViewController {
   /** Prepare for segue
@@ -66,38 +83,35 @@ extension SendViewController {
   override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
     let destinationController = segue.destinationController
     
-    guard let segue = Segue(from: segue) else { return print("ERROR", "unknown segue") }
+    guard let segue = Segue(from: segue) else { return reportError(Failure.unknownSegue) }
     
     switch segue {
     case .sendChannelPayment:
       guard let commitSendViewController = destinationController as? CommitSendViewController else {
-        return print("ERROR", "expected commit send view controller")
+        return reportError(Failure.expectedCommitSendViewController)
       }
       
       self.commitSendViewController = commitSendViewController
       
-      commitSendViewController.paymentToSend = nil
-      
-      commitSendViewController.commitSend = { [weak self] payment in
-        self?.send(payment)
-      }
-      
       commitSendViewController.clearDestination = { [weak self] in self?.resetDestination() }
+      commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
+      commitSendViewController.paymentToSend = nil
+      commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
       
     case .sendOnChain:
       guard let sendOnChainViewController = destinationController as? SendOnChainViewController else {
-        return print("ERROR", "expected send on chain view controller")
+        return reportError(Failure.expectedSendOnChainController)
       }
       
       self.sendOnChainViewController = sendOnChainViewController
       
-      sendOnChainViewController.send = { [weak self] payment in self?.send(payment) }
-      
       sendOnChainViewController.clear = { [weak self] in self?.resetDestination() }
+      sendOnChainViewController.reportError = { [weak self] error in self?.reportError(error) }
+      sendOnChainViewController.send = { [weak self] payment in self?.send(payment) }
       
     case .sentTransaction:
       guard let sentTransactionViewController = destinationController as? SentTransactionViewController else {
-        return print("ERROR", "expected sent on chain view controller")
+        return reportError(Failure.expectedSentTransactionViewController)
       }
       
       self.sentTransactionViewController = sentTransactionViewController
@@ -134,7 +148,6 @@ extension SendViewController {
     }
 
     sentTransactionContainerView?.isHidden = false
-
     sentTransactionViewController?.settledTransaction = transaction
   }
 }
@@ -161,41 +174,34 @@ extension SendViewController {
 }
 
 extension SendViewController {
+  private func showDecodedPaymentRequest(_ data: Data, for paymentRequest: String) {
+    let payReq: PaymentRequest
+    
+    do { payReq = try PaymentRequest(from: data, paymentRequest: paymentRequest) } catch { return reportError(error) }
+    
+    sendChannelPaymentContainerView?.isHidden = false
+    
+    guard let commitVc = commitSendViewController else { return reportError(Failure.expectedCommitSendViewController) }
+    
+    commitVc.paymentToSend = .paymentRequest(payReq)
+  }
+  
   // FIXME: - see if this can be done natively
   // FIXME: - abstract to Daemon
   func getDecoded(paymentRequest: String) {
-    guard let url = URL(string: "http://localhost:10553/v0/payment_request/\(paymentRequest)") else {
-      return print("INVALID PAYMENT REQUEST")
-    }
-    
-    let session = URLSession.shared
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    
-    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
-      if let error = error {
-        return print("DECODE PAYMENT REQUEST ERROR", error)
-      }
-      
-      DispatchQueue.main.async {
-        do {
-          let payReq = try PaymentRequest(from: data, paymentRequest: paymentRequest)
-          
-          self?.sendChannelPaymentContainerView?.isHidden = false
+    do {
+      try Daemon.get(from: Daemon.Api.paymentRequest(paymentRequest)) { [weak self] result in
+        switch result {
+        case .data(let data):
+          self?.showDecodedPaymentRequest(data, for: paymentRequest)
 
-          guard let commitSendViewController = self?.commitSendViewController else {
-            return print("ERROR", "expected commit send view controller")
-          }
-          
-          commitSendViewController.paymentToSend = .paymentRequest(payReq)
-        } catch {
-          print("ERROR", error)
+        case .error(let error):
+          self?.reportError(error)
         }
       }
+    } catch {
+      reportError(error)
     }
-    
-    task.resume()
   }
 }
 
@@ -213,54 +219,85 @@ extension SendViewController {
     }
   }
   
+  // FIXME: - need a link to the transaction here
+  private func showSendOnChainResult(tokens: Tokens) {
+    resetDestination()
+
+    sentStatusTextField?.isHidden = false
+    sentStatusTextField?.stringValue = "Sending \(tokens.formatted) tBTC."
+  }
+  
   private func send(to address: String, tokens: Tokens) {
-    print("SEND \(address) \(tokens)")
+    enum SendOnChainJsonAttribute: String {
+      case address
+      case tokens
+      
+      var key: String { return rawValue }
+    }
+
+    let json: [String: Any] = [
+      SendOnChainJsonAttribute.address.key: address,
+      SendOnChainJsonAttribute.tokens.key: tokens,
+    ]
+    
     do {
-      try Daemon.send(json: ["address": address, "tokens": tokens], to: .transactions) { [weak self] result in
+      try Daemon.send(json: json, to: .transactions) { [weak self] result in
         DispatchQueue.main.async {
           switch result {
           case .error(let error):
-            print("ERROR", error)
+            self?.reportError(error)
             
           case .success:
-            self?.resetDestination()
-            
-            self?.sentStatusTextField?.isHidden = false
-            self?.sentStatusTextField?.stringValue = "Sending \(tokens.formatted) tBTC."
+            self?.showSendOnChainResult(tokens: tokens)
           }
         }
       }
     } catch {
-      print("ERROR", error)
+      reportError(error)
     }
+  }
+  
+  private func showPaymentResult(payment: PaymentRequest, start: Date) {
+    sendChannelPaymentContainerView?.isHidden = true
+    commitSendViewController?.paymentToSend = nil
+    destinationTextField?.stringValue = String()
+    
+    // FIXME: - show settled transaction
+    let duration = Date().timeIntervalSince(start)
+    sentStatusTextField?.isHidden = false
+    sentStatusTextField?.stringValue = "Sent \(payment.tokens.formatted) tBTC in \(String(format: "%.2f", duration)) seconds."
   }
   
   private func send(_ paymentRequest: PaymentRequest) {
     let start = Date()
     
+    enum SendPaymentJsonAttribute: String {
+      case paymentRequest
+      
+      var key: String {
+        switch self {
+        case .paymentRequest:
+          return "payment_request"
+        }
+      }
+    }
+    
+    let json: [String: Any] = [SendPaymentJsonAttribute.paymentRequest.key: paymentRequest.paymentRequest]
+    
     do {
-      try Daemon.send(json: ["payment_request": paymentRequest.paymentRequest], to: .payments) { [weak self] result in
-        DispatchQueue.main.async {
-          self?.commitSendViewController?.isSending = false
+      try Daemon.send(json: json, to: .payments) { [weak self] result in
+        self?.commitSendViewController?.isSending = false
+        
+        switch result {
+        case .error(let error):
+          self?.reportError(error)
           
-          switch result {
-          case .error(let error):
-            print("ERROR", error)
-            
-          case .success:
-            self?.sendChannelPaymentContainerView?.isHidden = true
-            self?.commitSendViewController?.paymentToSend = nil
-            self?.destinationTextField?.stringValue = String()
-            
-            // FIXME: - show settled transaction
-            let duration = Date().timeIntervalSince(start)
-            self?.sentStatusTextField?.isHidden = false
-            self?.sentStatusTextField?.stringValue = "Sent \(paymentRequest.tokens.formatted) tBTC in \(String(format: "%.2f", duration)) seconds."
-          }
+        case .success:
+          self?.showPaymentResult(payment: paymentRequest, start: start)
         }
       }
     } catch {
-      print("ERROR", error)
+      reportError(error)
     }
   }
 }
@@ -290,7 +327,6 @@ extension SendViewController: NSTextFieldDelegate {
     sendChannelPaymentContainerView?.isHidden = true
     
     guard let destination = destinationTextField?.stringValue else {
-      
       return
     }
     

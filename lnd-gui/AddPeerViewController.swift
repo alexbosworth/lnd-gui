@@ -10,21 +10,13 @@ import Cocoa
 
 /** Add peer dialog
  */
-class AddPeerViewController: NSViewController {
+class AddPeerViewController: NSViewController, ErrorReporting {
   // MARK: - @IBActions
   
   /** Pressed add peer button
    */
   @IBAction func pressedAddPeerButton(_ sender: NSButton) {
-    do {
-      guard let serializedIp = hostTextField?.stringValue, let publicKeyHex = publicKeyTextField?.stringValue else {
-        return
-      }
-
-      addPeer(ip: try IpAddress(from: serializedIp), publicKey: try PublicKey(from: publicKeyHex))
-    } catch {
-      print("ERROR", error)
-    }
+    addPeer(ip: hostTextField?.stringValue, publicKeyHex: publicKeyTextField?.stringValue)
   }
   
   // MARK: - @IBOutlets
@@ -40,6 +32,12 @@ class AddPeerViewController: NSViewController {
   /** Public key field
    */
   @IBOutlet weak var publicKeyTextField: NSTextField?
+  
+  // MARK: - Properties
+  
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
 }
 
 // MARK: - NSTextViewDelegate
@@ -64,26 +62,31 @@ extension AddPeerViewController: NSTextViewDelegate {
   }
 }
 
+// MARK: - Navigation
 extension AddPeerViewController {
-  func addPeer(ip: IpAddress, publicKey: PublicKey) {
+  /** Add a peer
+   */
+  fileprivate func addPeer(ip: String?, publicKeyHex: String?) {
+    guard let ip = ip, let key = publicKeyHex else { return }
+    
+    do { try addPeer(ip: try IpAddress(from: ip), publicKey: try PublicKey(from: key)) } catch { reportError(error) }
+  }
+
+  /** Add a peer
+   */
+  private func addPeer(ip: IpAddress, publicKey: PublicKey) throws {
     addPeerButton?.isEnabled = false
     
-    do {
-      try Daemon.addPeer(ip: ip, publicKey: publicKey) { [weak self] result in
-        DispatchQueue.main.async {
-          switch result {
-          case .error(let error):
-            self?.addPeerButton?.isEnabled = true
+    try Daemon.addPeer(ip: ip, publicKey: publicKey) { [weak self] result in
+      self?.addPeerButton?.isEnabled = true
 
-            print("ERROR", error)
-            
-          case .success:
-            self?.dismiss(self)
-          }
-        }
+      switch result {
+      case .error(let error):
+        self?.reportError(error)
+        
+      case .success:
+        self?.dismiss(self)
       }
-    } catch {
-      print("ERROR", error)
     }
   }
 }

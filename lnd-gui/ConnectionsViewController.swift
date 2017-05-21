@@ -13,36 +13,24 @@ import Cocoa
  FIXME: - when there is no chain balance, funds can't be increased, should prompt to lower from another channel
  FIXME: - add disconnect option
  */
-class ConnectionsViewController: NSViewController {
+class ConnectionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets
   
   /** Connections table view
    */
   @IBOutlet weak var connectionsTableView: NSTableView?
-
-  // MARK: - NSViewController
-
-  /** View will appear
-   */
-  override func viewWillAppear() {
-    super.viewWillAppear()
-    
-    refreshConnections()
-  }
-  
-  /** View loaded
-   */
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    
-    initMenu()
-  }
   
   // MARK: - Properties
+  
+  var addPeerViewController: AddPeerViewController?
 
   /** Connections
    */
   lazy var connections: [Connection] = []
+
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
 }
 
 // MARK: - Columns
@@ -95,6 +83,17 @@ extension ConnectionsViewController {
   }
 }
 
+// MARK: - Errors
+extension ConnectionsViewController {
+  /** Failures
+   */
+  enum Failure: Error {
+    case expectedChannelId
+    case expectedVC
+    case unexpectedSegue
+  }
+}
+
 // MARK: - Networking
 extension ConnectionsViewController {
   /** Get connections JSON errors
@@ -103,33 +102,33 @@ extension ConnectionsViewController {
     case expectedData
     case expectedJson
   }
+  
+  /** Show connections
+   */
+  private func showConnections(jsonArray: [[String: Any]]) throws {
+    let connections = try jsonArray.map { try Connection(from: $0) }
+      
+    self.connections = connections
+        
+    connectionsTableView?.reloadData()
+  }
 
   /** Refresh connections
    */
-  func refreshConnections() {
-    let url = URL(string: "http://localhost:10553/v0/connections/")!
-    
-    let task = URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] data, urlResponse, error in
-      guard let data = data else { return print(GetJsonFailure.expectedData) }
-      
-      let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
-      
-      guard let jsonArray = dataDownloadedAsJson as? [[String: Any]] else { return print(GetJsonFailure.expectedJson) }
-      
-      do {
-        let connections = try jsonArray.map { try Connection(from: $0) }
+  func refreshConnections() throws {
+    try Daemon.get(from: .connections) { [weak self] result in
+      switch result {
+      case .data(let data):
+        let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
         
-        DispatchQueue.main.async {
-          self?.connections = connections
-          
-          self?.connectionsTableView?.reloadData()
-        }
-      } catch {
-        print(error)
+        guard let jsonArray = jsonObject as? [[String: Any]] else { return print(GetJsonFailure.expectedJson) }
+        
+        do { try self?.showConnections(jsonArray: jsonArray) } catch { self?.reportError(error) }
+        
+      case .error(let error):
+        self?.reportError(error)
       }
     }
-    
-    task.resume()
   }
 }
 
@@ -137,28 +136,28 @@ extension ConnectionsViewController {
 extension ConnectionsViewController: NSMenuDelegate {
   /** Close channel
    */
-  func close(_ channel: Channel) {
-    let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/channels/\(channel.id!)")!
-    var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
-    sendUrlRequest.httpMethod = "DELETE"
-    sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+  func close(_ channel: Channel) throws {
+    guard let channelId = channel.id else { throw Failure.expectedChannelId }
     
-    let sendCloseChannelTask = session.dataTask(with: sendUrlRequest) { [weak self] data, urlResponse, error in
-      DispatchQueue.main.async { self?.refreshConnections() }
+    try Daemon.delete(in: .channels(channelId)) { [weak self] result in
+      switch result {
+      case .error(let error):
+        self?.reportError(error)
+        
+      case .success:
+        do { try self?.refreshConnections() } catch { self?.reportError(error) }
+      }
     }
-    
-    sendCloseChannelTask.resume()
   }
   
   /** Decrease channel balance
    */
-  func decreaseChannelBalance() {
+  func decreaseChannelBalance() throws {
     guard let clickedConnectionAtRow = connectionsTableView?.clickedRow else { return print("expectedClickedRow") }
     
     guard let connection = connection(at: clickedConnectionAtRow) else { return print("expectedConnection") }
 
-    connection.channels.forEach { close($0) }
+    try connection.channels.forEach { try close($0) }
   }
   
   /** Increase channel balance
@@ -205,6 +204,27 @@ extension ConnectionsViewController: NSMenuDelegate {
     case addPeer = "AddPeerSegue"
     
     var storyboardIdentifier: StoryboardIdentifier { return rawValue }
+
+    init?(from segue: NSStoryboardSegue) {
+      if let id = segue.identifier, let segue = type(of: self).init(rawValue: id) { self = segue } else { return nil }
+    }
+  }
+  
+  /** Prepare for segue
+   */
+  override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
+    let destinationViewController = segue.destinationController
+
+    guard let segue = Segue(from: segue) else { return reportError(Failure.unexpectedSegue) }
+    
+    switch segue {
+    case .addPeer:
+      guard let vc = destinationViewController as? AddPeerViewController else { return reportError(Failure.expectedVC) }
+      
+      self.addPeerViewController = vc
+      
+      vc.reportError = { [weak self] error in self?.reportError(error) }
+    }
   }
   
   /** Navigate to add peer sheet
@@ -318,12 +338,31 @@ extension ConnectionsViewController: NSTableViewDataSource {
 // MARK: - NSTableViewDelegate
 extension ConnectionsViewController: NSTableViewDelegate {}
 
+// MARK: - NSViewController
+extension ConnectionsViewController {
+  /** View will appear
+   */
+  override func viewWillAppear() {
+    super.viewWillAppear()
+    
+    do { try refreshConnections() } catch { reportError(error) }
+  }
+  
+  /** View loaded
+   */
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    initMenu()
+  }
+}
+
 // MARK: - WalletListener
 extension ConnectionsViewController: WalletListener {
   /** Wallet was updated
    */
   func wallet(updated: Wallet) {
-    refreshConnections()
+    do { try refreshConnections() } catch { reportError(error) }
 
     // FIXME: - animate changes
   }

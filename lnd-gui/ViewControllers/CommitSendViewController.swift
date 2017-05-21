@@ -8,6 +8,8 @@
 
 import Cocoa
 
+/** Commit send view controller
+ */
 class CommitSendViewController: NSViewController {
   // MARK: - @IBActions
   
@@ -20,9 +22,7 @@ class CommitSendViewController: NSViewController {
   /** pressedSendButton triggers a send.
    */
   @IBAction func pressedSendButton(_ button: NSButton) {
-    guard let paymentToSend = paymentToSend else {
-      return print("ERROR", "expected payment")
-    }
+    guard let paymentToSend = paymentToSend else { return reportError(Failure.expectedPaymentToSend) }
     
     commitSend(paymentToSend)
   }
@@ -78,8 +78,22 @@ class CommitSendViewController: NSViewController {
   /** Payment to send
    */
   var paymentToSend: Payment? { didSet { updatedPaymentRequest() } }
+
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
 }
 
+// MARK: - Errors
+extension CommitSendViewController {
+  /** Failures
+   */
+  enum Failure: Error {
+    case expectedPaymentToSend
+  }
+}
+
+// MARK: - NSViewController
 extension CommitSendViewController {
   /** Update payment request
    */

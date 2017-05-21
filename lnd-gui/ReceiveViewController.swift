@@ -18,10 +18,10 @@ import Cocoa
  FIXME: - add fiat
  FIXME: - add receive on chain bitcoins method
  */
-class ReceiveViewController: NSViewController {
+class ReceiveViewController: NSViewController, ErrorReporting {
   // MARK: - @IBActions
 
-  /** pressedClearButton triggers clearing the current payment request.
+  /** Pressed clear button triggers clearing the current payment request.
    */
   @IBAction func pressedClearButton(_ button: NSButton) {
     clear()
@@ -30,9 +30,7 @@ class ReceiveViewController: NSViewController {
   /** Pressed blockchain item
    */
   @IBAction func pressedInvoiceBlockchainItem(_ item: NSMenuItem) {
-    guard let chainAddress = invoice?.chainAddress else {
-      return print("ERROR", "expected chain address")
-    }
+    guard let chainAddress = invoice?.chainAddress else { return reportError(Failure.expectedChainAddress) }
     
     paymentRequestTextField?.stringValue = chainAddress
   }
@@ -40,23 +38,17 @@ class ReceiveViewController: NSViewController {
   /** Pressed lightning item
    */
   @IBAction func pressedInvoiceLightningItem(_ item: NSMenuItem) {
-    guard let paymentRequest = invoice?.paymentRequest else {
-      return print("ERROR", "expected payment request")
-    }
+    guard let paymentRequest = invoice?.paymentRequest else { return reportError(Failure.expectedPaymentRequest) }
     
     paymentRequestTextField?.stringValue = paymentRequest
   }
   
-  /** pressedRequestButton triggers the creation of a new request
+  /** Pressed request button to trigger the creation of a new request
    */
   @IBAction func pressedRequestButton(_ button: NSButton) {
     guard let amountString = amountTextField?.stringValue else { return }
-    
-    let number = (NSDecimalNumber(string: amountString) as Decimal) * (NSDecimalNumber(value: 100_000_00) as Decimal)
-    
-    let amount = Tokens((number as NSDecimalNumber).doubleValue)
-    
-    do { try addInvoice(amount: amount, memo: memoTextField?.stringValue) } catch { print(error) }
+
+    do { try addInvoice(amount: Tokens(from: amountString), memo: memoTextField?.stringValue) } catch { print(error) }
   }
 
   // MARK: - @IBOutlets
@@ -109,86 +101,23 @@ class ReceiveViewController: NSViewController {
   
   /** invoice is the created invoice to receive funds to.
    */
-  var invoice: Invoice? { didSet { updatePaymentRequest() } }
+  var invoice: Invoice? { didSet { updatedPaymentRequest() } }
 
   /** Paid invoice
    */
-  var paidInvoice: Transaction? { didSet { updatePaidInvoice() } }
+  var paidInvoice: Transaction? { didSet { updatedPaidInvoice() } }
   
-  // MARK: - UIViewController
-  
-  /** clear eliminates the input and previous created invoice from the view.
+  /** Report error
    */
-  fileprivate func clear() {
-    let addedInvoiceViews: [NSView?] = [paymentRequestHeadingTextField, paymentRequestTextField, invoiceTypeButton]
-    let inputTextFields = [amountTextField, memoTextField]
-    
-    inputTextFields.forEach { $0?.stringValue = String() }
-    
-    addedInvoiceViews.forEach { $0?.isHidden = true }
-    
-    invoiceTypeButton?.select(selectLightningItem)
-    
-    paidInvoice = nil
-  }
+  lazy var reportError: (Error) -> () = { _ in }
+}
 
-  /** Update paid invoice
-   */
-  private func updatePaidInvoice() {
-    guard let paidInvoice = paidInvoice else { paymentReceivedBox?.isHidden = true; return }
-
-    guard let invoiceDate = paidInvoice.createdAt else {
-      return print("ERROR", "expected paid invoice date")
-    }
-    
-    paymentReceivedBox?.isHidden = false
-    
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .short
-    
-    paymentInvoiceDate?.stringValue = formatter.string(from: invoiceDate)
-    
-    paymentReceivedAmount?.stringValue = "\(paidInvoice.tokens.formatted) tBTC"
-    
-    guard case .received(let invoice) = paidInvoice.destination else { return }
-    
-    paymentReceivedDescription?.stringValue = (invoice.memo ?? " ") as String
-  }
-  
-  /** updatePaymentRequest updates the payment request label
-   */
-  private func updatePaymentRequest() {
-    paymentRequestTextField?.stringValue = (invoice?.paymentRequest ?? String()) as String
-
-    invoiceTypeButton?.isHidden = invoice?.paymentRequest == nil
-
-    guard let invoice = invoice else { return }
-    
-    paymentRequestHeadingTextField?.isHidden = false
-    paymentRequestTextField?.isHidden = false
-    requestButton?.isEnabled = true
-    requestButton?.state = NSOnState
-    requestButton?.title = "Create Invoice"
-  }
-  
-  /** viewDidLoad triggers to initialize the view.
-   */
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    // Do view setup here.
-    
-    paymentReceivedBox?.isHidden = true
-    
-    clear()
-  }
-  
-  /** View is going to disappear
-   */
-  override func viewWillDisappear() {
-    super.viewWillDisappear()
-    
-    paidInvoice = nil
+// MARK: - Failures
+extension ReceiveViewController {
+  enum Failure: Error {
+    case expectedChainAddress
+    case expectedInvoiceCreationDate
+    case expectedPaymentRequest
   }
 }
 
@@ -244,27 +173,81 @@ extension ReceiveViewController {
   }
 }
 
+// MARK: - NSViewController
+extension ReceiveViewController {
+  /** clear eliminates the input and previous created invoice from the view.
+   */
+  fileprivate func clear() {
+    let addedInvoiceViews: [NSView?] = [paymentRequestHeadingTextField, paymentRequestTextField, invoiceTypeButton]
+    let inputTextFields = [amountTextField, memoTextField]
+    
+    inputTextFields.forEach { $0?.stringValue = String() }
+    addedInvoiceViews.forEach { $0?.isHidden = true }
+    
+    invoiceTypeButton?.select(selectLightningItem)
+    
+    paidInvoice = nil
+  }
+  
+  /** Updated paid invoice
+   */
+  fileprivate func updatedPaidInvoice() {
+    guard let paidInvoice = paidInvoice else { paymentReceivedBox?.isHidden = true; return }
+    
+    guard let invoiceDate = paidInvoice.createdAt else { return reportError(Failure.expectedInvoiceCreationDate) }
+    
+    paymentInvoiceDate?.stringValue = invoiceDate.formatted(dateStyle: .short, timeStyle: .short)
+    paymentReceivedAmount?.stringValue = paidInvoice.tokens.formatted(with: .testBitcoin)
+    paymentReceivedBox?.isHidden = false
+    
+    guard case .received(let invoice) = paidInvoice.destination else { return }
+    
+    paymentReceivedDescription?.stringValue = (invoice.memo ?? String()) as String
+  }
+  
+  /** Updated the payment request
+   */
+  fileprivate func updatedPaymentRequest() {
+    paymentRequestTextField?.stringValue = (invoice?.paymentRequest ?? String()) as String
+    
+    let hasNoPaymentRequest = invoice?.paymentRequest == nil
+    
+    invoiceTypeButton?.isHidden = hasNoPaymentRequest
+    
+    guard let _ = invoice else { return }
+    
+    paymentRequestHeadingTextField?.isHidden = false
+    paymentRequestTextField?.isHidden = false
+    requestButton?.isEnabled = true
+    requestButton?.state = NSOnState
+    requestButton?.title = NSLocalizedString("Create Invoice", comment: "Button to add a new payment request")
+  }
+  
+  /** viewDidLoad triggers to initialize the view.
+   */
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    clear()
+  }
+  
+  /** View is going to disappear
+   */
+  override func viewWillDisappear() {
+    super.viewWillDisappear()
+    
+    paidInvoice = nil
+  }
+}
+
 // MARK: - WalletListener
 extension ReceiveViewController: WalletListener {
   /** Wallet was updated
    */
   func wallet(updated wallet: Wallet) {
-    let hasSettledInvoice = wallet.transactions.contains { transaction in
-      switch transaction.destination {
-      case .chain, .sent(_, _):
-        return false
-        
-      case .received(_) where transaction.id == invoice?.id && transaction.confirmed:
-        paidInvoice = transaction
-        
-        return true
+    guard let invoice = invoice, let currentInvoice = wallet.invoice(invoice), currentInvoice.confirmed else { return }
 
-      case .received(_):
-        return false
-      }
-    }
-    
-    guard hasSettledInvoice else { return }
+    paidInvoice = currentInvoice
     
     clear()
   }
