@@ -8,33 +8,47 @@
 
 import Cocoa
 
-// FIXME: - abstract
-class TransactionsViewController: NSViewController {
+/** Transactions view controller
+ FIXME: - abstract
+ */
+class TransactionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBAction
   
+  /** Double click on a transaction
+   */
   @IBAction func doubleClickTransaction(_ sender: AnyObject) {
     guard let index = transactionsTableView?.clickedRow else { return }
     
-    guard let transaction = transaction(at: index) else {
-      return print("ERROR", "expected transaction at index")
-    }
+    guard let transaction = transaction(at: index) else { return reportError(Failure.expectedTransactionForRow) }
     
     showTransaction(transaction)
   }
   
   // MARK: - @IBOutlets
   
+  /** Transactions table view
+   */
   @IBOutlet weak var transactionsTableView: NSTableView?
   
   // MARK: - Properties
 
+  /** Report an error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
+  
+  /** Show a transaction
+   */
   lazy var showTransaction: (Transaction) -> () = { _ in }
   
+  /** Transactions
+   */
   lazy var transactions: [Transaction] = [Transaction]()
 }
 
 // MARK: - NSViewController
 extension TransactionsViewController {
+  /** View loaded
+   */
   override func viewDidLoad() {
     super.viewDidLoad()
     
@@ -42,8 +56,7 @@ extension TransactionsViewController {
   }
 }
 
-// FIXME: - reload transactions when sending is complete
-// FIXME: - need a menu so that for invoices I can get a payment request
+// MARK: - Columns
 extension TransactionsViewController {
   /** Table columns
    */
@@ -99,11 +112,11 @@ extension TransactionsViewController {
   }
 }
 
-// MARK: - Errors
+// MARK: - Failures
 extension TransactionsViewController {
   /** Transaction view controller error
    */
-  enum TransactionsViewControllerError: String, Error {
+  enum Failure: Error {
     case expectedKnownColumn
     case expectedTransactionForRow
   }
@@ -126,15 +139,21 @@ extension TransactionsViewController: NSMenuDelegate {
     
     guard let index = transactionsTableView?.clickedRow, let _ = transaction(at: index) else { return }
 
-    menu.addItem(NSMenuItem(title: "Details", action: #selector(showTransactionDetails), keyEquivalent: String()))
+    let detailsLabel = NSLocalizedString("Details", comment: "Menu item to show transaction details")
+    
+    menu.addItem(NSMenuItem(title: detailsLabel, action: #selector(showTransactionDetails), keyEquivalent: String()))
   }
   
+  /** Show transaction details
+   */
   func showTransactionDetails(_ item: NSMenuItem) {
     guard let index = transactionsTableView?.clickedRow, let transaction = transaction(at: index) else { return }
 
     showTransaction(transaction)
   }
   
+  /** Transaction at index
+   */
   func transaction(at index: Int) -> Transaction? {
     guard !transactions.isEmpty, index >= transactions.startIndex, index < transactions.endIndex else { return nil }
 
@@ -153,54 +172,29 @@ extension TransactionsViewController: NSTableViewDataSource {
   /** Make cell for row at column
    */
   func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-    guard let column = Column(fromTableColumn: tableColumn) else {
-      print(TransactionsViewControllerError.expectedKnownColumn)
-      
-      return nil
-    }
+    guard let col = Column(fromTableColumn: tableColumn) else { reportError(Failure.expectedKnownColumn); return nil }
     
-    guard let tx = transaction(atRow: row) else {
-      print(TransactionsViewControllerError.expectedTransactionForRow)
-      
-      return nil
-    }
+    guard let tx = transaction(atRow: row) else { reportError(Failure.expectedTransactionForRow); return nil }
 
     let title: String
     
-    switch column {
+    switch col {
     case .amount:
       let modifier = tx.outgoing ? "-" : "+"
       
-      let largeUnitValue: Double = Double(tx.tokens) / 100_000_000
-      
-      let formatter = NumberFormatter()
-      
-      formatter.minimumFractionDigits = 8
-      formatter.minimumIntegerDigits = 1
-      
-      let formattedAmount = formatter.string(from: NSNumber(value: largeUnitValue)) ?? String()
-      
-      title = "\(modifier)\(formattedAmount) tBTC"
+      title = "\(modifier)\(tx.tokens.formatted(with: .testBitcoin))"
       
     case .confirmed:
-      let cell = column.makeCell(inTableView: tableView, withTitle: " ", isEnabled: tx.confirmed) as? TransactionStatusCell
+      let cell = col.makeCell(inTableView: tableView, withTitle: " ", isEnabled: tx.confirmed) as? TransactionStatusCell
 
       cell?.transaction = tx
 
       return cell
       
     case .createdAt:
-      let formatter = DateFormatter()
-      formatter.dateStyle = .short
-      formatter.timeStyle = .short
+      guard let createdAt = tx.createdAt else { title = " "; break }
       
-      guard let createdAt = tx.createdAt else {
-        title = " "
-        
-        break
-      }
-      
-      title = "\(formatter.string(from: createdAt))"
+      title = createdAt.formatted(dateStyle: .short, timeStyle: .short)
       
     case .description:
       switch tx.destination {
@@ -215,7 +209,7 @@ extension TransactionsViewController: NSTableViewDataSource {
       }
     }
     
-    return column.makeCell(inTableView: tableView, withTitle: title, isEnabled: tx.confirmed)
+    return col.makeCell(inTableView: tableView, withTitle: title, isEnabled: tx.confirmed)
   }
   
   /** Object value at row
@@ -234,7 +228,10 @@ extension TransactionsViewController: NSTableViewDataSource {
 }
 
 // MARK: - NSTableViewDelegate
-extension TransactionsViewController: NSTableViewDelegate {}
+extension TransactionsViewController: NSTableViewDelegate {
+  // FIXME: - reload transactions when sending is complete
+  // FIXME: - need a menu so that for invoices I can get a payment request
+}
 
 // MARK: - WalletListener
 extension TransactionsViewController: WalletListener {

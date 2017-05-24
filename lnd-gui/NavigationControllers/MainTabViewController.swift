@@ -185,6 +185,8 @@ extension MainTabViewController {
 
     self.transactionsViewController = transactionsViewController
     
+    transactionsViewController.reportError = { [weak self] error in self?.reportError(error) }
+    
     transactionsViewController.showTransaction = { [weak self] transaction in self?.showTransaction(transaction) }
   }
 }

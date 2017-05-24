@@ -27,6 +27,7 @@
 		FA520B121E6CC82B00AABE68 /* MainTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */; };
 		FA520B151E6CCF1900AABE68 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B141E6CCF1900AABE68 /* MainWindowController.swift */; };
 		FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA520B161E6CDB1F00AABE68 /* SendViewController.swift */; };
+		FA5E64241ED544B500050C81 /* Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5E64231ED544B500050C81 /* Currency.swift */; };
 		FA65A3731EA291D1002B2A17 /* Peer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3721EA291D1002B2A17 /* Peer.swift */; };
 		FA65A3751EA2965B002B2A17 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3741EA2965B002B2A17 /* Transaction.swift */; };
 		FA65A3771EA3239C002B2A17 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA65A3761EA3239C002B2A17 /* Connection.swift */; };
@@ -79,6 +80,7 @@
 		FA520B111E6CC82B00AABE68 /* MainTabViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainTabViewController.swift; path = NavigationControllers/MainTabViewController.swift; sourceTree = "<group>"; };
 		FA520B141E6CCF1900AABE68 /* MainWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
 		FA520B161E6CDB1F00AABE68 /* SendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendViewController.swift; path = ViewControllers/SendViewController.swift; sourceTree = "<group>"; };
+		FA5E64231ED544B500050C81 /* Currency.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Currency.swift; sourceTree = "<group>"; };
 		FA65A3721EA291D1002B2A17 /* Peer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Peer.swift; sourceTree = "<group>"; };
 		FA65A3741EA2965B002B2A17 /* Transaction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
 		FA65A3761EA3239C002B2A17 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 		FA07DB3E1E84CCE800FEC042 /* Blockchain */ = {
 			isa = PBXGroup;
 			children = (
+				FA5E64231ED544B500050C81 /* Currency.swift */,
 				FA65A37A1EA32918002B2A17 /* Outpoint.swift */,
 				FA07DB3F1E84CDBD00FEC042 /* Tokens.swift */,
 				FA65A37C1EA3292B002B2A17 /* TransactionHash.swift */,
@@ -391,6 +394,7 @@
 				FA719F3F1EB988E70080F67E /* PaymentHash.swift in Sources */,
 				FA65A3801EA32A60002B2A17 /* PublicKey.swift in Sources */,
 				FAF017F41EBE9F21008FEA13 /* Daemon.swift in Sources */,
+				FA5E64241ED544B500050C81 /* Currency.swift in Sources */,
 				FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */,
 				FA0E27AF1EC7896300734661 /* Payment.swift in Sources */,
 				FAF017F61EC002EB008FEA13 /* SendOnChainViewController.swift in Sources */,

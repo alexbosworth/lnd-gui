@@ -44,23 +44,8 @@ extension Tokens {
 
   /** Formatted with a unit label
    */
-  func formatted(with unit: Unit) -> String {
+  func formatted(with unit: Currency) -> String {
     return "\(formatted) \(unit.symbol)"
-  }
-  
-  /** Token unit type
-   */
-  enum Unit {
-    case testBitcoin
-    
-    /** String symbol
-     */
-    var symbol: String {
-      switch self {
-      case .testBitcoin:
-        return "tBTC"
-      }
-    }
   }
 }
 

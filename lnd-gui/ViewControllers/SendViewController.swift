@@ -113,6 +113,8 @@ extension SendViewController {
       guard let sentTransactionViewController = destinationController as? SentTransactionViewController else {
         return reportError(Failure.expectedSentTransactionViewController)
       }
+
+      sentTransactionViewController.reportError = { [weak self] error in self?.reportError(error) }
       
       self.sentTransactionViewController = sentTransactionViewController
     }
