@@ -34,7 +34,7 @@ extension PaymentViewController {
     
     amountTextField?.stringValue = "\(transaction.tokens.formatted) tBTC"
     
-    confirmedTextField?.stringValue = transaction.confirmed ? "Settled" : "Waiting for settlement"
+    confirmedTextField?.stringValue = transaction.confirmed ? "Sent Payment" : "Pending Payment"
     
     let formatter = DateFormatter()
     formatter.dateStyle = .short

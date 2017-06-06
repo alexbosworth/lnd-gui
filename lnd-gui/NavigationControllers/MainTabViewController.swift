@@ -13,6 +13,8 @@ import Cocoa
 class MainTabViewController: NSTabViewController, ErrorReporting {
   // MARK: - Properties
   
+  var centsPerCoin: (() -> (Int?))?
+  
   /** Connections view controller
    */
   var connectionsViewController: ConnectionsViewController?
@@ -151,7 +153,9 @@ extension MainTabViewController {
     
     self.receiveViewController = receiveViewController
 
+    receiveViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     receiveViewController.reportError = { [weak self] error in self?.reportError(error) }
+    receiveViewController.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
     
     let sendTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.send.storyboardIdentifier)
     
@@ -167,8 +171,8 @@ extension MainTabViewController {
     
     self.sendViewController = sendViewController
     
-    sendViewController.reportError = { [weak self] error in self?.reportError(error) }
-    
+    sendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
+    sendViewController.reportError = { [weak self] in self?.reportError($0) }
     sendViewController.updateBalance = { [weak self] in self?.updateBalance?() }
 
     let transactionsTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.transactions.storyboardIdentifier)
@@ -186,7 +190,6 @@ extension MainTabViewController {
     self.transactionsViewController = transactionsViewController
     
     transactionsViewController.reportError = { [weak self] error in self?.reportError(error) }
-    
     transactionsViewController.showTransaction = { [weak self] transaction in self?.showTransaction(transaction) }
   }
 }

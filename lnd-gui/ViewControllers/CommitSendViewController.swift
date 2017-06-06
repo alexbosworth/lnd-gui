@@ -63,6 +63,8 @@ class CommitSendViewController: NSViewController {
 
   // MARK: - Properties
   
+  var centsPerCoin: (() -> (Int?))?
+  
   /** Commit send
    */
   lazy var commitSend: (Payment) -> () = { _ in }
@@ -77,7 +79,7 @@ class CommitSendViewController: NSViewController {
 
   /** Payment to send
    */
-  var paymentToSend: Payment? { didSet { updatedPaymentRequest() } }
+  var paymentToSend: Payment? { didSet { do { try updatedPaymentRequest() } catch { reportError(error) } } }
 
   /** Report error
    */
@@ -97,7 +99,7 @@ extension CommitSendViewController {
 extension CommitSendViewController {
   /** Update payment request
    */
-  fileprivate func updatedPaymentRequest() {
+  fileprivate func updatedPaymentRequest() throws {
     guard let payment = paymentToSend else { return }
 
     let amount: Tokens
@@ -119,9 +121,21 @@ extension CommitSendViewController {
       settlementTimeString = "Instant"
     }
     
+    let feeAmount: String
+    let payAmount: String
+    
+    if let centsPerCoin = centsPerCoin?() {
+      feeAmount = try fee.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+      payAmount = try amount.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+    } else {
+      feeAmount = String()
+      payAmount = String()
+    }
+    
+    sendToPublicKeyTextField?.toolTip = destination
     sendToPublicKeyTextField?.stringValue = destination
-    sendAmountTextField?.stringValue = "\(amount.formatted) tBTC"
-    sendFeeTextField?.stringValue = fee > Tokens() ? "\(fee.formatted) tBTC" : "Free"
+    sendAmountTextField?.stringValue = "\(amount.formatted(with: .testBitcoin))\(payAmount)"
+    sendFeeTextField?.stringValue = fee > Tokens() ? "\(fee.formatted(with: .testBitcoin)) \(feeAmount)" : "Free"
     sendSettlementTimeTextField?.stringValue = settlementTimeString
     sendButton?.stringValue = "Send Payment"
     sendButton?.state = NSOnState

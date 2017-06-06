@@ -23,12 +23,15 @@ extension Daemon {
   
   enum SendJsonResult {
     case error(Error)
-    case success
+    case success(Data)
   }
   
   enum Api {
+    case balance
     case channels(String)
     case connections
+    case exchangeRate(Currency)
+    case invoices
     case paymentRequest(String)
     case payments
     case peers
@@ -36,11 +39,20 @@ extension Daemon {
     
     private var type: String {
       switch self {
+      case .balance:
+        return "balance"
+        
       case .channels:
         return "channels"
         
       case .connections:
         return "connections"
+        
+      case .exchangeRate(_):
+        return "exchange"
+        
+      case .invoices:
+        return "invoices"
         
       case .paymentRequest(_):
         return "payment_request"
@@ -57,15 +69,20 @@ extension Daemon {
     }
     
     var url: URL? {
+      let route = "http://localhost:10553/v0/\(type)/"
+      
       switch self {
-      case .channels(let channelId):
-        return URL(string: "http://localhost:10553/v0/\(type)/\(channelId)")
+      case .balance, .connections, .invoices, .payments, .peers, .transactions:
+        return URL(string: route)
         
-      case .connections, .payments, .peers, .transactions:
-        return URL(string: "http://localhost:10553/v0/\(type)/")
+      case .channels(let channelId):
+        return URL(string: "\(route)\(channelId)")
+        
+      case .exchangeRate(let currency):
+        return URL(string: "\(route)\(currency.exchangeSymbol)/current_rate")
 
       case .paymentRequest(let paymentRequest):
-        return URL(string: "http://localhost:10553/v0/\(type)/\(paymentRequest)")
+        return URL(string: "\(route)\(paymentRequest)")
       }
     }
 
@@ -133,7 +150,7 @@ extension Daemon {
       DispatchQueue.main.async {
         if let error = error { return completion(.error(error)) }
         
-        return completion(.success)
+        return completion(.success((data ?? Data()) as Data))
       }
     }
     
@@ -147,11 +164,42 @@ extension Daemon {
     case success
   }
 
+  enum AddInvoiceJsonAttribute: String {
+    case includeAddress = "include_address"
+    case memo
+    case tokens
+    
+    var key: String { return rawValue }
+  }
+
   enum AddPeerJsonAttribute: String {
     case host
     case publicKey = "public_key"
     
     var key: String { return rawValue }
+  }
+  
+  enum AddInvoiceResult {
+    case addedInvoice(Invoice)
+    case error(Error)
+  }
+  
+  static func addInvoice(amount: Tokens, memo: String?, completion: @escaping (AddInvoiceResult) -> ()) throws {
+    let json: [String: Any] = [
+      AddInvoiceJsonAttribute.includeAddress.key: true,
+      AddInvoiceJsonAttribute.memo.key: (memo ?? String()) as String,
+      AddInvoiceJsonAttribute.tokens.key: amount
+    ]
+    
+    try send(json: json, to: .invoices) { result in
+      switch result {
+      case .error(let error):
+        completion(.error(error))
+        
+      case .success(let data):
+        do { completion(.addedInvoice(try Invoice(from: data))) } catch { completion(.error(error)) }
+      }
+    }
   }
   
   static func addPeer(ip: IpAddress, publicKey: PublicKey, completion: @escaping (AddPeerResult) -> ()) throws {

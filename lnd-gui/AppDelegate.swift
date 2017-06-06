@@ -43,9 +43,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     windowControllers += [controller]
     
-    vc.invoice = invoice
+    vc.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
     
     vc.reportError = { [weak self] error in self?.report(error) }
+    
+    vc.invoice = invoice
     
     controller.showWindow(self)
   }

@@ -34,6 +34,8 @@ class SendOnChainViewController: NSViewController {
   @IBOutlet weak var tokensToSendTextField: NSTextField?
   
   // MARK: - Properties
+  
+  var centsPerCoin: (() -> (Int?))?
 
   /** Clear send
    */
@@ -94,6 +96,7 @@ extension SendOnChainViewController {
     
     self.commitSendViewController = commitSendViewController
     
+    commitSendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     commitSendViewController.clearDestination = { [weak self] in self?.clear() }
     commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
     commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }

@@ -13,6 +13,18 @@ import Foundation
 enum Currency {
   case testBitcoin
   case testUnitedStatesDollars
+
+  /** Currency symbol used on exchanges
+   */
+  var exchangeSymbol: String {
+    switch self {
+    case .testBitcoin:
+      return "BTC"
+      
+    case .testUnitedStatesDollars:
+      return "USD"
+    }
+  }
   
   /** Short currency symbol
    */
@@ -23,6 +35,21 @@ enum Currency {
       
     case .testUnitedStatesDollars:
       return "tUSD"
+    }
+  }
+  
+  /** Create from symbol
+   */
+  init?(from symbol: String) {
+    switch symbol {
+    case Currency.testBitcoin.symbol:
+      self = .testBitcoin
+      
+    case Currency.testUnitedStatesDollars.symbol:
+      self = .testUnitedStatesDollars
+      
+    default:
+      return nil
     }
   }
 }

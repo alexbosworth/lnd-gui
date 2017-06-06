@@ -44,6 +44,8 @@ class SendViewController: NSViewController, ErrorReporting {
   
   // MARK: - Properties
   
+  var centsPerCoin: (() -> (Int?))?
+  
   /** Commit send view controller
    */
   fileprivate var commitSendViewController: CommitSendViewController?
@@ -93,6 +95,7 @@ extension SendViewController {
       
       self.commitSendViewController = commitSendViewController
       
+      commitSendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
       commitSendViewController.clearDestination = { [weak self] in self?.resetDestination() }
       commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
       commitSendViewController.paymentToSend = nil
@@ -104,7 +107,8 @@ extension SendViewController {
       }
       
       self.sendOnChainViewController = sendOnChainViewController
-      
+    
+      sendOnChainViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
       sendOnChainViewController.clear = { [weak self] in self?.resetDestination() }
       sendOnChainViewController.reportError = { [weak self] error in self?.reportError(error) }
       sendOnChainViewController.send = { [weak self] payment in self?.send(payment) }
@@ -156,12 +160,21 @@ extension SendViewController {
 
 // MARK: - NSViewController
 extension SendViewController {
+  override func viewDidAppear() {
+    super.viewDidAppear()
+    
+    if centsPerCoin == nil {
+      print("CENTS PER COIN METHOD UNDEFINED")
+    }
+  }
+  
   /** View did load
    */
   override func viewDidLoad() {
     super.viewDidLoad()
 
 //    destinationTextField?.formatter = OnlyValidPaymentRequestValueFormatter()
+    
   }
   
   /** View will disappear
@@ -176,6 +189,8 @@ extension SendViewController {
 }
 
 extension SendViewController {
+  /** Show decoded payment request
+   */
   private func showDecodedPaymentRequest(_ data: Data, for paymentRequest: String) {
     let payReq: PaymentRequest
     
@@ -188,27 +203,25 @@ extension SendViewController {
     commitVc.paymentToSend = .paymentRequest(payReq)
   }
   
-  // FIXME: - see if this can be done natively
-  // FIXME: - abstract to Daemon
-  func getDecoded(paymentRequest: String) {
-    do {
-      try Daemon.get(from: Daemon.Api.paymentRequest(paymentRequest)) { [weak self] result in
-        switch result {
-        case .data(let data):
-          self?.showDecodedPaymentRequest(data, for: paymentRequest)
+  /** Get decoded payment request
+   // FIXME: - see if this can be done natively
+   */
+  func getDecoded(paymentRequest: String) throws {
+    try Daemon.get(from: Daemon.Api.paymentRequest(paymentRequest)) { [weak self] result in
+      switch result {
+      case .data(let data):
+        self?.showDecodedPaymentRequest(data, for: paymentRequest)
 
-        case .error(let error):
-          self?.reportError(error)
-        }
+      case .error(let error):
+        self?.reportError(error)
       }
-    } catch {
-      reportError(error)
     }
   }
 }
 
 extension SendViewController {
-  // FIXME: - abstract to Daemon
+  /** Send payment
+   */
   fileprivate func send(_ payment: Payment) {
     commitSendViewController?.isSending = true
     
@@ -217,16 +230,17 @@ extension SendViewController {
       send(to: address, tokens: tokens)
       
     case .paymentRequest(let paymentRequest):
-      send(paymentRequest)
+      do { try send(paymentRequest) } catch { reportError(error) }
     }
   }
   
-  // FIXME: - need a link to the transaction here
+  /** Send payment on chain
+   */
   private func showSendOnChainResult(tokens: Tokens) {
     resetDestination()
 
     sentStatusTextField?.isHidden = false
-    sentStatusTextField?.stringValue = "Sending \(tokens.formatted) tBTC."
+    sentStatusTextField?.stringValue = "Sending \(tokens.formatted(with: .testBitcoin))."
   }
   
   private func send(to address: String, tokens: Tokens) {
@@ -259,18 +273,21 @@ extension SendViewController {
     }
   }
   
+  /** Show payment result
+   */
   private func showPaymentResult(payment: PaymentRequest, start: Date) {
     sendChannelPaymentContainerView?.isHidden = true
     commitSendViewController?.paymentToSend = nil
     destinationTextField?.stringValue = String()
     
     // FIXME: - show settled transaction
+    let sentAmount = payment.tokens.formatted(with: .testBitcoin)
     let duration = Date().timeIntervalSince(start)
     sentStatusTextField?.isHidden = false
-    sentStatusTextField?.stringValue = "Sent \(payment.tokens.formatted) tBTC in \(String(format: "%.2f", duration)) seconds."
+    sentStatusTextField?.stringValue = "Sent \(sentAmount) in \(String(format: "%.2f", duration)) seconds."
   }
   
-  private func send(_ paymentRequest: PaymentRequest) {
+  private func send(_ paymentRequest: PaymentRequest) throws {
     let start = Date()
     
     enum SendPaymentJsonAttribute: String {
@@ -286,20 +303,18 @@ extension SendViewController {
     
     let json: [String: Any] = [SendPaymentJsonAttribute.paymentRequest.key: paymentRequest.paymentRequest]
     
-    do {
-      try Daemon.send(json: json, to: .payments) { [weak self] result in
-        self?.commitSendViewController?.isSending = false
+    try Daemon.send(json: json, to: .payments) { [weak self] result in
+      self?.commitSendViewController?.isSending = false
+      
+      switch result {
+      case .error(let error):
+        self?.reportError(error)
         
-        switch result {
-        case .error(let error):
-          self?.reportError(error)
-          
-        case .success:
-          self?.showPaymentResult(payment: paymentRequest, start: start)
-        }
+        NSAlert(error: error).runModal()
+        
+      case .success:
+        self?.showPaymentResult(payment: paymentRequest, start: start)
       }
-    } catch {
-      reportError(error)
     }
   }
 }
@@ -345,6 +360,6 @@ extension SendViewController: NSTextFieldDelegate {
     
     sendOnChainContainerView?.isHidden = true
     
-    getDecoded(paymentRequest: destination)
+    do { try getDecoded(paymentRequest: destination) } catch { reportError(error) }
   }
 }

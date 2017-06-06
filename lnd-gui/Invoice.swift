@@ -43,7 +43,18 @@ struct Invoice {
    */
   enum JsonParseError: String, Error {
     case expectedId
+    case expectedJson
     case expectedPaymentRequest
+  }
+
+  /** Create from json data
+   */
+  init(from data: Data) throws {
+    guard let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+      throw JsonParseError.expectedJson
+    }
+    
+    self = try type(of: self).init(from: json)
   }
   
   /** init creates an invoice from a JSON dictionary.

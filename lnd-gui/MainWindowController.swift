@@ -23,7 +23,7 @@ class MainWindowController: NSWindowController {
     super.windowDidLoad()
     
     window?.setContentBorderThickness(Dimension.bottomBarHeight, for: .minY)
-    
-    window?.title = String()
+
+    window?.title = NSLocalizedString("Wallet", comment: "Wallet window title")
   }
 }

@@ -26,14 +26,18 @@ class MainViewController: NSViewController {
   @IBOutlet weak var connectedBox: NSBox?
   
   // MARK: - Properties
+
+  /** Cents per bitcoin
+   */
+  var centsPerCoin: Int? { didSet { do { try updateVisibleBalance() } catch { reportError(error) } } }
   
   /** chainBalance represents the amount of available value on chain.
    */
-  fileprivate var chainBalance: Tokens? { didSet { updateVisibleBalance() } }
+  fileprivate var chainBalance: Tokens? { didSet { do { try updateVisibleBalance() } catch { reportError(error) } } }
   
   /** channelBalance represents the value of the total funds in channels.
    */
-  fileprivate var channelBalance: Tokens? { didSet { updateVisibleBalance() } }
+  fileprivate var channelBalance: Tokens? { didSet { do { try updateVisibleBalance() } catch { reportError(error) } } }
 
   /** connected represents whether or not there a connection is present to the backing ln daemon.
    */
@@ -79,7 +83,7 @@ class MainViewController: NSViewController {
       
       guard !confirmationChanged.isEmpty else { return }
       
-      refreshBalances() {}
+      do { try refreshBalances() } catch { reportError(error) }
       
       confirmationChanged.forEach { payment in
         let notification = NSUserNotification()
@@ -108,7 +112,7 @@ class MainViewController: NSViewController {
 
   /** updateVisibleBalance updates the view to show the last retrieved balances
    */
-  private func updateVisibleBalance() {
+  private func updateVisibleBalance() throws {
     let chainBalance = (self.chainBalance ?? Tokens()) as Tokens
     let channelBalance = (self.channelBalance ?? Tokens()) as Tokens
     let formattedBalance: String
@@ -121,7 +125,15 @@ class MainViewController: NSViewController {
       formattedBalance = "\(lnBalance) - Chain Balance: \(chainBalance.formatted) tBTC"
     }
     
-    balanceLabelTextField?.stringValue = formattedBalance
+    let amount: String
+    
+    if let centsPerCoin = centsPerCoin {
+      amount = try channelBalance.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+    } else {
+      amount = String()
+    }
+    
+    balanceLabelTextField?.stringValue = "\(formattedBalance)\(amount)"
   }
 
   /** View did load
@@ -129,7 +141,7 @@ class MainViewController: NSViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    refreshBalances {}
+    do { try refreshBalances() } catch { reportError(error) }
     
     connected = false
     
@@ -138,6 +150,8 @@ class MainViewController: NSViewController {
     initWalletServiceConnection()
 
     refreshHistory()
+    
+    do { try refreshExchangeRate() } catch { reportError(error) }
   }
 
   /** Initialize the wallet service connection
@@ -158,7 +172,7 @@ class MainViewController: NSViewController {
       
       self?.refreshHistory()
       
-      self?.refreshBalances() {}
+      do { try self?.refreshBalances() } catch { self?.reportError(error) }
       
       send()
     }
@@ -175,7 +189,7 @@ class MainViewController: NSViewController {
       
       self?.refreshInvoices()
 
-      self?.refreshBalances() {}
+      do { try self?.refreshBalances() } catch { self?.reportError(error) }
       
       self?.refreshHistory()
     }
@@ -284,11 +298,15 @@ extension MainViewController {
       return print(Failure.expectedMainTabViewController.localizedDescription)
     }
     
+    mainTabViewController.centsPerCoin = { [weak self] in self?.centsPerCoin }
+    
     mainTabViewController.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
 
     mainTabViewController.showPayment = { [weak self] payment in self?.showPayment(payment) }
     
-    mainTabViewController.updateBalance = { [weak self] in self?.refreshBalances() {} }
+    mainTabViewController.updateBalance = { [weak self] in
+      do { try self?.refreshBalances() } catch { self?.reportError(error) }
+    }
     
     self.mainTabViewController = mainTabViewController
   }
@@ -304,45 +322,64 @@ extension MainViewController {
 
 // MARK: - Networking
 extension MainViewController {
+  /** Refresh exchange rate
+   */
+  func refreshExchangeRate() throws {
+    try Daemon.get(from: .exchangeRate(.testUnitedStatesDollars)) { [weak self] result in
+      switch result {
+      case .data(let data):
+        let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
+        
+        let json = dataDownloadedAsJson as? [String: Any]
+        
+        enum ExchangeRateResponseJsonKey: String {
+          case centsPerBitcoin = "cents_per_bitcoin"
+          
+          var key: String { return rawValue }
+        }
+        
+        let centsPerBitcoin = (json?[ExchangeRateResponseJsonKey.centsPerBitcoin.key] as? NSNumber)?.intValue
+
+        DispatchQueue.main.async { self?.centsPerCoin = centsPerBitcoin }
+        
+      case .error(let error):
+        self?.reportError(error)
+      }
+    }
+  }
   
   /** refreshBalances updates the chain and channel balance from the LN daemon.
    
    FIXME: - switch to sockets
    */
-  func refreshBalances(completion: (() -> ())?) {
-    let url = URL(string: "http://localhost:10553/v0/balance/")!
-    let session = URLSession.shared
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    request.cachePolicy = .reloadIgnoringCacheData
-    
-    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
-      guard let balanceData = data else { return print("Expected balance data") }
-      
-      let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: balanceData, options: .allowFragments)
-      
-      let balance = dataDownloadedAsJson as? [String: Any]
-      
-      enum BalanceResponseJsonKey: String {
-        case chainBalance = "chain_balance"
-        case channelBalance = "channel_balance"
+  func refreshBalances() throws {
+    try Daemon.get(from: .balance) { [weak self] result in
+      switch result {
+      case .data(let data):
+        // FIXME: - abstract
+        let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
         
-        var key: String { return rawValue }
+        let balance = dataDownloadedAsJson as? [String: Any]
+        
+        enum BalanceResponseJsonKey: String {
+          case chainBalance = "chain_balance"
+          case channelBalance = "channel_balance"
+          
+          var key: String { return rawValue }
+        }
+        
+        let chainBalance = (balance?[BalanceResponseJsonKey.chainBalance.key] as? NSNumber)?.tokensValue
+        let channelBalance = (balance?[BalanceResponseJsonKey.channelBalance.key] as? NSNumber)?.tokensValue
+        
+        DispatchQueue.main.async {
+          self?.chainBalance = chainBalance
+          self?.channelBalance = channelBalance
+        }
+        
+      case .error(let error):
+        self?.reportError(error)
       }
-      
-      let chainBalance = (balance?[BalanceResponseJsonKey.chainBalance.key] as? NSNumber)?.uint64Value
-      let channelBalance = (balance?[BalanceResponseJsonKey.channelBalance.key] as? NSNumber)?.uint64Value
-      
-      DispatchQueue.main.async {
-        self?.chainBalance = chainBalance
-        self?.channelBalance = channelBalance
-      }
-      
-      completion?()
     }
-    
-    task.resume()
   }
   
   /** refreshInvoices performs a data request to the LN daemon to fetch information about outstanding invoices.
@@ -422,6 +459,12 @@ extension MainViewController {
           self?.wallet.transactions = transactions
 
           guard let wallet = self?.wallet else { return }
+          
+          NSApplication.shared().windows.forEach { window in
+            guard let walletListener = window.contentViewController as? WalletListener else { return }
+            
+            walletListener.wallet(updated: wallet)
+          }
           
           self?.mainTabViewController?.tabViewItems.forEach { tabViewItem in
             guard let walletListener = tabViewItem.viewController as? WalletListener else { return }

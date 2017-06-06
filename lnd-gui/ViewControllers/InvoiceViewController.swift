@@ -17,31 +17,41 @@ class InvoiceViewController: NSViewController, ErrorReporting {
    */
   @IBOutlet weak var amountTextField: NSTextField?
   
-  /** Date text field
-   */
-  @IBOutlet weak var dateTextField: NSTextField?
-  
   /** Description text field
    */
   @IBOutlet weak var descriptionTextField: NSTextField?
+  
+  @IBOutlet weak var headingTextField: NSTextField?
   
   /** Payment request text field
    */
   @IBOutlet weak var paymentRequestTextField: NSTextField?
   
-  /** Settlement text field
-   */
-  @IBOutlet weak var settlementTextField: NSTextField?
-  
   // MARK: - Properties
+  
+  var centsPerCoin: (() -> (Int?))?
   
   /** Invoice
    */
-  var invoice: Invoice? { didSet { updatedInvoice() } }
+  var invoice: Invoice? { didSet { do { try updatedInvoice() } catch { reportError(error) } } }
 
   /** Report error
    */
   lazy var reportError: (Error) -> () = { _ in }
+  
+  override func viewDidAppear() {
+    super.viewDidLoad()
+    
+    paymentRequestTextField?.isEditable = true
+    paymentRequestTextField?.becomeFirstResponder()
+    paymentRequestTextField?.isEditable = false
+    
+    if let invoice = invoice, invoice.confirmed {
+      DispatchQueue.main.async { [weak self] in
+        self?.paymentRequestTextField?.resignFirstResponder()
+      }
+    }
+  }
 }
 
 // MARK: - Failures
@@ -57,21 +67,43 @@ extension InvoiceViewController {
 extension InvoiceViewController {
   /** Updated invoice
    */
-  func updatedInvoice() {
+  func updatedInvoice() throws {
     guard let invoice = invoice else { return reportError(Failure.expectedInvoice) }
     
     amountTextField?.stringValue = (invoice.tokens?.formatted(with: .testBitcoin) ?? String()) as String
     
     let invoiceLabelComment = "Invoice payment state description"
-    let invoiceLabel = invoice.confirmed ? "Invoice was paid" : "Waiting for payment"
+    let invoiceLabel = invoice.confirmed ? "Received Payment" : "Unpaid Invoice"
 
     let localizedInvoiceState = NSLocalizedString(invoiceLabel, comment: invoiceLabelComment)
 
-    dateTextField?.stringValue = invoice.createdAt?.formatted(dateStyle: .short, timeStyle: .short) ?? String()
     descriptionTextField?.stringValue = (invoice.memo ?? String()) as String
     paymentRequestTextField?.stringValue = invoice.paymentRequest
-    settlementTextField?.stringValue = localizedInvoiceState
+    headingTextField?.stringValue = localizedInvoiceState
     paymentRequestTextField?.textColor = invoice.confirmed ? .disabledControlTextColor : .controlTextColor
     paymentRequestTextField?.isSelectable = !invoice.confirmed
+    
+    // Deselect text in payment request text field
+    if invoice.confirmed { paymentRequestTextField?.currentEditor()?.selectedRange = NSMakeRange(Int(), Int()) }
+    
+    guard let centsPerCoin = self.centsPerCoin?() else { return }
+    
+    guard let tokens = invoice.tokens else { return }
+    
+    amountTextField?.stringValue += try tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
   }
 }
+
+// MARK: - WalletListener
+extension InvoiceViewController: WalletListener {
+  /** Wallet was updated
+   */
+  func wallet(updated wallet: Wallet) {
+    guard let invoice = invoice, let transaction = wallet.invoice(invoice) else { return }
+    
+    guard case .received(let updatedInvoice) = transaction.destination else { return }
+    
+    self.invoice = updatedInvoice
+  }
+}
+

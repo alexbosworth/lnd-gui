@@ -20,6 +20,12 @@ import Cocoa
  */
 class ReceiveViewController: NSViewController, ErrorReporting {
   // MARK: - @IBActions
+  
+  /** Pressed amount options button
+   */
+  @IBAction func pressedAmountOptionsButton(_ button: NSPopUpButton) {
+    setCurrency(button)
+  }
 
   /** Pressed clear button triggers clearing the current payment request.
    */
@@ -56,6 +62,12 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   /** amountTextField is the input text field for the invoice amount.
    */
   @IBOutlet weak var amountTextField: NSTextField?
+  
+  @IBOutlet weak var clearButton: NSButton?
+  
+  @IBOutlet weak var currencyConversionTextField: NSTextField?
+  
+  @IBOutlet weak var currencyTextField: NSTextField?
   
   /** Switcher for invoice type
    */
@@ -99,6 +111,12 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   
   // MARK: - Properties
   
+  var centsPerCoin: (() -> (Int?))?
+  
+  var creatingInvoice = false { didSet { updatedCreatingInvoice() } }
+  
+  var currency: Currency = .testBitcoin { didSet { do { try updatedSelectedCurrency() } catch { reportError(error) } } }
+  
   /** invoice is the created invoice to receive funds to.
    */
   var invoice: Invoice? { didSet { updatedPaymentRequest() } }
@@ -110,12 +128,19 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   /** Report error
    */
   lazy var reportError: (Error) -> () = { _ in }
+  
+  /** Show an invoice
+   */
+  lazy var showInvoice: (Invoice) -> () = { _ in }
 }
 
 // MARK: - Failures
 extension ReceiveViewController {
   enum Failure: Error {
     case expectedChainAddress
+    case expectedCurrency
+    case expectedCurrencyId
+    case expectedCurrentEvent
     case expectedInvoiceCreationDate
     case expectedPaymentRequest
   }
@@ -123,53 +148,66 @@ extension ReceiveViewController {
 
 // MARK: - Networking
 extension ReceiveViewController {
-  /** addInvoice sends a request to make an invoice.
+  /** Updated creating invoice state
+   */
+  func updatedCreatingInvoice() {
+    switch creatingInvoice {
+    case false:
+      amountTextField?.isEditable = true
+      clearButton?.isEnabled = true
+      clearButton?.state = NSOnState
+      memoTextField?.isEditable = true
+      requestButton?.isEnabled = true
+      requestButton?.state = NSOnState
+      requestButton?.title = NSLocalizedString("Create Invoice", comment: "Create new invoice button")
+      
+    case true:
+      amountTextField?.isEditable = false
+      clearButton?.isEnabled = false
+      clearButton?.state = NSOffState
+      memoTextField?.isEditable = false
+      requestButton?.isEnabled = false
+      requestButton?.state = NSOffState
+      requestButton?.title = NSLocalizedString("Creating Invoice", comment: "Created invoice, waiting for invoice")
+    }
+  }
+  
+  /** Send a request to make an invoice.
    */
   func addInvoice(amount: Tokens, memo: String? = nil) throws {
-    let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/invoices/")!
-    var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
-    sendUrlRequest.httpMethod = "POST"
-    sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    let memo = (memo ?? String()) as String
-    
-    let json: [String: Any] = ["include_address": true, "memo": memo, "tokens": amount]
-    
-    let data = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
-    
-    requestButton?.isEnabled = false
-    requestButton?.state = NSOffState
-    requestButton?.title = "Creating Invoice"
-    
-    let task = session.uploadTask(with: sendUrlRequest, from: data) { [weak self] data, urlResponse, error in
-      if let error = error {
-        return print("Create invoice error \(error)")
-      }
-      
-      guard let data = data else {
-        return print("Expected data")
-      }
-      
-      let invoice: Invoice
-      
-      do {
-        guard let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
-          return print("EXPECTED JSON")
-        }
-        
-        invoice = try Invoice(from: json)
-      } catch {
-        return print("PARSE INVOICE ERROR", error)
-      }
+    // Use defer to avoid setting create invoice to true when the addInvoice method throws an Error
+    defer { creatingInvoice = true }
 
-      // FIXME: - on error, reset the form, show error
-      DispatchQueue.main.async {
-        self?.invoice = invoice
+    try Daemon.addInvoice(amount: amount, memo: memo) { [weak self] result in
+      self?.clear()
+      
+      self?.creatingInvoice = false
+      
+      switch result {
+      case .addedInvoice(let invoice):
+        self?.showInvoice(invoice)
+        
+      case .error(let error):
+        self?.reportError(error)
       }
     }
+  }
+
+  /** Set currency
+   */
+  func setCurrency(_ menu: NSPopUpButton) {
+    guard let currencyId = menu.selectedItem?.identifier else { return reportError(Failure.expectedCurrencyId) }
     
-    task.resume()
+    guard let currency = Currency(from: currencyId) else { return reportError(Failure.expectedCurrency) }
+
+    self.currency = currency
+  }
+}
+
+// MARK: - NSTextViewDelegate
+extension ReceiveViewController: NSTextViewDelegate {
+  override func controlTextDidChange(_ obj: Notification) {
+    do { try updatedSelectedCurrency() } catch { reportError(error) }
   }
 }
 
@@ -187,6 +225,8 @@ extension ReceiveViewController {
     invoiceTypeButton?.select(selectLightningItem)
     
     paidInvoice = nil
+
+    do { try updatedSelectedCurrency() } catch { reportError(error) }
   }
   
   /** Updated paid invoice
@@ -203,6 +243,33 @@ extension ReceiveViewController {
     guard case .received(let invoice) = paidInvoice.destination else { return }
     
     paymentReceivedDescription?.stringValue = (invoice.memo ?? String()) as String
+  }
+  
+  fileprivate func updatedSelectedCurrency() throws {
+    let amountPlaceholder: String
+    let converted: Currency
+    
+    switch currency {
+    case .testBitcoin:
+      amountPlaceholder = "0.00000000"
+      converted = .testUnitedStatesDollars
+      
+    case .testUnitedStatesDollars:
+      amountPlaceholder = "$0.00"
+      converted = .testBitcoin
+    }
+    
+    amountTextField?.placeholderString = amountPlaceholder
+
+    currencyConversionTextField?.stringValue = String()
+    
+    guard let amountString = amountTextField?.stringValue else { return }
+    
+    guard let centsPerCoin = centsPerCoin?() else { return }
+    
+    let convertedAmount = try Tokens(from: amountString).converted(to: converted, with: centsPerCoin)
+    
+    currencyConversionTextField?.stringValue = convertedAmount
   }
   
   /** Updated the payment request
