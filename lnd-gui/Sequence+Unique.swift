@@ -8,14 +8,18 @@
 
 import Foundation
 
-public extension Sequence where Iterator.Element: Hashable {
+// MARK: - Hashable Uniqueness
+extension Sequence where Iterator.Element: Hashable {
+  /** Unique elements in the sequence
+   */
   var uniqueElements: [Iterator.Element] { return Array(Set(self)) }
 }
 
+// MARK: - Equatable Uniqueness
 public extension Sequence where Iterator.Element: Equatable {
+  /** Unique elements in the sequence
+   */
   var uniqueElements: [Iterator.Element] {
-    return reduce([]){ uniqueElements, element in
-      return uniqueElements.contains(element) ? uniqueElements : uniqueElements + [element]
-    }
+    return reduce([]){ self.uniqueElements.contains($1) ? $0 : $0 + [$1] }
   }
 }

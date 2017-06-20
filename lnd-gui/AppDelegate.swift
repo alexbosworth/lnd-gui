@@ -12,64 +12,70 @@ import Cocoa
 // FIXME: - exhaustive commenting
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+  enum Failure: Error {
+    case expectedInvoiceViewController
+    case expectedMainViewController
+    case expectedPaymentViewController
+  }
+  
   /** Show connections view.
    */
   @IBAction func showConnections(_ sender: AnyObject) {
-    guard let mainViewController = mainViewController else {
-      return print("ERROR", "expected main view controller")
-    }
+    guard let mainViewController = mainViewController else { return report(Failure.expectedMainViewController) }
     
     mainViewController.showConnections()
   }
-  
+
+  /** Report an error
+   */
   private func report(_ error: Error) {
-    print("ERROR", error)
+    NSAlert(error: error).runModal()
   }
   
+  /** Show individual invoice
+   */
   func showInvoice(_ invoice: Invoice) {
-    let storyboard = NSStoryboard(name: "Invoice", bundle: nil)
-
-    guard let vc = storyboard.instantiateController(withIdentifier: "InvoiceViewController") as? InvoiceViewController else {
-      return print("ERROR", "expected invoice view controller")
+    guard let invoiceVC = AppViewController.invoice.asViewController(in: .invoice) as? InvoiceViewController else {
+      return report(Failure.expectedInvoiceViewController)
     }
-
-    let window = NSWindow(contentViewController: vc)
     
-    window.title = "Invoice"
+    invoiceVC.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
+    invoiceVC.invoice = invoice
+    invoiceVC.reportError = { [weak self] error in self?.report(error) }
+
+    let window = NSWindow(contentViewController: invoiceVC)
+
+    window.title = NSLocalizedString("Invoice", comment: "Title for invoice window")
 
     window.makeKeyAndOrderFront(self)
 
     let controller = NSWindowController(window: window)
     
     windowControllers += [controller]
-    
-    vc.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
-    
-    vc.reportError = { [weak self] error in self?.report(error) }
-    
-    vc.invoice = invoice
     
     controller.showWindow(self)
   }
   
+  /** Show individual payment
+   */
   func showPayment(_ transaction: Transaction) {
-    let storyboard = NSStoryboard(name: "Payment", bundle: nil)
-    
-    guard let vc = storyboard.instantiateController(withIdentifier: "PaymentViewController") as? PaymentViewController else {
-      return print("ERROR", "expected payment view controller")
+    guard let paymentVC = AppViewController.payment.asViewController(in: .payment) as? PaymentViewController else {
+      return report(Failure.expectedPaymentViewController)
     }
     
-    let window = NSWindow(contentViewController: vc)
+    paymentVC.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
+    paymentVC.reportError = { [weak self] error in self?.report(error) }
+    paymentVC.transaction = transaction
+
+    let window = NSWindow(contentViewController: paymentVC)
     
-    window.title = "Payment"
+    window.title = NSLocalizedString("Payment", comment: "Title for payment window")
     
     window.makeKeyAndOrderFront(self)
     
     let controller = NSWindowController(window: window)
     
     windowControllers += [controller]
-    
-    vc.transaction = transaction
     
     controller.showWindow(self)
   }

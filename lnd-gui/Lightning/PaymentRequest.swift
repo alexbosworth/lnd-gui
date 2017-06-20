@@ -8,24 +8,24 @@
 
 import Foundation
 
+typealias SerializedPaymentRequest = String
+
+/** Lightning Network payment request that
+ */
 struct PaymentRequest: JsonInitialized {
   let destination: PublicKey
   let id: PaymentHash
-  let paymentRequest: String
+  let paymentRequest: SerializedPaymentRequest
   let tokens: Tokens
   
-  enum JsonAttribute: String {
-    case destination
-    case id
-    case tokens
+  enum JsonAttribute: JsonAttributeName {
+    case destination, id, tokens
     
     var asKey: String { return rawValue }
   }
   
   enum ParseJsonFailure: Error {
-    case expectedPaymentRequestId
-    case expectedPublicKey
-    case expectedTokens
+    case missing(JsonAttribute)
   }
   
   init(from data: Data?, paymentRequest: String) throws {
@@ -34,18 +34,18 @@ struct PaymentRequest: JsonInitialized {
     let json = try type(of: self).jsonDictionaryFromData(data)
     
     guard let hexEncodedDestinationPublicKey = json[JsonAttribute.destination.asKey] as? HexEncodedData else {
-      throw ParseJsonFailure.expectedPublicKey
+      throw ParseJsonFailure.missing(.destination)
     }
     
     destination = try PublicKey(from: hexEncodedDestinationPublicKey)
     
     guard let paymentRequestId = json[JsonAttribute.id.asKey] as? HexEncodedData else {
-      throw ParseJsonFailure.expectedPaymentRequestId
+      throw ParseJsonFailure.missing(.id)
     }
     
     id = try PaymentHash(from: paymentRequestId)
     
-    guard let amount = json[JsonAttribute.tokens.asKey] as? NSNumber else { throw ParseJsonFailure.expectedTokens }
+    guard let amount = json[JsonAttribute.tokens.asKey] as? NSNumber else { throw ParseJsonFailure.missing(.tokens) }
     
     tokens = amount.tokensValue
   }

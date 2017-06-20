@@ -19,8 +19,12 @@ class SendOnChainViewController: NSViewController {
   
   /** Pressed amount options button
    */
-  @IBAction func pressedAmountOptionsButton(_ button: NSButton) {
-    showCurrencySelector(from: button)
+  @IBAction func pressedAmountOptionsButton(_ button: NSPopUpButton) {
+    guard let currencyTypeMenuItem = button.selectedItem as? CurrencyTypeMenuItem else {
+      return reportError(Failure.expectedCurrencyTypeMenuItem)
+    }
+    
+    currencyType = currencyTypeMenuItem.currencyType
   }
   
   // MARK: - @IBOutlets
@@ -45,11 +49,13 @@ class SendOnChainViewController: NSViewController {
    */
   fileprivate weak var commitSendViewController: CommitSendViewController?
 
+  var currencyType: CurrencyType = .testBitcoin { didSet { updatePaymentToSendFromInput() } }
+  
   /** Payment to send
 
    FIXME: - make into struct
    */
-  var paymentToSend: (String, Tokens)? { didSet { updatedPaymentToSend() } }
+  var paymentToSend: ChainSend? { didSet { updatedPaymentToSend() } }
   
   /** Report error
    */
@@ -65,6 +71,7 @@ extension SendOnChainViewController {
   /** Failures
    */
   enum Failure: Error {
+    case expectedCurrencyTypeMenuItem
     case expectedCurrentEvent
     case expectedViewController
     case unexpectedSegue
@@ -101,46 +108,41 @@ extension SendOnChainViewController {
     commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
     commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
   }
-
-  /** Show currency selector menu
-   */
-  fileprivate func showCurrencySelector(from button: NSButton) {
-    guard let event = NSApplication.shared().currentEvent else { return reportError(Failure.expectedCurrentEvent) }
-    
-    let menu = NSMenu(title: NSLocalizedString("Currency", comment: "Currency selection menu title"))
-    
-    [Currency.testBitcoin, .testUnitedStatesDollars].forEach { currency in
-      menu.addItem(withTitle: currency.symbol, action: #selector(setCurrency(_:)), keyEquivalent: String())
-    }
-    
-    menu.items.forEach { $0.target = self }
-    
-    NSMenu.popUpContextMenu(menu, with: event, for: button)
-  }
 }
 
 // MARK: - NSTextFieldDelegate
 extension SendOnChainViewController: NSTextFieldDelegate {
-  /** Control text did change
-   */
-  override func controlTextDidChange(_ obj: Notification) {
-    paymentToSend?.1 = Tokens()
+  func updatePaymentToSendFromInput() {
+    guard let existingChainSend = paymentToSend else { return }
+    
+    paymentToSend = ChainSend(address: existingChainSend.address, tokens: Tokens())
     
     guard let amountString = tokensToSendTextField?.stringValue else { return }
     
-    paymentToSend?.1 = Tokens(from: amountString)
+    let tokens: Tokens
+    
+    switch currencyType {
+    case .testBitcoin:
+      tokens = Tokens(from: amountString)
+      
+    case .testUnitedStatesDollars:
+      guard let centsPerCoin = centsPerCoin?() else { tokens = Tokens(); break }
+      
+      tokens = Tokens(from: amountString) / Tokens(centsPerCoin / 100)
+    }
+    
+    paymentToSend = ChainSend(address: existingChainSend.address, tokens: tokens)
+  }
+  
+  /** Control text did change
+   */
+  override func controlTextDidChange(_ obj: Notification) {
+    updatePaymentToSendFromInput()
   }
 }
 
 // MARK: - NSViewController
 extension SendOnChainViewController {
-  /** Set currency
-   */
-  func setCurrency(_ sender: NSMenuItem) {
-    // FIXME: - make this show a currency thing
-    print("SET CURRENCY \(sender)")
-  }
-  
   /** Updated payment to send
    */
   fileprivate func updatedPaymentToSend() {
@@ -150,6 +152,6 @@ extension SendOnChainViewController {
       return
     }
     
-    commitSendViewController?.paymentToSend = .chainSend(paymentToSend.0, paymentToSend.1)
+    commitSendViewController?.paymentToSend = .chainSend(paymentToSend)
   }
 }

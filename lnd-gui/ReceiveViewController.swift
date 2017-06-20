@@ -24,7 +24,11 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   /** Pressed amount options button
    */
   @IBAction func pressedAmountOptionsButton(_ button: NSPopUpButton) {
-    setCurrency(button)
+    guard let currencyTypeMenuItem = button.selectedItem as? CurrencyTypeMenuItem else {
+      return reportError(Failure.expectedCurrencyTypeMenuItem)
+    }
+
+    currency = currencyTypeMenuItem.currencyType
   }
 
   /** Pressed clear button triggers clearing the current payment request.
@@ -115,7 +119,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   
   var creatingInvoice = false { didSet { updatedCreatingInvoice() } }
   
-  var currency: Currency = .testBitcoin { didSet { do { try updatedSelectedCurrency() } catch { reportError(error) } } }
+  var currency: CurrencyType = .testBitcoin { didSet { do { try updatedSelectedCurrency() } catch { reportError(error) } } }
   
   /** invoice is the created invoice to receive funds to.
    */
@@ -138,8 +142,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
 extension ReceiveViewController {
   enum Failure: Error {
     case expectedChainAddress
-    case expectedCurrency
-    case expectedCurrencyId
+    case expectedCurrencyTypeMenuItem
     case expectedCurrentEvent
     case expectedInvoiceCreationDate
     case expectedPaymentRequest
@@ -192,16 +195,6 @@ extension ReceiveViewController {
       }
     }
   }
-
-  /** Set currency
-   */
-  func setCurrency(_ menu: NSPopUpButton) {
-    guard let currencyId = menu.selectedItem?.identifier else { return reportError(Failure.expectedCurrencyId) }
-    
-    guard let currency = Currency(from: currencyId) else { return reportError(Failure.expectedCurrency) }
-
-    self.currency = currency
-  }
 }
 
 // MARK: - NSTextViewDelegate
@@ -247,29 +240,38 @@ extension ReceiveViewController {
   
   fileprivate func updatedSelectedCurrency() throws {
     let amountPlaceholder: String
-    let converted: Currency
     
     switch currency {
     case .testBitcoin:
       amountPlaceholder = "0.00000000"
-      converted = .testUnitedStatesDollars
       
     case .testUnitedStatesDollars:
       amountPlaceholder = "$0.00"
-      converted = .testBitcoin
     }
     
     amountTextField?.placeholderString = amountPlaceholder
 
-    currencyConversionTextField?.stringValue = String()
+    currencyConversionTextField?.stringValue = try currencyConverted(from: amountTextField?.stringValue)
+  }
+  
+  func currencyConverted(from amountString: String?) throws -> String {
+    guard let amountString = amountString else { return String() }
     
-    guard let amountString = amountTextField?.stringValue else { return }
+    let numbers = amountString.components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted).joined()
     
-    guard let centsPerCoin = centsPerCoin?() else { return }
+    guard let centsPerCoin = centsPerCoin?() else { return String() }
     
-    let convertedAmount = try Tokens(from: amountString).converted(to: converted, with: centsPerCoin)
-    
-    currencyConversionTextField?.stringValue = convertedAmount
+    switch currency {
+    case .testBitcoin:
+      let bitcoins = CurrencyAmount(fromTestBitcoins: numbers)
+      
+      return try bitcoins.converted(to: .testUnitedStatesDollars, rate: centsPerCoin)
+      
+    case .testUnitedStatesDollars:
+      let dollars = CurrencyAmount(fromTestUnitedStatesDollars: numbers)
+      
+      return try dollars.converted(to: .testBitcoin, rate: centsPerCoin)
+    }
   }
   
   /** Updated the payment request

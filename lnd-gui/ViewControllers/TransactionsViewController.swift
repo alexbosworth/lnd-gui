@@ -11,7 +11,7 @@ import Cocoa
 /** Transactions view controller
  FIXME: - abstract
  */
-class TransactionsViewController: NSViewController, ErrorReporting {
+class TransactionsViewController: NSViewController {
   // MARK: - @IBAction
   
   /** Double click on a transaction
@@ -60,7 +60,7 @@ extension TransactionsViewController {
 extension TransactionsViewController {
   /** Table columns
    */
-  fileprivate enum Column: String {
+  fileprivate enum Column: StoryboardIdentifier {
     case amount = "AmountColumn"
     case confirmed = "ConfirmedColumn"
     case createdAt = "CreatedAtColumn"
@@ -78,7 +78,7 @@ extension TransactionsViewController {
     
     /** Cell identifier for column cell
      */
-    var asCellIdentifier: String {
+    var asCellIdentifier: StoryboardIdentifier {
       switch self {
       case .amount:
         return "AmountCell"
@@ -96,7 +96,7 @@ extension TransactionsViewController {
     
     /** Column identifier
      */
-    var asColumnIdentifier: String { return rawValue }
+    var asColumnIdentifier: StoryboardIdentifier { return rawValue }
     
     /** Make a cell in column
      */
@@ -104,7 +104,6 @@ extension TransactionsViewController {
       let cell = tableView.make(withIdentifier: asCellIdentifier, owner: nil) as? NSTableCellView
       
       cell?.textField?.stringValue = title
-      
       cell?.textField?.textColor = isEnabled ? .controlTextColor : .disabledControlTextColor
       
       return cell
@@ -112,8 +111,8 @@ extension TransactionsViewController {
   }
 }
 
-// MARK: - Failures
-extension TransactionsViewController {
+// MARK: - ErrorReporting
+extension TransactionsViewController: ErrorReporting {
   /** Transaction view controller error
    */
   enum Failure: Error {

@@ -45,6 +45,8 @@ class SendViewController: NSViewController, ErrorReporting {
   // MARK: - Properties
   
   var centsPerCoin: (() -> (Int?))?
+
+  fileprivate var currencyType: CurrencyType = .testBitcoin
   
   /** Commit send view controller
    */
@@ -57,12 +59,6 @@ class SendViewController: NSViewController, ErrorReporting {
   /** Send on chain view controller
   */
   fileprivate var sendOnChainViewController: SendOnChainViewController?
-
-  /** Sent transaction view controller
-   */
-  fileprivate var sentTransactionViewController: SentTransactionViewController?
-  
-  var settledTransaction: Transaction? { didSet { updatedSettledTransaction() } }
   
   /** Update balance closure
    */
@@ -73,7 +69,6 @@ extension SendViewController {
   enum Failure: Error {
     case expectedCommitSendViewController
     case expectedSendOnChainController
-    case expectedSentTransactionViewController
     case unknownSegue
   }
 }
@@ -112,15 +107,6 @@ extension SendViewController {
       sendOnChainViewController.clear = { [weak self] in self?.resetDestination() }
       sendOnChainViewController.reportError = { [weak self] error in self?.reportError(error) }
       sendOnChainViewController.send = { [weak self] payment in self?.send(payment) }
-      
-    case .sentTransaction:
-      guard let sentTransactionViewController = destinationController as? SentTransactionViewController else {
-        return reportError(Failure.expectedSentTransactionViewController)
-      }
-
-      sentTransactionViewController.reportError = { [weak self] error in self?.reportError(error) }
-      
-      self.sentTransactionViewController = sentTransactionViewController
     }
   }
   
@@ -139,22 +125,10 @@ extension SendViewController {
   private enum Segue: String {
     case sendChannelPayment = "SendChannelPaymentSegue"
     case sendOnChain = "SendOnChainSegue"
-    case sentTransaction = "SentTransactionSegue"
     
     init?(from segue: NSStoryboardSegue) {
       if let id = segue.identifier, let s = type(of: self).init(rawValue: id) { self = s } else { return nil }
     }
-  }
-  
-  fileprivate func updatedSettledTransaction() {
-    guard let transaction = settledTransaction else {
-      sentTransactionContainerView?.isHidden = true
-      
-      return
-    }
-
-    sentTransactionContainerView?.isHidden = false
-    sentTransactionViewController?.settledTransaction = transaction
   }
 }
 
@@ -183,8 +157,6 @@ extension SendViewController {
     super.viewWillDisappear()
     
     sentStatusTextField?.isHidden = true
-    
-    settledTransaction = nil
   }
 }
 
@@ -226,8 +198,8 @@ extension SendViewController {
     commitSendViewController?.isSending = true
     
     switch payment {
-    case .chainSend(let address, let tokens):
-      send(to: address, tokens: tokens)
+    case .chainSend(let chainSend):
+      send(chainSend)
       
     case .paymentRequest(let paymentRequest):
       do { try send(paymentRequest) } catch { reportError(error) }
@@ -243,7 +215,7 @@ extension SendViewController {
     sentStatusTextField?.stringValue = "Sending \(tokens.formatted(with: .testBitcoin))."
   }
   
-  private func send(to address: String, tokens: Tokens) {
+  private func send(_ chainSend: ChainSend) {
     enum SendOnChainJsonAttribute: String {
       case address
       case tokens
@@ -252,8 +224,8 @@ extension SendViewController {
     }
 
     let json: [String: Any] = [
-      SendOnChainJsonAttribute.address.key: address,
-      SendOnChainJsonAttribute.tokens.key: tokens,
+      SendOnChainJsonAttribute.address.key: chainSend.address,
+      SendOnChainJsonAttribute.tokens.key: chainSend.tokens,
     ]
     
     do {
@@ -264,7 +236,7 @@ extension SendViewController {
             self?.reportError(error)
             
           case .success:
-            self?.showSendOnChainResult(tokens: tokens)
+            self?.showSendOnChainResult(tokens: chainSend.tokens)
           }
         }
       }
@@ -351,7 +323,10 @@ extension SendViewController: NSTextFieldDelegate {
 
     if destination.hasPrefix("2") || destination.hasPrefix("m") {
       sendOnChainContainerView?.isHidden = false
-      sendOnChainViewController?.paymentToSend = (destination, Tokens())
+
+      let tokens: Tokens = (sendOnChainViewController?.paymentToSend?.tokens ?? Tokens()) as Tokens
+      
+      sendOnChainViewController?.paymentToSend = ChainSend(address: destination, tokens: tokens)
       
       return
     }

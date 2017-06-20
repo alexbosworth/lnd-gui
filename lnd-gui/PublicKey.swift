@@ -8,9 +8,19 @@
 
 import Foundation
 
-/** ECDSA Public Key
+protocol DataValueBacked {
+  var value: Data { get }
+}
+
+extension DataValueBacked {
+  /** Hex encoded
+   */
+  var hexEncoded: String { return value.asHexString }
+}
+
+/** ECDSA public key
  */
-struct PublicKey {
+struct PublicKey: DataValueBacked {
   /** Create from hex encoded string
    */
   init(from hexEncodedString: HexEncodedData) throws {
@@ -19,9 +29,5 @@ struct PublicKey {
   
   /** Raw key value
    */
-  private let value: Data
-  
-  /** Hex encoded
-   */
-  var hexEncoded: String { return value.asHexString }
+  let value: Data
 }

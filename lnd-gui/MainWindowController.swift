@@ -8,7 +8,7 @@
 
 import Cocoa
 
-/** MainWindowController is the controller that manages the containing main window.
+/** Main window controller, the controller that manages the containing main window.
  */
 class MainWindowController: NSWindowController {
   /** Dimension defines sizes in the main window controller.
@@ -17,7 +17,7 @@ class MainWindowController: NSWindowController {
     static let bottomBarHeight: CGFloat = 24
   }
   
-  /** windowDidLoad method is called when the window initializes.
+  /** Window did load, called when the window initializes.
    */
   override func windowDidLoad() {
     super.windowDidLoad()

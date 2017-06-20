@@ -21,6 +21,8 @@ class InvoiceViewController: NSViewController, ErrorReporting {
    */
   @IBOutlet weak var descriptionTextField: NSTextField?
   
+  /** Heading text field
+   */
   @IBOutlet weak var headingTextField: NSTextField?
   
   /** Payment request text field
@@ -29,6 +31,8 @@ class InvoiceViewController: NSViewController, ErrorReporting {
   
   // MARK: - Properties
   
+  /** Cents per coin
+   */
   var centsPerCoin: (() -> (Int?))?
   
   /** Invoice
@@ -38,20 +42,6 @@ class InvoiceViewController: NSViewController, ErrorReporting {
   /** Report error
    */
   lazy var reportError: (Error) -> () = { _ in }
-  
-  override func viewDidAppear() {
-    super.viewDidLoad()
-    
-    paymentRequestTextField?.isEditable = true
-    paymentRequestTextField?.becomeFirstResponder()
-    paymentRequestTextField?.isEditable = false
-    
-    if let invoice = invoice, invoice.confirmed {
-      DispatchQueue.main.async { [weak self] in
-        self?.paymentRequestTextField?.resignFirstResponder()
-      }
-    }
-  }
 }
 
 // MARK: - Failures
@@ -91,6 +81,20 @@ extension InvoiceViewController {
     guard let tokens = invoice.tokens else { return }
     
     amountTextField?.stringValue += try tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+  }
+  
+  /** View appeared
+   */
+  override func viewDidAppear() {
+    super.viewDidLoad()
+    
+    paymentRequestTextField?.isEditable = true
+    paymentRequestTextField?.becomeFirstResponder()
+    paymentRequestTextField?.isEditable = false
+    
+    guard let invoice = invoice, invoice.confirmed else { return }
+
+    DispatchQueue.main.async { [weak self] in self?.paymentRequestTextField?.resignFirstResponder() }
   }
 }
 

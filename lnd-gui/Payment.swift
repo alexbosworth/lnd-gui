@@ -8,9 +8,14 @@
 
 import Foundation
 
-/** Payment
+struct ChainSend {
+  let address: String
+  let tokens: Tokens
+}
+
+/** Payments represent outward transfers, either via a LN payment request or a blockchain settlement.
  */
 enum Payment {
-  case chainSend(String, Tokens) // FIXME: - make a chain send struct, address struct
+  case chainSend(ChainSend)
   case paymentRequest(PaymentRequest)
 }

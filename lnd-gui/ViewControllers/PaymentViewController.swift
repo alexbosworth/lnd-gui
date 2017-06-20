@@ -22,14 +22,23 @@ class PaymentViewController: NSViewController {
   @IBOutlet weak var feeTextField: NSTextField?
   
   @IBOutlet weak var idTextField: NSTextField?
+
+  @IBOutlet weak var sendPaymentButton: NSButton?
   
   // MARK: - Properties
   
-  var transaction: Transaction? { didSet { updatedTransaction() } }
+  var centsPerCoin: (() -> (Int?))?
+  
+  /** Report error
+   */
+  lazy var reportError: (Error) -> () = { _ in }
+
+  var transaction: Transaction? { didSet { do { try updatedTransaction() } catch { reportError(error) } } }
 }
 
+// MARK: - NSViewController
 extension PaymentViewController {
-  func updatedTransaction() {
+  func updatedTransaction() throws {
     guard let transaction = transaction else { return }
     
     amountTextField?.stringValue = "\(transaction.tokens.formatted) tBTC"
@@ -55,5 +64,9 @@ extension PaymentViewController {
       destinationTextField?.stringValue = publicKey
       idTextField?.stringValue = paymentId
     }
+    
+    guard let centsPerCoin = self.centsPerCoin?() else { return }
+    
+    amountTextField?.stringValue += try transaction.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
   }
 }

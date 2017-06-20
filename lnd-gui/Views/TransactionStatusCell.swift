@@ -30,7 +30,7 @@ class TransactionStatusCell: NSTableCellView {
   private func updateStatusBox() {
     let isConfirmed = transaction?.confirmed == true
     
-    statusBox?.fillColor = isConfirmed ? .selectedControlColor : .controlColor
     statusBox?.borderColor = isConfirmed ? .alternateSelectedControlColor : .controlShadowColor
+    statusBox?.fillColor = isConfirmed ? .selectedControlColor : .controlColor
   }
 }

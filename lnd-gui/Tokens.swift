@@ -47,7 +47,7 @@ extension Tokens {
 
   /** Formatted with a unit label
    */
-  func formatted(with unit: Currency) -> String {
+  func formatted(with unit: CurrencyType) -> String {
     return "\(formatted) \(unit.symbol)"
   }
 }
@@ -64,7 +64,7 @@ extension Tokens {
     case expectedFormatted
   }
   
-  func converted(to currency: Currency, with centsPerCoin: Int) throws -> String {
+  func converted(to currency: CurrencyType, with centsPerCoin: Int) throws -> String {
     let formatter = NumberFormatter()
 
     formatter.locale = Locale(identifier: Locale.current.identifier)
@@ -75,6 +75,6 @@ extension Tokens {
     
     guard let val = formatter.string(from: value as NSNumber) else { throw ConversionFailure.expectedFormatted }
 
-    return " (\(val) \(Currency.testUnitedStatesDollars.symbol))"
+    return " (\(val) \(CurrencyType.testUnitedStatesDollars.symbol))"
   }
 }

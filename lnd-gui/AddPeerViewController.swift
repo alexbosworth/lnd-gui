@@ -8,15 +8,15 @@
 
 import Cocoa
 
-/** Add peer dialog
+/** Add peer dialog view controller
  */
-class AddPeerViewController: NSViewController, ErrorReporting {
+class AddPeerViewController: NSViewController {
   // MARK: - @IBActions
   
   /** Pressed add peer button
    */
   @IBAction func pressedAddPeerButton(_ sender: NSButton) {
-    addPeer(ip: hostTextField?.stringValue, publicKeyHex: publicKeyTextField?.stringValue)
+    do { try addPeer(ip: ipValue, publicKeyHex: publicKeyValue) } catch { reportError(error) }
   }
   
   // MARK: - @IBOutlets
@@ -40,6 +40,9 @@ class AddPeerViewController: NSViewController, ErrorReporting {
   lazy var reportError: (Error) -> () = { _ in }
 }
 
+// MARK: - ErrorReporting
+extension AddPeerViewController: ErrorReporting {}
+
 // MARK: - NSTextViewDelegate
 extension AddPeerViewController: NSTextViewDelegate {
   /** Control text changed
@@ -47,29 +50,32 @@ extension AddPeerViewController: NSTextViewDelegate {
   override func controlTextDidChange(_ obj: Notification) {
     addPeerButton?.isEnabled = false
 
-    // Confirm that the public key and host look valid
-    guard
-      let host = hostTextField?.stringValue,
-      let _ = try? IpAddress(from: host),
-      let publicKey = publicKeyTextField?.stringValue,
-      let _ = try? PublicKey(from: publicKey)
-      else
-    {
-      return
-    }
+    // Confirm that the host looks valid
+    guard let ip = ipValue, let _ = try? IpAddress(from: ip) else { return }
+    
+    // Confirm that the node key looks valid
+    guard let publicKeyValue = publicKeyValue, let _ = try? PublicKey(from: publicKeyValue) else { return }
     
     addPeerButton?.isEnabled = true
   }
+  
+  /** Input ip value
+   */
+  fileprivate var ipValue: String? { return hostTextField?.stringValue }
+
+  /** Public key value
+   */
+  fileprivate var publicKeyValue: String? { return publicKeyTextField?.stringValue }
 }
 
 // MARK: - Navigation
 extension AddPeerViewController {
   /** Add a peer
    */
-  fileprivate func addPeer(ip: String?, publicKeyHex: String?) {
+  fileprivate func addPeer(ip: String?, publicKeyHex: String?) throws {
     guard let ip = ip, let key = publicKeyHex else { return }
     
-    do { try addPeer(ip: try IpAddress(from: ip), publicKey: try PublicKey(from: key)) } catch { reportError(error) }
+    try addPeer(ip: try IpAddress(from: ip), publicKey: try PublicKey(from: key))
   }
 
   /** Add a peer

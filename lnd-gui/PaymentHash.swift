@@ -10,7 +10,7 @@ import Foundation
 
 /** Lightning payment hash, also known as rhash
  */
-struct PaymentHash {
+struct PaymentHash: DataValueBacked {
   /** Create from hex encoded string
    */
   init(from hexEncodedString: HexEncodedData) throws {
@@ -19,9 +19,5 @@ struct PaymentHash {
   
   /** Raw key value
    */
-  private let value: Data
-  
-  /** Hex encoded
-   */
-  var hexEncoded: String { return value.asHexString }
+  let value: Data
 }

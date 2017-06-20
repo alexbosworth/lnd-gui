@@ -108,9 +108,9 @@ extension CommitSendViewController {
     let settlementTimeString: String
     
     switch payment {
-    case .chainSend(let address, let tokens):
-      amount = tokens
-      destination = address
+    case .chainSend(let chainSend):
+      amount = chainSend.tokens
+      destination = chainSend.address
       fee = 225
       settlementTimeString = "10-20 min"
       

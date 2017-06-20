@@ -13,6 +13,8 @@ import Cocoa
 class MainTabViewController: NSTabViewController, ErrorReporting {
   // MARK: - Properties
   
+  /** Cents per coin
+   */
   var centsPerCoin: (() -> (Int?))?
   
   /** Connections view controller
@@ -23,7 +25,7 @@ class MainTabViewController: NSTabViewController, ErrorReporting {
    */
   var receiveViewController: ReceiveViewController?
   
-  /** Report error
+  /** Report errors
    */
   lazy var reportError: (Error) -> () = { _ in }
   

@@ -8,8 +8,12 @@
 
 import Foundation
 
+/** Date is the basic time element
+ 
+ Add: Formatted version
+ */
 extension Date {
-  /** Get formatted date string
+  /** Get formatted date description in a date and time style
    */
   func formatted(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style) -> String {
     let formatter = DateFormatter()

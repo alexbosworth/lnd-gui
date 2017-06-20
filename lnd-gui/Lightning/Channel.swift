@@ -54,17 +54,8 @@ struct Channel {
   
   /** Channel data JSON parse failures
    */
-  enum ParseJsonFailure: String, Error {
-    case expectedIsActive
-    case expectedIsClosing
-    case expectedIsOpening
-    case expectedLocalBalance
-    case expectedReceived
-    case expectedRemoteBalance
-    case expectedSentValue
-    case expectedTransactionId
-    case expectedTransactionVout
-    case expectedTransfersCount
+  enum ParseJsonFailure: Error {
+    case missingAttribute(JsonAttribute)
   }
 
   /** Channel data JSON keys
@@ -94,34 +85,44 @@ struct Channel {
     
     let id = json[JsonAttribute.id.key] as? String
     
-    guard let isActive = json[JsonAttribute.isActive.key] as? Bool else { throw ParseJsonFailure.expectedIsActive }
+    guard let isActive = json[JsonAttribute.isActive.key] as? Bool else {
+      throw ParseJsonFailure.missingAttribute(.isActive)
+    }
 
-    guard let isClosing = json[JsonAttribute.isClosing.key] as? Bool else { throw ParseJsonFailure.expectedIsClosing }
+    guard let isClosing = json[JsonAttribute.isClosing.key] as? Bool else {
+      throw ParseJsonFailure.missingAttribute(.isClosing)
+    }
 
-    guard let isOpening = json[JsonAttribute.isOpening.key] as? Bool else { throw ParseJsonFailure.expectedIsOpening }
+    guard let isOpening = json[JsonAttribute.isOpening.key] as? Bool else {
+      throw ParseJsonFailure.missingAttribute(.isOpening)
+    }
     
     guard let localBalance = json[JsonAttribute.localBalance.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedLocalBalance
+      throw ParseJsonFailure.missingAttribute(.localBalance)
     }
     
-    guard let received = json[JsonAttribute.received.key] as? NSNumber else { throw ParseJsonFailure.expectedReceived }
+    guard let received = json[JsonAttribute.received.key] as? NSNumber else {
+      throw ParseJsonFailure.missingAttribute(.received)
+    }
     
     guard let remoteBalance = json[JsonAttribute.remoteBalance.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedRemoteBalance
+      throw ParseJsonFailure.missingAttribute(.remoteBalance)
     }
     
-    guard let sent = json[JsonAttribute.sent.key] as? NSNumber else { throw ParseJsonFailure.expectedSentValue }
+    guard let sent = json[JsonAttribute.sent.key] as? NSNumber else {
+      throw ParseJsonFailure.missingAttribute(.sent)
+    }
     
     guard let transactionId = json[JsonAttribute.transactionId.key] as? String else {
-      throw ParseJsonFailure.expectedTransactionId
+      throw ParseJsonFailure.missingAttribute(.transactionId)
     }
     
     guard let transactionVout = json[JsonAttribute.transactionVout.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedTransactionVout
+      throw ParseJsonFailure.missingAttribute(.transactionVout)
     }
     
     guard let transfersCount = json[JsonAttribute.transfersCount.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedTransfersCount
+      throw ParseJsonFailure.missingAttribute(.transfersCount)
     }
     
     let unsettledBalance = json[JsonAttribute.unsettledBalance.key] as? NSNumber
@@ -132,14 +133,18 @@ struct Channel {
     self.received = received.tokensValue
     self.sent = sent.tokensValue
 
-    if isOpening {
-      self.state = .opening
-    } else if isClosing {
-      self.state = .closing
-    } else if isActive {
-      self.state = .active
-    } else {
-      self.state = .inactive
+    switch (isOpening, isClosing, isActive) {
+    case (true, _, _):
+      state = .opening
+      
+    case (false, true, _):
+      state = .closing
+      
+    case (false, false, true):
+      state = .active
+      
+    case (false, false, false):
+      state = .inactive
     }
     
     self.transfersCount = transfersCount.uintValue

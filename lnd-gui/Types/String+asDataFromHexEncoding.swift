@@ -14,7 +14,7 @@ typealias HexEncodedData = String
 
 // MARK: - Data
 extension HexEncodedData {
-  /** Convert hex String to Data
+  /** Convert hex serialized string to binary data
    */
   func asDataFromHexEncoding() throws -> Data {
     var data = Data()

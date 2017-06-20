@@ -1,5 +1,5 @@
 //
-//  Currency.swift
+//  CurrencyType.swift
 //  lnd-gui
 //
 //  Created by Alex Bosworth on 5/23/17.
@@ -10,7 +10,7 @@ import Foundation
 
 /** Currency types
  */
-enum Currency {
+enum CurrencyType {
   case testBitcoin
   case testUnitedStatesDollars
 
@@ -42,10 +42,10 @@ enum Currency {
    */
   init?(from symbol: String) {
     switch symbol {
-    case Currency.testBitcoin.symbol:
+    case CurrencyType.testBitcoin.symbol:
       self = .testBitcoin
       
-    case Currency.testUnitedStatesDollars.symbol:
+    case CurrencyType.testUnitedStatesDollars.symbol:
       self = .testUnitedStatesDollars
       
     default:

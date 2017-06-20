@@ -8,9 +8,11 @@
 
 import Foundation
 
+/** Peer
+ */
 struct Peer {
   let id: Int
-  let networkAddress: String // FIXME: - make struct
+  let networkAddress: IpAddress
   let ping: TimeInterval
   let transferedBytes: ByteTransfer
   let transferedValue: ValueTransfer
@@ -25,57 +27,52 @@ struct Peer {
     let sent: Tokens
   }
   
-  enum ParseJsonFailure: String, Error {
-    case expectedBytesReceived
-    case expectedBytesSent
-    case expectedId
-    case expectedNetworkAddress
-    case expectedPingTime
-    case expectedPublicKey
-    case expectedTokensReceived
-    case expectedTokensSent
+  enum ParseJsonFailure: Error {
+    case missing(JsonAttribute)
+  }
+
+  enum JsonAttribute: JsonAttributeName {
+    case bytesReceived = "bytes_received"
+    case bytesSent = "bytes_sent"
+    case id
+    case networkAddress = "network_address"
+    case pingTime = "ping_time"
+    case publicKey = "public_key"
+    case tokensReceived = "tokens_received"
+    case tokensSent = "tokens_sent"
+    
+    var asKey: JsonAttributeName { return rawValue }
   }
   
   init(from json: [String: Any]) throws {
-    enum JsonAttribute: String {
-      case bytesReceived = "bytes_received"
-      case bytesSent = "bytes_sent"
-      case id
-      case networkAddress = "network_address"
-      case pingTime = "ping_time"
-      case publicKey = "public_key"
-      case tokensReceived = "tokens_received"
-      case tokensSent = "tokens_sent"
-      
-      var key: String { return rawValue }
+    guard let bytesReceived = json[JsonAttribute.bytesReceived.asKey] as? NSNumber else {
+      throw ParseJsonFailure.missing(.bytesReceived)
     }
     
-    guard let bytesReceived = json[JsonAttribute.bytesReceived.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedBytesReceived
+    guard let bytesSent = json[JsonAttribute.bytesSent.asKey] as? NSNumber else {
+      throw ParseJsonFailure.missing(.bytesSent)
     }
     
-    guard let bytesSent = json[JsonAttribute.bytesSent.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedBytesSent
+    guard let id = json[JsonAttribute.id.asKey] as? NSNumber else { throw ParseJsonFailure.missing(.id) }
+    
+    guard let networkAddress = json[JsonAttribute.networkAddress.asKey] as? String else {
+      throw ParseJsonFailure.missing(.networkAddress)
     }
     
-    guard let id = json[JsonAttribute.id.key] as? NSNumber else { throw ParseJsonFailure.expectedId }
-    
-    guard let networkAddress = json[JsonAttribute.networkAddress.key] as? String else {
-      throw ParseJsonFailure.expectedNetworkAddress
+    guard let pingTime = json[JsonAttribute.pingTime.asKey] as? NSNumber else {
+      throw ParseJsonFailure.missing(.pingTime)
     }
     
-    guard let pingTime = json[JsonAttribute.pingTime.key] as? NSNumber else { throw ParseJsonFailure.expectedPingTime }
-    
-    guard let tokensReceived = json[JsonAttribute.tokensReceived.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedTokensReceived
+    guard let tokensReceived = json[JsonAttribute.tokensReceived.asKey] as? NSNumber else {
+      throw ParseJsonFailure.missing(.tokensReceived)
     }
     
-    guard let tokensSent = json[JsonAttribute.tokensSent.key] as? NSNumber else {
-      throw ParseJsonFailure.expectedTokensSent
+    guard let tokensSent = json[JsonAttribute.tokensSent.asKey] as? NSNumber else {
+      throw ParseJsonFailure.missing(.tokensSent)
     }
     
     self.id = id.intValue
-    self.networkAddress = networkAddress
+    self.networkAddress = try IpAddress(from: networkAddress)
     self.ping = pingTime.doubleValue
     self.transferedBytes = ByteTransfer(received: bytesReceived.uintValue, sent: bytesSent.uintValue)
     self.transferedValue = ValueTransfer(received: tokensReceived.uint64Value, sent: tokensSent.uint64Value)

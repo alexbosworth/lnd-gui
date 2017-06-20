@@ -16,6 +16,8 @@ enum IpAddress {
   case v4(String)
   case v6(String)
   
+  /** Create from serialized ip address
+   */
   init(from ip: String) throws {
     var sin6 = sockaddr_in6()
     

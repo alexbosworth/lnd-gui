@@ -8,12 +8,12 @@
 
 import Foundation
 
-/** ReceivedPayment represents an invoiced payment.
+/** Received payment is an invoiced payment.
  */
 struct ReceivedPayment {
   let confirmed: Bool
   let createdAt: Date
   let memo: String
-  let payment: String
+  let payment: SerializedPaymentRequest
   let tokens: Tokens
 }

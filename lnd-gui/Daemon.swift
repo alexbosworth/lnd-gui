@@ -30,7 +30,8 @@ extension Daemon {
     case balance
     case channels(String)
     case connections
-    case exchangeRate(Currency)
+    case exchangeRate(CurrencyType)
+    case history
     case invoices
     case paymentRequest(String)
     case payments
@@ -50,6 +51,9 @@ extension Daemon {
         
       case .exchangeRate(_):
         return "exchange"
+        
+      case .history:
+        return "history"
         
       case .invoices:
         return "invoices"
@@ -72,7 +76,7 @@ extension Daemon {
       let route = "http://localhost:10553/v0/\(type)/"
       
       switch self {
-      case .balance, .connections, .invoices, .payments, .peers, .transactions:
+      case .balance, .connections, .history, .invoices, .payments, .peers, .transactions:
         return URL(string: route)
         
       case .channels(let channelId):

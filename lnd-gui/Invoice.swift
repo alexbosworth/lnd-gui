@@ -41,49 +41,55 @@ struct Invoice {
   
   /** JsonParseError defines errors encountered when parsing a JSON encoded invoice.
    */
-  enum JsonParseError: String, Error {
-    case expectedId
-    case expectedJson
-    case expectedPaymentRequest
+  enum JsonParseError: Error {
+    case invalidJson
+    case missing(JsonAttribute)
   }
 
   /** Create from json data
    */
   init(from data: Data) throws {
     guard let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
-      throw JsonParseError.expectedJson
+      throw JsonParseError.invalidJson
     }
     
     self = try type(of: self).init(from: json)
+  }
+
+  enum JsonAttribute: JsonAttributeName {
+    case address
+    case confirmed
+    case createdAt = "created_at"
+    case id
+    case memo
+    case paymentRequest = "payment_request"
+    case tokens
+    
+    var asKey: JsonAttributeName { return rawValue }
   }
   
   /** init creates an invoice from a JSON dictionary.
    */
   init(from json: [String: Any]) throws {
-    guard let id = json["id"] as? String else { throw JsonParseError.expectedId }
+    guard let invoiceId = json[JsonAttribute.id.asKey] as? String else { throw JsonParseError.missing(.id) }
     
-    guard let paymentRequest = json["payment_request"] as? String else { throw JsonParseError.expectedPaymentRequest }
+    guard let invoicePaymentRequest = json[JsonAttribute.paymentRequest.asKey] as? String else {
+      throw JsonParseError.missing(.paymentRequest)
+    }
     
-    self.chainAddress = json["address"] as? String
-    self.confirmed = (json["confirmed"] as? Bool ?? false) as Bool
-    self.id = id
-    self.memo = json["memo"] as? String
-    self.paymentRequest = paymentRequest
-    self.tokens = (json["tokens"] as? NSNumber)?.tokensValue
+    chainAddress = json[JsonAttribute.address.asKey] as? String
+    confirmed = (json[JsonAttribute.confirmed.asKey] as? Bool ?? false) as Bool
+    id = invoiceId
+    memo = json[JsonAttribute.memo.asKey] as? String
+    paymentRequest = invoicePaymentRequest
+    tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue
     
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
+    let createdAtString = json[JsonAttribute.createdAt.asKey] as? String
     
-    let createdAtString = json["created_at"] as? String
-    let createdAt: Date?
-    
-    if let str = createdAtString { createdAt = dateFormatter.date(from: str) } else { createdAt = nil }
-
-    self.createdAt = createdAt
+    if let str = createdAtString { createdAt = DateFormatter().date(fromIso8601: str) } else { createdAt = nil }
   }
   
-  enum Failure: String, Error {
+  enum Failure: Error {
     case expectedReceivedPayment
   }
   
@@ -93,5 +99,14 @@ struct Invoice {
     }
     
     self = invoice
+  }
+}
+
+extension DateFormatter {
+  func date(fromIso8601 string: String) -> Date? {
+    locale = Locale(identifier: "en_US_POSIX")
+    dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
+
+    return date(from: string)
   }
 }

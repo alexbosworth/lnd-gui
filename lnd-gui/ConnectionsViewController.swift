@@ -280,12 +280,11 @@ extension ConnectionsViewController: NSTableViewDataSource {
     
     guard let connection = connection(at: row) else { print(DataSourceError.expectedConnectionForRow); return nil }
     
-
     let title: String
     
     switch column {
     case .balance:
-      title = "\(connection.balance.formatted) tBTC"
+      title = connection.balance.formatted(with: .testBitcoin)
       
     case .online:
       let hasActivePeer = !connection.peers.isEmpty

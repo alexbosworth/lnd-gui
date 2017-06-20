@@ -8,9 +8,12 @@
 
 import Foundation
 
-/** Transaction hash, also known as transaction id.
+/** Transaction hash, also known as transaction id. This is the double SHA256 hash of the serialized transaction.
+
+ Transaction hashes are used as identifiers for transactions when constructing new transactions that spend the unspent
+ outputs of past transactions.
  */
-struct TransactionHash {
+struct TransactionHash: DataValueBacked {
   /** Create hash
    */
   init(from hexEncoded: HexEncodedData) throws {
@@ -19,5 +22,5 @@ struct TransactionHash {
   
   /** Raw value
    */
-  private let value: Data
+  let value: Data
 }

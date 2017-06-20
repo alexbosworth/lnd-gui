@@ -8,8 +8,10 @@
 
 import Foundation
 
-// FIXME: - include fee, hops and payment req
-// FIXME: - reorganize
+/** Transactions are transfers of tokens through the Lightning Network or via Blockchain settlement.
+ // FIXME: - include fee, hops and payment req
+ // FIXME: - reorganize into an enum, with shared values and distinct types
+ */
 struct Transaction {
   let confirmed: Bool
   let createdAt: Date?
@@ -24,13 +26,8 @@ struct Transaction {
     case sent(publicKey: String, paymentId: String)
   }
   
-  enum JsonParseError: String, Error {
-    case expectedAmount
-    case expectedConfirmedFlag
-    case expectedDestination
-    case expectedId
-    case expectedOutgoingFlag
-    case expectedType
+  enum JsonParseError: Error {
+    case missing(JsonAttribute)
   }
   
   enum NetworkType {
@@ -52,28 +49,42 @@ struct Transaction {
       }
     }
   }
+
+  enum JsonAttribute: JsonAttributeName {
+    case confirmed
+    case createdAt = "created_at"
+    case destination
+    case id
+    case outgoing
+    case tokens
+    case type
+    
+    var asKey: String { return rawValue }
+  }
   
   init(from json: [String: Any]) throws {
-    guard let confirmed = (json["confirmed"] as? Bool) else { throw JsonParseError.expectedConfirmedFlag }
+    guard let confirmed = (json[JsonAttribute.confirmed.asKey] as? Bool) else {
+      throw JsonParseError.missing(.confirmed)
+    }
     
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-    
-    let createdAtString = json["created_at"] as? String
+    let createdAtString = json[JsonAttribute.createdAt.asKey] as? String
     let createdAt: Date?
       
-    if let str = createdAtString { createdAt = dateFormatter.date(from: str) } else { createdAt = nil }
+    if let str = createdAtString { createdAt = DateFormatter().date(fromIso8601: str) } else { createdAt = nil }
 
-    guard let id = json["id"] as? String else { throw JsonParseError.expectedId }
+    guard let id = json[JsonAttribute.id.asKey] as? String else { throw JsonParseError.missing(.id) }
     
-    guard let outgoing = (json["outgoing"] as? Bool) else { throw JsonParseError.expectedOutgoingFlag }
+    guard let outgoing = (json[JsonAttribute.outgoing.asKey] as? Bool) else { throw JsonParseError.missing(.outgoing) }
     
-    guard let tokens = (json["tokens"] as? NSNumber)?.tokensValue else { throw JsonParseError.expectedAmount }
+    guard let tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue else {
+      throw JsonParseError.missing(.tokens)
+    }
     
-    let destinationId = json["destination"] as? String
+    let destinationId = json[JsonAttribute.destination.asKey] as? String
 
-    guard let networkType = NetworkType(from: json["type"] as? String) else { throw JsonParseError.expectedType }
+    guard let networkType = NetworkType(from: json[JsonAttribute.type.asKey] as? String) else {
+      throw JsonParseError.missing(.type)
+    }
     
     switch (networkType, outgoing) {
     case (.chain, _):
@@ -83,7 +94,7 @@ struct Transaction {
       destination = DestinationType.received(try Invoice(from: json))
       
     case (.channel, true):
-      guard let publicKey = destinationId else { throw JsonParseError.expectedDestination }
+      guard let publicKey = destinationId else { throw JsonParseError.missing(.destination) }
       
       destination = DestinationType.sent(publicKey: publicKey, paymentId: id)
     }

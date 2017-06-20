@@ -15,11 +15,11 @@ import Cocoa
 class MainViewController: NSViewController {
   // MARK: - @IBOutlets
   
-  /** balanceLabelTextField is the balance label that shows the amount of funds available.
+  /** Balance label text field is the balance label that shows the amount of funds available.
    */
   @IBOutlet weak var balanceLabelTextField: NSTextField?
 
-  /** connectedBox is the box that reflects the last known connected state to the LN daemon.
+  /** Connected box is the box that reflects the last known connected state to the LN daemon.
    
    FIXME: - switch to active and inactive images
    */
@@ -148,10 +148,14 @@ class MainViewController: NSViewController {
     balanceLabelTextField?.stringValue = String()
     
     initWalletServiceConnection()
-
-    refreshHistory()
     
-    do { try refreshExchangeRate() } catch { reportError(error) }
+    do {
+      try refreshHistory()
+      
+      try refreshExchangeRate()
+    } catch {
+      reportError(error)
+    }
   }
 
   /** Initialize the wallet service connection
@@ -170,9 +174,13 @@ class MainViewController: NSViewController {
       
       self?.refreshInvoices()
       
-      self?.refreshHistory()
-      
-      do { try self?.refreshBalances() } catch { self?.reportError(error) }
+      do {
+        try self?.refreshBalances()
+
+        try self?.refreshHistory()
+      } catch {
+        self?.reportError(error)
+      }
       
       send()
     }
@@ -189,9 +197,13 @@ class MainViewController: NSViewController {
       
       self?.refreshInvoices()
 
-      do { try self?.refreshBalances() } catch { self?.reportError(error) }
-      
-      self?.refreshHistory()
+      do {
+        try self?.refreshBalances()
+
+        try self?.refreshHistory()
+      } catch {
+        self?.reportError(error)
+      }
     }
   }
 }
@@ -436,47 +448,49 @@ extension MainViewController {
 }
 
 extension MainViewController {
-  func refreshHistory() {
-    let url = URL(string: "http://localhost:10553/v0/history/")!
-    let session = URLSession.shared
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    
-    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
-      guard let historyData = data else { return print("Expected history data") }
-      
-      let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: historyData, options: .allowFragments)
-      
-      guard let history = dataDownloadedAsJson as? [[String: Any]] else {
-        return print("Expected history json")
-      }
-      
-      do {
-        let transactions = try history.map { try Transaction(from: $0) }
+  enum RefreshHistoryFailure: Error {
+    case expectedHistoryData
+  }
+  
+  func refreshHistory() throws {
+    try Daemon.get(from: .history) { [weak self] result in
+      switch result {
+      case .data(let data):
+        let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
         
-        DispatchQueue.main.async {
-          self?.wallet.transactions = transactions
-
-          guard let wallet = self?.wallet else { return }
+        guard let history = dataDownloadedAsJson as? [JsonDictionary] else {
+          self?.reportError(RefreshHistoryFailure.expectedHistoryData)
           
-          NSApplication.shared().windows.forEach { window in
-            guard let walletListener = window.contentViewController as? WalletListener else { return }
-            
-            walletListener.wallet(updated: wallet)
-          }
-          
-          self?.mainTabViewController?.tabViewItems.forEach { tabViewItem in
-            guard let walletListener = tabViewItem.viewController as? WalletListener else { return }
-
-            walletListener.wallet(updated: wallet)
-          }
+          break
         }
-      } catch {
-        print("Failed to parse transaction history \(error)")
+
+        do {
+          let transactions = try history.map { try Transaction(from: $0) }
+          
+          DispatchQueue.main.async {
+            self?.wallet.transactions = transactions
+            
+            guard let wallet = self?.wallet else { return }
+            
+            NSApplication.shared().windows.forEach { window in
+              guard let walletListener = window.contentViewController as? WalletListener else { return }
+              
+              walletListener.wallet(updated: wallet)
+            }
+            
+            self?.mainTabViewController?.tabViewItems.forEach { tabViewItem in
+              guard let walletListener = tabViewItem.viewController as? WalletListener else { return }
+              
+              walletListener.wallet(updated: wallet)
+            }
+          }
+        } catch {
+          self?.reportError(error)
+        }
+        
+      case .error(let error):
+        self?.reportError(error)
       }
     }
-    
-    task.resume()
   }
 }

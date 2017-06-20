@@ -8,6 +8,8 @@
 
 import Foundation
 
+typealias JsonAttributeName = String
+
 /** Connection
  */
 struct Connection {
@@ -19,28 +21,30 @@ struct Connection {
   
   var bestPing: TimeInterval? { return peers.min(by: { $0.ping < $1.ping })?.ping }
 
-  enum ParseJsonFailure: String, Error {
-    case expectedChannels
-    case expectedPeers
-    case expectedPublicKey
+  enum JsonAttribute: JsonAttributeName {
+    case channels
+    case peers
+    case publicKey = "public_key"
+    
+    var key: String { return rawValue }
+  }
+
+  enum ParseJsonFailure: Error {
+    case missing(JsonAttribute)
   }
   
   init(from json: [String: Any]) throws {
-    enum JsonAttribute: String {
-      case channels
-      case peers
-      case publicKey = "public_key"
-      
-      var key: String { return rawValue }
-    }
-    
     guard let channels = json[JsonAttribute.channels.key] as? [[String: Any]] else {
-      throw ParseJsonFailure.expectedChannels
+      throw ParseJsonFailure.missing(.channels)
     }
 
-    guard let peers = json[JsonAttribute.peers.key] as? [[String: Any]] else { throw ParseJsonFailure.expectedPeers }
+    guard let peers = json[JsonAttribute.peers.key] as? [[String: Any]] else {
+      throw ParseJsonFailure.missing(.peers)
+    }
     
-    guard let publicKey = json[JsonAttribute.publicKey.key] as? String else { throw ParseJsonFailure.expectedPublicKey }
+    guard let publicKey = json[JsonAttribute.publicKey.key] as? String else {
+      throw ParseJsonFailure.missing(.publicKey)
+    }
 
     self.channels = try channels.map { try Channel(from: $0) }
     self.peers = try peers.map { try Peer(from: $0) }

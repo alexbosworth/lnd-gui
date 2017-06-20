@@ -8,6 +8,10 @@
 
 import Foundation
 
+/** Data: raw binary data.
+ 
+  Add: Hex encoding support.
+ */
 extension Data {
   /** Data hex encoded.
    */

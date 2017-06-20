@@ -8,7 +8,13 @@
 
 import Foundation
 
+/** Vout represents an output index number
+ */
+typealias Vout = UInt32
+
+/** Transaction outpoint
+ */
 struct Outpoint {
   let transactionId: TransactionHash
-  let vout: UInt32
+  let vout: Vout
 }
