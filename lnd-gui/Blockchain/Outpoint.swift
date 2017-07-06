@@ -15,6 +15,11 @@ typealias Vout = UInt32
 /** Transaction outpoint
  */
 struct Outpoint {
+  /** Transaction hash
+   */
   let transactionId: TransactionHash
+  
+  /** Transaction output index
+   */
   let vout: Vout
 }

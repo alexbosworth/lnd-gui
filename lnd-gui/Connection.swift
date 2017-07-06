@@ -10,17 +10,31 @@ import Foundation
 
 typealias JsonAttributeName = String
 
-/** Connection
+/** Connection to another Lightning user
  */
 struct Connection {
+  /** Channels associated
+   */
   let channels: [Channel]
+  
+  /** Peers associated
+   */
   let peers: [Peer]
+  
+  /** User public key
+   */
   let publicKey: PublicKey
   
+  /** Channel local balance
+   */
   var balance: Tokens { return channels.reduce(Tokens()) { return $0 + $1.balance.local } }
   
+  /** Best ping time to connection
+   */
   var bestPing: TimeInterval? { return peers.min(by: { $0.ping < $1.ping })?.ping }
 
+  /** JSON serialized attributes
+   */
   enum JsonAttribute: JsonAttributeName {
     case channels
     case peers
@@ -29,11 +43,15 @@ struct Connection {
     var key: String { return rawValue }
   }
 
+  /** JSON parse errors
+   */
   enum ParseJsonFailure: Error {
     case missing(JsonAttribute)
   }
   
-  init(from json: [String: Any]) throws {
+  /** Create from JSON representation
+   */
+  init(from json: JsonDictionary) throws {
     guard let channels = json[JsonAttribute.channels.key] as? [[String: Any]] else {
       throw ParseJsonFailure.missing(.channels)
     }

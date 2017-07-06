@@ -75,17 +75,25 @@ struct BlockchainTransactionInput {
   }
 }
 
-struct BlockchainTransaction {
+struct BlockchainTransaction: TokenTransaction {
   let confirmationCount: Int
+  let createdAt: Date?
   let id: String
-  let inputs: [BlockchainTransactionInput]
-  let outputs: [BlockchainTransactionOutput]
+  let inputs: [BlockchainTransactionInput]?
+  let isOutgoing: Bool?
+  let outputs: [BlockchainTransactionOutput]?
+  let sendTokens: Tokens?
+
+  var isConfirmed: Bool? { return confirmationCount > Int() }
   
   init(confirmationCount: Int, id: String, inputs: [BlockchainTransactionInput], outputs: [BlockchainTransactionOutput]) {
     self.confirmationCount = confirmationCount
+    self.createdAt = nil
     self.id = id
     self.inputs = inputs
+    self.isOutgoing = nil
     self.outputs = outputs
+    self.sendTokens = nil
   }
   
   enum Failure: Error {
@@ -111,17 +119,28 @@ struct BlockchainTransaction {
     
     guard let id = json[JsonAttribute.id.key] as? String else { throw Failure.expectedTransactionId }
     
-    guard let inputs = json[JsonAttribute.inputs.key] as? [[String: Any]] else { throw Failure.expectedInputs }
-    
-    guard let outputs = json[JsonAttribute.outputs.key] as? [[String: Any]] else { throw Failure.expectedOutputs }
-    
     self.confirmationCount = confirmationCount.intValue
+    
+    self.createdAt = nil
     
     self.id = id
     
-    self.inputs = try inputs.map { try BlockchainTransactionInput(from: $0) }
     
-    self.outputs = try outputs.map { try BlockchainTransactionOutput(from: $0) }
+    if let inputs = json[JsonAttribute.inputs.key] as? [JsonDictionary] {
+      self.inputs = try inputs.map { try BlockchainTransactionInput(from: $0) }
+    } else {
+      self.inputs = nil
+    }
+    
+    self.isOutgoing = nil
+    
+    if let outputs = json[JsonAttribute.outputs.key] as? [JsonDictionary] {
+      self.outputs = try outputs.map { try BlockchainTransactionOutput(from: $0) }
+    } else {
+      self.outputs = nil
+    }
+    
+    self.sendTokens = nil
   }
 }
 
@@ -328,7 +347,9 @@ class BlockchainInfoViewController: NSViewController {
       
       let confidentConfirmations = 6
 
-      let sentValue = transaction.outputs.reduce(Tokens()) { $0 + $1.tokens }
+      guard let outputs = transaction.outputs else { break }
+      
+      let sentValue = outputs.reduce(Tokens()) { $0 + $1.tokens }
       
       transactionIdTextField?.stringValue = transaction.id
       transactionConfirmationProgressIndicator?.doubleValue = Double(100) * (Double(transaction.confirmationCount) / Double(confidentConfirmations))
@@ -382,10 +403,10 @@ extension BlockchainInfoViewController: NSTableViewDataSource {
     
     switch tableView {
     case inputsTable:
-      return (transaction?.inputs.count ?? Int()) as Int
+      return (transaction?.inputs?.count ?? Int()) as Int
       
     case outputsTable:
-      return (transaction?.outputs.count ?? Int()) as Int
+      return (transaction?.outputs?.count ?? Int()) as Int
       
     default:
       print("Unexpected table")
@@ -444,19 +465,19 @@ extension BlockchainInfoViewController: NSTableViewDataSource {
   }
   
   func input(at row: Int) -> BlockchainTransactionInput? {
-    guard let tx = transaction, !tx.inputs.isEmpty else { return nil }
+    guard let inputs = transaction?.inputs, !inputs.isEmpty else { return nil }
     
-    guard row >= tx.inputs.startIndex && row < tx.inputs.endIndex else { return nil }
+    guard row >= inputs.startIndex && row < inputs.endIndex else { return nil }
     
-    return tx.inputs[row]
+    return inputs[row]
   }
   
   func output(at row: Int) -> BlockchainTransactionOutput? {
-    guard let tx = transaction, !tx.outputs.isEmpty else { return nil }
+    guard let outputs = transaction?.outputs, !outputs.isEmpty else { return nil }
     
-    guard row >= tx.outputs.startIndex && row < tx.outputs.endIndex else { return nil }
+    guard row >= outputs.startIndex && row < outputs.endIndex else { return nil }
     
-    return tx.outputs[row]
+    return outputs[row]
   }
   
   /** Make cell for row at column

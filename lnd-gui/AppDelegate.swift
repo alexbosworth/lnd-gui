@@ -16,6 +16,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     case expectedInvoiceViewController
     case expectedMainViewController
     case expectedPaymentViewController
+    case expectedViewController(AppViewController)
+  }
+
+  /** Show blockchain browser
+   */
+  @IBAction func showBlockchain(_ sender: AnyObject) {
+    guard let vc = AppViewController.blockchainInfo.asViewController(in: .blockchainInfo) as? BlockchainInfoViewController else {
+      return report(Failure.expectedViewController(.blockchainInfo))
+    }
+    
+    let window = NSWindow(contentViewController: vc)
+    
+    window.title = NSLocalizedString("Blockchain Info", comment: "Title for blockchain info window")
+    
+    window.makeKeyAndOrderFront(self)
+    
+    let controller = NSWindowController(window: window)
+    
+    windowControllers += [controller]
+    
+    controller.showWindow(self)
   }
   
   /** Show connections view.
@@ -34,7 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   
   /** Show individual invoice
    */
-  func showInvoice(_ invoice: Invoice) {
+  func showInvoice(_ invoice: LightningInvoice) {
     guard let invoiceVC = AppViewController.invoice.asViewController(in: .invoice) as? InvoiceViewController else {
       return report(Failure.expectedInvoiceViewController)
     }
@@ -58,14 +79,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   
   /** Show individual payment
    */
-  func showPayment(_ transaction: Transaction) {
+  func showPayment(_ payment: LightningPayment) {
     guard let paymentVC = AppViewController.payment.asViewController(in: .payment) as? PaymentViewController else {
       return report(Failure.expectedPaymentViewController)
     }
     
     paymentVC.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
     paymentVC.reportError = { [weak self] error in self?.report(error) }
-    paymentVC.transaction = transaction
+    paymentVC.payment = payment
 
     let window = NSWindow(contentViewController: paymentVC)
     

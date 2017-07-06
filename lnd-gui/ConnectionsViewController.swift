@@ -12,6 +12,9 @@ import Cocoa
  
  FIXME: - when there is no chain balance, funds can't be increased, should prompt to lower from another channel
  FIXME: - add disconnect option
+ FIXME: - this should be a new window
+ FIXME: - when there are no peers it should display an empty peers notification
+ FIXME: - after adding a peer, the peer should show up
  */
 class ConnectionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets
@@ -121,7 +124,7 @@ extension ConnectionsViewController {
       case .data(let data):
         let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
         
-        guard let jsonArray = jsonObject as? [[String: Any]] else { return print(GetJsonFailure.expectedJson) }
+        guard let jsonArray = jsonObject as? [JsonDictionary] else { return print(GetJsonFailure.expectedJson) }
         
         do { try self?.showConnections(jsonArray: jsonArray) } catch { self?.reportError(error) }
         

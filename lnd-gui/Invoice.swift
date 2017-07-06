@@ -10,7 +10,7 @@ import Foundation
 
 /** Payment invoice
  */
-struct Invoice {
+struct LightningInvoice {
   /** Alternative address for receiving on chain
    */
   let chainAddress: String?
@@ -33,11 +33,11 @@ struct Invoice {
   
   /** Invoice settled state
    */
-  let confirmed: Bool
+  let isConfirmed: Bool
   
   /** Token amount
    */
-  let tokens: Tokens?
+  let tokens: Tokens
   
   /** JsonParseError defines errors encountered when parsing a JSON encoded invoice.
    */
@@ -71,18 +71,26 @@ struct Invoice {
   /** init creates an invoice from a JSON dictionary.
    */
   init(from json: [String: Any]) throws {
-    guard let invoiceId = json[JsonAttribute.id.asKey] as? String else { throw JsonParseError.missing(.id) }
+    guard let invoiceId = json[JsonAttribute.id.asKey] as? String else {
+      print("JSON MISSING ID", json)
+      
+      throw JsonParseError.missing(.id)
+    }
     
     guard let invoicePaymentRequest = json[JsonAttribute.paymentRequest.asKey] as? String else {
       throw JsonParseError.missing(.paymentRequest)
     }
+
+    guard let tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue else {
+      throw JsonParseError.missing(.tokens)
+    }
     
     chainAddress = json[JsonAttribute.address.asKey] as? String
-    confirmed = (json[JsonAttribute.confirmed.asKey] as? Bool ?? false) as Bool
+    isConfirmed = (json[JsonAttribute.confirmed.asKey] as? Bool ?? false) as Bool
     id = invoiceId
     memo = json[JsonAttribute.memo.asKey] as? String
     paymentRequest = invoicePaymentRequest
-    tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue
+    self.tokens = tokens
     
     let createdAtString = json[JsonAttribute.createdAt.asKey] as? String
     
@@ -91,14 +99,6 @@ struct Invoice {
   
   enum Failure: Error {
     case expectedReceivedPayment
-  }
-  
-  init(from transaction: Transaction) throws {
-    guard case .received(let invoice) = transaction.destination else {
-      throw Failure.expectedReceivedPayment
-    }
-    
-    self = invoice
   }
 }
 

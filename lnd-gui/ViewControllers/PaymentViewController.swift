@@ -33,40 +33,35 @@ class PaymentViewController: NSViewController {
    */
   lazy var reportError: (Error) -> () = { _ in }
 
-  var transaction: Transaction? { didSet { do { try updatedTransaction() } catch { reportError(error) } } }
+  var payment: LightningPayment? { didSet { do { try updatedPayment() } catch { reportError(error) } } }
 }
 
 // MARK: - NSViewController
 extension PaymentViewController {
-  func updatedTransaction() throws {
-    guard let transaction = transaction else { return }
+  func updatedPayment() throws {
+    guard
+      let payment = payment,
+      let isConfirmed = payment.isConfirmed,
+      let createdAt = payment.createdAt
+      else
+    {
+      return
+    }
     
-    amountTextField?.stringValue = "\(transaction.tokens.formatted) tBTC"
+    amountTextField?.stringValue = payment.tokens.formatted(with: .testBitcoin)
     
-    confirmedTextField?.stringValue = transaction.confirmed ? "Sent Payment" : "Pending Payment"
+    confirmedTextField?.stringValue = isConfirmed ? "Sent Payment" : "Pending Payment"
     
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .short
-    dateTextField?.stringValue = formatter.string(from: (transaction.createdAt ?? Date()) as Date)
+    dateTextField?.stringValue = createdAt.formatted(dateStyle: .short, timeStyle: .short)
     
     feeTextField?.stringValue = "Free"
 
-    switch transaction.destination {
-    case .chain:
-      destinationTextField?.stringValue = "Chain"
-      idTextField?.stringValue = transaction.id
-      
-    case .received(_):
-      print("ERROR", "expected chain or sent payment")
-      
-    case .sent(publicKey: let publicKey, paymentId: let paymentId):
-      destinationTextField?.stringValue = publicKey
-      idTextField?.stringValue = paymentId
-    }
+    destinationTextField?.stringValue = payment.destination.hexEncoded
+    
+    idTextField?.stringValue = payment.id.hexEncoded
     
     guard let centsPerCoin = self.centsPerCoin?() else { return }
     
-    amountTextField?.stringValue += try transaction.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+    amountTextField?.stringValue += try payment.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
   }
 }

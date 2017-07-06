@@ -113,7 +113,9 @@ extension Daemon {
   }
   
   static func delete(in api: Api, completion: @escaping (DeletionResult) -> ()) throws {
-    guard let urlRequest = api.urlRequest else { throw RequestFailure.expectedUrlRequest }
+    guard var urlRequest = api.urlRequest else { throw RequestFailure.expectedUrlRequest }
+    
+    urlRequest.httpMethod = HttpMethod.delete.asString
     
     let deleteTask = URLSession.shared.dataTask(with: urlRequest) { _, _, error in
       DispatchQueue.main.async {
@@ -184,12 +186,12 @@ extension Daemon {
   }
   
   enum AddInvoiceResult {
-    case addedInvoice(Invoice)
+    case addedInvoice(LightningInvoice)
     case error(Error)
   }
   
   static func addInvoice(amount: Tokens, memo: String?, completion: @escaping (AddInvoiceResult) -> ()) throws {
-    let json: [String: Any] = [
+    let json: JsonDictionary = [
       AddInvoiceJsonAttribute.includeAddress.key: true,
       AddInvoiceJsonAttribute.memo.key: (memo ?? String()) as String,
       AddInvoiceJsonAttribute.tokens.key: amount
@@ -201,7 +203,7 @@ extension Daemon {
         completion(.error(error))
         
       case .success(let data):
-        do { completion(.addedInvoice(try Invoice(from: data))) } catch { completion(.error(error)) }
+        do { completion(.addedInvoice(try LightningInvoice(from: data))) } catch { completion(.error(error)) }
       }
     }
   }

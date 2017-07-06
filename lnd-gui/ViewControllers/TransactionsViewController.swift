@@ -179,12 +179,18 @@ extension TransactionsViewController: NSTableViewDataSource {
     
     switch col {
     case .amount:
-      let modifier = tx.outgoing ? "-" : "+"
+      let modifier = tx.isOutgoing == true ? "-" : "+"
+
+      guard let tokens = tx.sendTokens else {
+        title = "?"
+        
+        break
+      }
       
-      title = "\(modifier)\(tx.tokens.formatted(with: .testBitcoin))"
+      title = "\(modifier)\(tokens.formatted(with: .testBitcoin))"
       
     case .confirmed:
-      let cell = col.makeCell(inTableView: tableView, withTitle: " ", isEnabled: tx.confirmed) as? TransactionStatusCell
+      let cell = col.makeCell(inTableView: tableView, withTitle: " ", isEnabled: tx.isConfirmed == true) as? TransactionStatusCell
 
       cell?.transaction = tx
 
@@ -196,19 +202,22 @@ extension TransactionsViewController: NSTableViewDataSource {
       title = createdAt.formatted(dateStyle: .short, timeStyle: .short)
       
     case .description:
-      switch tx.destination {
-      case .chain:
-        title = tx.id
+      switch tx {
+      case .blockchain(let transaction):
+        title = transaction.id
         
-      case .received(let invoice):
-        title = invoice.memo ?? invoice.id
-        
-      case .sent(publicKey: let publicKey, paymentId: let paymentId):
-        title = "Sent to \(publicKey) for \(paymentId)"
+      case .lightning(let transaction):
+        switch transaction {
+        case .invoice(let invoice):
+          title = (invoice.memo ?? invoice.id) as String
+          
+        case .payment(let payment):
+          title = "Sent to \(payment.destination.hexEncoded) for \(payment.id.hexEncoded)"
+        }
       }
     }
     
-    return col.makeCell(inTableView: tableView, withTitle: title, isEnabled: tx.confirmed)
+    return col.makeCell(inTableView: tableView, withTitle: title, isEnabled: tx.isConfirmed == true)
   }
   
   /** Object value at row

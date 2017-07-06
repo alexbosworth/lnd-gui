@@ -35,11 +35,11 @@ class MainTabViewController: NSTabViewController, ErrorReporting {
   
   /** Show invoice
    */
-  lazy var showInvoice: (Invoice) -> () = { _ in }
+  lazy var showInvoice: (LightningInvoice) -> () = { _ in }
   
   /** Show payment
    */
-  lazy var showPayment: (Transaction) -> () = { _ in }
+  lazy var showPayment: (LightningPayment) -> () = { _ in }
   
   /** Transactions view controller
    */
@@ -114,12 +114,18 @@ extension MainTabViewController {
   /** Show transaction
    */
   func showTransaction(_ transaction: Transaction) {
-    switch transaction.destination {
-    case .chain, .sent(_, _):
-      return showPayment(transaction)
+    switch transaction {
+    case .blockchain(_):
+      break
       
-    case .received(let invoice):
-      return showInvoice(invoice)
+    case .lightning(let transaction):
+      switch transaction {
+      case .invoice(let invoice):
+        return showInvoice(invoice)
+        
+      case .payment(let payment):
+        return showPayment(payment)
+      }
     }
   }
 }

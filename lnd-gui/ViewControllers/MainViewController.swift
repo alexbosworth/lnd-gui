@@ -53,11 +53,11 @@ class MainViewController: NSViewController {
 
   /** Show invoice
    */
-  lazy var showInvoice: (Invoice) -> () = { _ in }
+  lazy var showInvoice: (LightningInvoice) -> () = { _ in }
   
   /** Show payment
    */
-  lazy var showPayment: (Transaction) -> () = { _ in }
+  lazy var showPayment: (LightningPayment) -> () = { _ in }
   
   /** Wallet
    */
@@ -239,13 +239,21 @@ extension MainViewController {
       do {
         let transaction = try Transaction(from: json)
         
-        if type == .chainTransaction && !transaction.confirmed { wallet.unconfirmedTransactions += [transaction] }
+        switch transaction {
+        case .blockchain(let chainTransaction) where chainTransaction.isConfirmed == false:
+          wallet.unconfirmedTransactions += [transaction]
 
-        if transaction.confirmed && type == .chainTransaction {
+        case .blockchain(let chainTransaction) where chainTransaction.isConfirmed == true:
           wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0 != transaction }
+
+        case .blockchain(_):
+          break
+          
+        case .lightning(_):
+          break
         }
         
-        if !transaction.outgoing { notifyReceived(transaction) }
+        if transaction.isOutgoing == false { notifyReceived(transaction) }
       } catch {
         print(error)
       }
@@ -257,37 +265,49 @@ extension MainViewController {
   /** Notify of received transaction
    */
   func notifyReceived(_ transaction: Transaction) {
-    switch transaction.destination {
-    case .chain:
-      guard !transaction.outgoing else { break }
+    switch transaction {
+    case .blockchain(let chainTransaction):
+      guard
+        let isConfirmed = chainTransaction.isConfirmed,
+        let tokens = chainTransaction.sendTokens,
+        chainTransaction.isOutgoing == false
+        else
+      {
+        break
+      }
       
       let notification = NSUserNotification()
       
-      switch transaction.confirmed {
+      switch isConfirmed {
       case false:
         notification.title = "Incoming transaction"
-        notification.informativeText = "Receiving \(transaction.tokens.formatted)"
-
+        notification.informativeText = "Receiving \(tokens.formatted)"
+        
       case true:
         notification.title = "Received funds"
-        notification.informativeText = "Received \(transaction.tokens.formatted)"
+        notification.informativeText = "Received \(tokens.formatted)"
       }
       
       notification.soundName = NSUserNotificationDefaultSoundName
       
       NSUserNotificationCenter.default.deliver(notification)
       
-    case .received(memo: let memo):
-      let notification = NSUserNotification()
-      
-      notification.title = "Payment for \(memo)"
-      notification.informativeText = "Received \(transaction.tokens.formatted)"
-      notification.soundName = NSUserNotificationDefaultSoundName
-      
-      NSUserNotificationCenter.default.deliver(notification)
-      
-    case .sent(_, _):
-      break
+    case .lightning(let lightningTransaction):
+      switch lightningTransaction {
+      case .invoice(let invoice):
+        guard let memo = invoice.memo else { break }
+        
+        let notification = NSUserNotification()
+        
+        notification.title = "Payment for \(memo)"
+        notification.informativeText = "Received \(invoice.tokens.formatted)"
+        notification.soundName = NSUserNotificationDefaultSoundName
+        
+        NSUserNotificationCenter.default.deliver(notification)
+        
+      case .payment(_):
+        break
+      }
     }
   }
 }
@@ -311,6 +331,8 @@ extension MainViewController {
     }
     
     mainTabViewController.centsPerCoin = { [weak self] in self?.centsPerCoin }
+    
+    mainTabViewController.reportError = { [weak self] in self?.reportError($0) }
     
     mainTabViewController.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
 

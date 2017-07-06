@@ -164,9 +164,9 @@ extension SendViewController {
   /** Show decoded payment request
    */
   private func showDecodedPaymentRequest(_ data: Data, for paymentRequest: String) {
-    let payReq: PaymentRequest
+    let payReq: LightningPayment
     
-    do { payReq = try PaymentRequest(from: data, paymentRequest: paymentRequest) } catch { return reportError(error) }
+    do { payReq = try LightningPayment(from: data, paymentRequest: paymentRequest) } catch { return reportError(error) }
     
     sendChannelPaymentContainerView?.isHidden = false
     
@@ -178,7 +178,7 @@ extension SendViewController {
   /** Get decoded payment request
    // FIXME: - see if this can be done natively
    */
-  func getDecoded(paymentRequest: String) throws {
+  func getDecoded(paymentRequest: SerializedPaymentRequest) throws {
     try Daemon.get(from: Daemon.Api.paymentRequest(paymentRequest)) { [weak self] result in
       switch result {
       case .data(let data):
@@ -247,7 +247,7 @@ extension SendViewController {
   
   /** Show payment result
    */
-  private func showPaymentResult(payment: PaymentRequest, start: Date) {
+  private func showPaymentResult(payment: LightningPayment, start: Date) {
     sendChannelPaymentContainerView?.isHidden = true
     commitSendViewController?.paymentToSend = nil
     destinationTextField?.stringValue = String()
@@ -259,7 +259,7 @@ extension SendViewController {
     sentStatusTextField?.stringValue = "Sent \(sentAmount) in \(String(format: "%.2f", duration)) seconds."
   }
   
-  private func send(_ paymentRequest: PaymentRequest) throws {
+  private func send(_ payment: LightningPayment) throws {
     let start = Date()
     
     enum SendPaymentJsonAttribute: String {
@@ -273,7 +273,9 @@ extension SendViewController {
       }
     }
     
-    let json: [String: Any] = [SendPaymentJsonAttribute.paymentRequest.key: paymentRequest.paymentRequest]
+    guard let serializedPaymentRequest = payment.serializedPaymentRequest else { return }
+    
+    let json: JsonDictionary = [SendPaymentJsonAttribute.paymentRequest.key: serializedPaymentRequest]
     
     try Daemon.send(json: json, to: .payments) { [weak self] result in
       self?.commitSendViewController?.isSending = false
@@ -285,7 +287,7 @@ extension SendViewController {
         NSAlert(error: error).runModal()
         
       case .success:
-        self?.showPaymentResult(payment: paymentRequest, start: start)
+        self?.showPaymentResult(payment: payment, start: start)
       }
     }
   }

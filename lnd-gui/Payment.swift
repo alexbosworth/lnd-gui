@@ -8,6 +8,8 @@
 
 import Foundation
 
+/** Chain send
+ */
 struct ChainSend {
   let address: String
   let tokens: Tokens
@@ -17,5 +19,5 @@ struct ChainSend {
  */
 enum Payment {
   case chainSend(ChainSend)
-  case paymentRequest(PaymentRequest)
+  case paymentRequest(LightningPayment)
 }

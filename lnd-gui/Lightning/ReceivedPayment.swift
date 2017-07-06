@@ -9,6 +9,8 @@
 import Foundation
 
 /** Received payment is an invoiced payment.
+ 
+ FIXME: - eliminate and use Transaction instead
  */
 struct ReceivedPayment {
   let confirmed: Bool

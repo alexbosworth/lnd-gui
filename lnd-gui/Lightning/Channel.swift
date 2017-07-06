@@ -81,8 +81,7 @@ struct Channel {
 
   /** Create channel from JSON
    */
-  init(from json: [String: Any]) throws {
-    
+  init(from json: JsonDictionary) throws {
     let id = json[JsonAttribute.id.key] as? String
     
     guard let isActive = json[JsonAttribute.isActive.key] as? Bool else {

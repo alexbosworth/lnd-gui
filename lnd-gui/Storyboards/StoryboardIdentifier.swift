@@ -11,6 +11,7 @@ import Cocoa
 typealias StoryboardIdentifier = String
 
 enum AppStoryboard: StoryboardIdentifier {
+  case blockchainInfo = "BlockchainInfo"
   case invoice = "Invoice"
   case payment = "Payment"
 
@@ -20,6 +21,7 @@ enum AppStoryboard: StoryboardIdentifier {
 }
 
 enum AppViewController: StoryboardIdentifier {
+  case blockchainInfo = "BlockchainInfoViewController"
   case invoice = "InvoiceViewController"
   case payment = "PaymentViewController"
   

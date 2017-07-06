@@ -35,11 +35,11 @@ enum IpAddress {
       return
     }
     
-    throw Failure.unknownFormat
+    throw Failure.unknownFormat(ip)
   }
   
   enum Failure: Error {
-    case unknownFormat
+    case unknownFormat(String)
   }
   
   var serialized: String {

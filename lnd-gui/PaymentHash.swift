@@ -8,7 +8,9 @@
 
 import Foundation
 
-/** Lightning payment hash, also known as rhash
+/** Lightning payment hash, also known as rhash. This is used as the identifier for a lightning transaction.
+ 
+  For invoices, knowledge of the payment hash preimage represents payment in full.
  */
 struct PaymentHash: DataValueBacked {
   /** Create from hex encoded string

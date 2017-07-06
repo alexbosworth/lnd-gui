@@ -8,44 +8,174 @@
 
 import Foundation
 
-/** Transactions are transfers of tokens through the Lightning Network or via Blockchain settlement.
- // FIXME: - include fee, hops and payment req
- // FIXME: - reorganize into an enum, with shared values and distinct types
- */
-struct Transaction {
-  let confirmed: Bool
-  let createdAt: Date?
-  let destination: DestinationType
-  let id: String
-  let outgoing: Bool
-  let tokens: Tokens
-  
-  enum DestinationType {
-    case chain
-    case received(Invoice)
-    case sent(publicKey: String, paymentId: String)
+protocol TokenTransaction {
+  var createdAt: Date? { get }
+  var id: String { get }
+  var isConfirmed: Bool? { get }
+}
+
+enum LightningTransaction: TokenTransaction {
+  case invoice(LightningInvoice)
+  case payment(LightningPayment)
+
+  init(from json: JsonDictionary) throws {
+    guard let outgoing = json[JsonAttribute.outgoing.asKey] as? Bool else { throw JsonParseFailure.missing(.outgoing) }
+
+    switch outgoing {
+    case false:
+      self = .invoice(try LightningInvoice(from: json))
+      
+    case true:
+      self = .payment(try LightningPayment(from: json))
+    }
   }
   
-  enum JsonParseError: Error {
+  enum JsonAttribute: JsonAttributeName {
+    case outgoing
+    
+    var asKey: JsonAttributeName { return rawValue }
+  }
+  
+  enum JsonParseFailure: Error {
     case missing(JsonAttribute)
   }
   
-  enum NetworkType {
-    case chain
-    case channel
-    
-    init?(from transactionType: String?) {
-      guard let transactionType = transactionType else { return nil }
+  var createdAt: Date? {
+    switch self {
+    case .invoice(let invoice):
+      return invoice.createdAt
       
-      switch transactionType {
-      case "chain_transaction":
-        self = .chain
+    case .payment(let payment):
+      return payment.createdAt
+    }
+  }
+  
+  var id: String {
+    switch self {
+    case .invoice(let invoice):
+      return invoice.id
+      
+    case .payment(let payment):
+      return payment.id.hexEncoded
+    }
+  }
+  
+  var isConfirmed: Bool? {
+    switch self {
+    case .invoice(let invoice):
+      return invoice.isConfirmed
+      
+    case .payment(let payment):
+      return payment.isConfirmed
+    }
+  }
+
+  var isOutgoing: Bool {
+    switch self {
+    case .invoice(_):
+      return false
+      
+    case .payment(_):
+      return true
+    }
+  }
+  
+  var tokens: Tokens {
+    switch self {
+    case .invoice(let invoice):
+      return invoice.tokens
+      
+    case .payment(let payment):
+      return payment.tokens
+    }
+  }
+}
+
+enum Transaction {
+  case blockchain(BlockchainTransaction)
+  case lightning(LightningTransaction)
+
+  enum TransactionType: String {
+    case chain = "chain_transaction"
+    case lightning = "channel_transaction"
+
+    init?(from type: String) {
+      if let t = type(of: self).init(rawValue: type) { self = t } else { return nil }
+    }
+  }
+  
+  init(from json: [String: Any]) throws {
+    guard let t = json[JsonAttribute.type.asKey] as? String, let type = TransactionType(from: t) else {
+      throw JsonParseError.missing(.type)
+    }
+
+    switch type {
+    case .chain:
+      self = .blockchain(try BlockchainTransaction(from: json))
+      
+    case .lightning:
+      self = .lightning(try LightningTransaction(from: json))
+    }
+  }
+  
+  var asTokenTransaction: TokenTransaction {
+    switch self {
+    case .blockchain(let blockchainTransaction):
+      return blockchainTransaction as TokenTransaction
+      
+    case .lightning(let lightningTransaction):
+      return lightningTransaction as TokenTransaction
+    }
+  }
+  
+  var createdAt: Date? {
+    switch self {
+    case .blockchain(let blockchainTransaction):
+      return blockchainTransaction.createdAt
+      
+    case .lightning(let lightningTransaction):
+      switch lightningTransaction {
+      case .invoice(let invoice):
+        return invoice.createdAt
         
-      case "channel_transaction":
-        self = .channel
+      case .payment(let payment):
+        return payment.createdAt
+      }
+    }
+  }
+  
+  var id: String {
+    switch self {
+    case .blockchain(let blockchainTransaction):
+      return blockchainTransaction.id
+      
+    case .lightning(let lightningTransaction):
+      return lightningTransaction.id
+    }
+  }
+  
+  var isConfirmed: Bool? {
+    switch self {
+    case .blockchain(let transaction):
+      return transaction.isConfirmed
+      
+    case .lightning(let transaction):
+      return transaction.isConfirmed
+    }
+  }
+  
+  var isOutgoing: Bool? {
+    switch self {
+    case .blockchain(let blockchainTransaction):
+      return blockchainTransaction.isOutgoing
+      
+    case .lightning(let lightningTransaction):
+      switch lightningTransaction {
+      case .invoice(_):
+        return false
         
-      default:
-        return nil
+      case .payment(_):
+        return true
       }
     }
   }
@@ -58,52 +188,28 @@ struct Transaction {
     case outgoing
     case tokens
     case type
-    
+
     var asKey: String { return rawValue }
   }
-  
-  init(from json: [String: Any]) throws {
-    guard let confirmed = (json[JsonAttribute.confirmed.asKey] as? Bool) else {
-      throw JsonParseError.missing(.confirmed)
-    }
-    
-    let createdAtString = json[JsonAttribute.createdAt.asKey] as? String
-    let createdAt: Date?
-      
-    if let str = createdAtString { createdAt = DateFormatter().date(fromIso8601: str) } else { createdAt = nil }
 
-    guard let id = json[JsonAttribute.id.asKey] as? String else { throw JsonParseError.missing(.id) }
-    
-    guard let outgoing = (json[JsonAttribute.outgoing.asKey] as? Bool) else { throw JsonParseError.missing(.outgoing) }
-    
-    guard let tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue else {
-      throw JsonParseError.missing(.tokens)
-    }
-    
-    let destinationId = json[JsonAttribute.destination.asKey] as? String
-
-    guard let networkType = NetworkType(from: json[JsonAttribute.type.asKey] as? String) else {
-      throw JsonParseError.missing(.type)
-    }
-    
-    switch (networkType, outgoing) {
-    case (.chain, _):
-      destination = DestinationType.chain
-      
-    case (.channel, false):
-      destination = DestinationType.received(try Invoice(from: json))
-      
-    case (.channel, true):
-      guard let publicKey = destinationId else { throw JsonParseError.missing(.destination) }
-      
-      destination = DestinationType.sent(publicKey: publicKey, paymentId: id)
-    }
+  enum JsonParseError: Error {
+    case missing(JsonAttribute)
+  }
   
-    self.confirmed = confirmed
-    self.createdAt = createdAt
-    self.id = id
-    self.outgoing = outgoing
-    self.tokens = tokens
+  var sendTokens: Tokens? {
+    switch self {
+    case .blockchain(let blockchainTransaction):
+      return blockchainTransaction.sendTokens
+      
+    case .lightning(let lightningTransaction):
+      switch lightningTransaction {
+      case .invoice(let invoice):
+        return invoice.tokens
+        
+      case .payment(let payment):
+        return payment.tokens
+      }
+    }
   }
 }
 

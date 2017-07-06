@@ -28,7 +28,9 @@ extension Tokens {
   init(from amount: String) {
     guard !amount.isEmpty else { self = Tokens(); return }
     
-    let number = (NSDecimalNumber(string: amount) as Decimal) * (NSDecimalNumber(value: 100_000_000) as Decimal)
+    let valueDenominator = Formatting.valueDenominator
+    
+    let number = (NSDecimalNumber(string: amount) as Decimal) * (NSDecimalNumber(value: valueDenominator) as Decimal)
     
     self = type(of: self).init((number as NSDecimalNumber).doubleValue)
   }

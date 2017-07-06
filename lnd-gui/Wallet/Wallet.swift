@@ -39,11 +39,21 @@ protocol WalletListener {
 extension Wallet {
   /** Determine if a payment is present
    */
-  func invoice(_ invoice: Invoice) -> Transaction? {
-    return transactions.first { transaction in
-      guard case .received(_) = transaction.destination else { return false }
+  func invoice(_ invoice: LightningInvoice) -> LightningInvoice? {
+    guard let tx = (transactions.first { $0.id == invoice.id }) else { return nil }
+    
+    switch tx {
+    case .blockchain(_):
+      return nil
       
-      return transaction.id == invoice.id
+    case .lightning(let lightningTransaction):
+      switch lightningTransaction {
+      case .invoice(let invoice):
+        return invoice
+        
+      case .payment(_):
+        return nil
+      }
     }
   }
 }

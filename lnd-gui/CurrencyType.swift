@@ -14,7 +14,7 @@ enum CurrencyType {
   case testBitcoin
   case testUnitedStatesDollars
 
-  /** Currency symbol used on exchanges
+  /** Currency symbol used on exchanges. Test currency is represented as real.
    */
   var exchangeSymbol: String {
     switch self {

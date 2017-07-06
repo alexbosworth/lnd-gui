@@ -12,7 +12,7 @@ import Foundation
  */
 struct Peer {
   let id: Int
-  let networkAddress: IpAddress
+  let networkAddress: String
   let ping: TimeInterval
   let transferedBytes: ByteTransfer
   let transferedValue: ValueTransfer
@@ -72,7 +72,7 @@ struct Peer {
     }
     
     self.id = id.intValue
-    self.networkAddress = try IpAddress(from: networkAddress)
+    self.networkAddress = networkAddress
     self.ping = pingTime.doubleValue
     self.transferedBytes = ByteTransfer(received: bytesReceived.uintValue, sent: bytesSent.uintValue)
     self.transferedValue = ValueTransfer(received: tokensReceived.uint64Value, sent: tokensSent.uint64Value)

@@ -14,10 +14,23 @@ import Foundation
  outputs of past transactions.
  */
 struct TransactionHash: DataValueBacked {
-  /** Create hash
+  /** Create hash from hex encoded data string
    */
   init(from hexEncoded: HexEncodedData) throws {
     value = try hexEncoded.asDataFromHexEncoding()
+  }
+  
+  /** Create has from hex encoded data string, using internal byte order
+   */
+  init(fromInternal hex: HexEncodedData) throws {
+    let txOutpointHashChars = Array(hex.characters)
+    
+    let reverseOrderBytes: [[Character]] = stride(from: Int(), to: txOutpointHashChars.count, by: 2)
+      .map { Array(Array(hex.characters)[$0..<min($0 + 2, Array(hex.characters).count)]) }
+
+    let normalOrderBytes: String = reverseOrderBytes.reversed().map { String($0) }.joined()
+    
+    try self.init(from: normalOrderBytes)
   }
   
   /** Raw value

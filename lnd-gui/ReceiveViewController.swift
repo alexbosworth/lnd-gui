@@ -15,8 +15,7 @@ import Cocoa
  FIXME: - add copy button
  FIXME: - don't allow entering too much or too little Satoshis
  FIXME: - when received, show received notification
- FIXME: - add fiat
- FIXME: - add receive on chain bitcoins method
+ FIXME: - when setting tUSD, it creates invoice for tBTC
  */
 class ReceiveViewController: NSViewController, ErrorReporting {
   // MARK: - @IBActions
@@ -58,7 +57,40 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   @IBAction func pressedRequestButton(_ button: NSButton) {
     guard let amountString = amountTextField?.stringValue else { return }
 
-    do { try addInvoice(amount: Tokens(from: amountString), memo: memoTextField?.stringValue) } catch { print(error) }
+    let numbers = amountString.components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted).joined()
+    
+    let amount: Tokens
+    let currencyAmount: CurrencyAmount
+    
+    switch currency {
+    case .testBitcoin:
+      currencyAmount = CurrencyAmount(fromTestBitcoins: numbers)
+      
+    case .testUnitedStatesDollars:
+      currencyAmount = CurrencyAmount(fromTestUnitedStatesDollars: numbers)
+    }
+    
+    switch currencyAmount {
+    case .testBitcoins(let tokens):
+      amount = tokens
+      
+    case .testUnitedStatesDollars(let dollars):
+      guard let rate = centsPerCoin?() else { return print("EXPECTED CENTS PER COIN") }
+      
+      let cents = dollars * Decimal(100)
+      
+      let tokens = ((!cents.isNaN ? cents / Decimal(rate) : Decimal()) * 100_000_000) as NSDecimalNumber
+
+      let scale: Int16 = 3
+      
+      let behavior = NSDecimalNumberHandler(roundingMode: .up, scale: scale, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: true)
+      
+      amount = Tokens(tokens.rounding(accordingToBehavior: behavior).uint64Value)
+    }
+    
+    guard amount > Tokens() else { return }
+    
+    do { try addInvoice(amount: amount, memo: memoTextField?.stringValue) } catch { reportError(error) }
   }
 
   // MARK: - @IBOutlets
@@ -123,7 +155,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   
   /** invoice is the created invoice to receive funds to.
    */
-  var invoice: Invoice? { didSet { updatedPaymentRequest() } }
+  var invoice: LightningInvoice? { didSet { updatedPaymentRequest() } }
 
   /** Paid invoice
    */
@@ -135,7 +167,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   
   /** Show an invoice
    */
-  lazy var showInvoice: (Invoice) -> () = { _ in }
+  lazy var showInvoice: (LightningInvoice) -> () = { _ in }
 }
 
 // MARK: - Failures
@@ -229,13 +261,22 @@ extension ReceiveViewController {
     
     guard let invoiceDate = paidInvoice.createdAt else { return reportError(Failure.expectedInvoiceCreationDate) }
     
-    paymentInvoiceDate?.stringValue = invoiceDate.formatted(dateStyle: .short, timeStyle: .short)
-    paymentReceivedAmount?.stringValue = paidInvoice.tokens.formatted(with: .testBitcoin)
-    paymentReceivedBox?.isHidden = false
-    
-    guard case .received(let invoice) = paidInvoice.destination else { return }
-    
-    paymentReceivedDescription?.stringValue = (invoice.memo ?? String()) as String
+    switch paidInvoice {
+    case .blockchain(_):
+      break
+
+    case .lightning(let lightningTransaction):
+      switch lightningTransaction {
+      case .invoice(let paidInvoice):
+        paymentInvoiceDate?.stringValue = invoiceDate.formatted(dateStyle: .short, timeStyle: .short)
+        paymentReceivedAmount?.stringValue = paidInvoice.tokens.formatted(with: .testBitcoin)
+        paymentReceivedBox?.isHidden = false
+        paymentReceivedDescription?.stringValue = (paidInvoice.memo ?? String()) as String
+        
+      case .payment(_):
+        break
+      }
+    }
   }
   
   fileprivate func updatedSelectedCurrency() throws {
@@ -314,9 +355,9 @@ extension ReceiveViewController: WalletListener {
   /** Wallet was updated
    */
   func wallet(updated wallet: Wallet) {
-    guard let invoice = invoice, let currentInvoice = wallet.invoice(invoice), currentInvoice.confirmed else { return }
+    guard let invoice = invoice, let currentInvoice = wallet.invoice(invoice), currentInvoice.isConfirmed else { return }
 
-    paidInvoice = currentInvoice
+    paidInvoice = Transaction.lightning(LightningTransaction.invoice(currentInvoice))
     
     clear()
   }
