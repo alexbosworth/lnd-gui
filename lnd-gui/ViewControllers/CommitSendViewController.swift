@@ -77,6 +77,8 @@ class CommitSendViewController: NSViewController {
    */
   var isSending = false { didSet { updatedSendingState() } }
 
+  var walletTokenBalance: (() -> Tokens?)?
+  
   /** Payment to send
    */
   var paymentToSend: Payment? { didSet { do { try updatedPaymentRequest() } catch { reportError(error) } } }
@@ -91,6 +93,7 @@ extension CommitSendViewController {
   /** Failures
    */
   enum Failure: Error {
+    case expectedLocalBalance
     case expectedPaymentToSend
   }
 }
@@ -137,9 +140,16 @@ extension CommitSendViewController {
     sendAmountTextField?.stringValue = "\(amount.formatted(with: .testBitcoin))\(payAmount)"
     sendFeeTextField?.stringValue = fee > Tokens() ? "\(fee.formatted(with: .testBitcoin)) \(feeAmount)" : "Free"
     sendSettlementTimeTextField?.stringValue = settlementTimeString
-    sendButton?.stringValue = "Send Payment"
     sendButton?.state = NSOnState
     sendButton?.isEnabled = true
+    
+    guard let localBalance = walletTokenBalance?() else { throw Failure.expectedLocalBalance }
+    
+    if localBalance < amount + fee {
+      sendButton?.state = NSOffState
+      sendButton?.isEnabled = false
+      sendButton?.title = "Send Payment (Amount Exceeds Balance)"
+    }
   }
   
   /** Updated sending state
@@ -149,5 +159,11 @@ extension CommitSendViewController {
     sendButton?.isEnabled = !isSending
     sendButton?.state = isSending ? NSOffState : NSOnState
     sendButton?.title = isSending ? "Sending..." : "Send Payment"
+  }
+}
+
+extension CommitSendViewController: WalletListener {
+  func wallet(updated: Wallet) {
+    do { try updatedPaymentRequest() } catch { reportError(error) }
   }
 }

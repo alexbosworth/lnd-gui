@@ -48,6 +48,8 @@ class MainTabViewController: NSTabViewController, ErrorReporting {
   /** updateBalance closure triggers a balance update
    */
   var updateBalance: (() -> ())?
+  
+  var walletTokenBalance: (() -> (Tokens?))?
 }
 
 // MARK: - Failures
@@ -182,6 +184,7 @@ extension MainTabViewController {
     sendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     sendViewController.reportError = { [weak self] in self?.reportError($0) }
     sendViewController.updateBalance = { [weak self] in self?.updateBalance?() }
+    sendViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
 
     let transactionsTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.transactions.storyboardIdentifier)
     

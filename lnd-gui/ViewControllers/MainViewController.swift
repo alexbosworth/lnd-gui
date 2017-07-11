@@ -217,10 +217,10 @@ extension MainViewController {
     guard
       let data = message.data(using: .utf8, allowLossyConversion: false),
       let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments),
-      let json = jsonObject as? [String: Any]
+      let json = jsonObject as? JsonDictionary
       else
     {
-      return
+      return print("EXPECTED JSON")
     }
 
     enum RowType: String {
@@ -228,7 +228,11 @@ extension MainViewController {
       case channelTransaction = "channel_transaction"
       
       init?(from string: String) {
-        if let type = type(of: self).init(rawValue: string) { self = type } else { return nil }
+        if let type = type(of: self).init(rawValue: string) { self = type } else {
+          print("UNRECOGNIZED ROW TYPE")
+          
+          return nil
+        }
       }
     }
     
@@ -253,7 +257,13 @@ extension MainViewController {
           break
         }
         
-        if transaction.isOutgoing == false { notifyReceived(transaction) }
+        guard let isOutgoing = transaction.isOutgoing else {
+          return print("EXPECTED IS OUTGOING")
+        }
+        
+        guard !isOutgoing else { return }
+        
+        notifyReceived(transaction)
       } catch {
         print(error)
       }
@@ -263,6 +273,8 @@ extension MainViewController {
 
 extension MainViewController {
   /** Notify of received transaction
+   
+   FIXME: - when there is no memo, show a nicer received message
    */
   func notifyReceived(_ transaction: Transaction) {
     switch transaction {
@@ -340,6 +352,12 @@ extension MainViewController {
     
     mainTabViewController.updateBalance = { [weak self] in
       do { try self?.refreshBalances() } catch { self?.reportError(error) }
+    }
+
+    mainTabViewController.walletTokenBalance = { [weak self] in
+      guard let chain = self?.chainBalance, let channel = self?.channelBalance else { return nil }
+      
+      return chain + channel
     }
     
     self.mainTabViewController = mainTabViewController

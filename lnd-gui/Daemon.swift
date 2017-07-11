@@ -100,9 +100,11 @@ extension Daemon {
   }
   
   enum RequestFailure: Error {
+    case expectedHttpResponse
     case expectedResponseData
     case expectedUrlRequest
     case expectedValidUrl
+    case unexpectedFailureResponse
   }
   
   enum HttpMethod: String {
@@ -144,6 +146,31 @@ extension Daemon {
     getJsonTask.resume()
   }
   
+  enum StatusCode {
+    case success
+    
+    enum Failure: Error {
+      case unexpectedStatusCode
+    }
+    
+    init(from response: HTTPURLResponse) throws {
+      switch response.statusCode {
+      case 200:
+        self = .success
+        
+      default:
+        throw Failure.unexpectedStatusCode
+      }
+    }
+    
+    var isSuccess: Bool {
+      switch self {
+      case .success:
+        return true
+      }
+    }
+  }
+  
   static func send(json: [String: Any], to: Api, completion: @escaping (SendJsonResult) -> ()) throws {
     let data = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
 
@@ -155,6 +182,16 @@ extension Daemon {
     let task = URLSession.shared.uploadTask(with: urlRequest, from: data) { data, urlResponse, error in
       DispatchQueue.main.async {
         if let error = error { return completion(.error(error)) }
+        
+        guard let httpUrlResponse = urlResponse as? HTTPURLResponse else {
+          return completion(.error(RequestFailure.expectedHttpResponse))
+        }
+
+        let statusCode: StatusCode
+        
+        do { statusCode = try StatusCode(from: httpUrlResponse) } catch { return completion(.error(error)) }
+        
+        guard statusCode.isSuccess else { return completion(.error(RequestFailure.unexpectedFailureResponse)) }
         
         return completion(.success((data ?? Data()) as Data))
       }

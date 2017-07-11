@@ -15,6 +15,8 @@ import Cocoa
  FIXME: - this should be a new window
  FIXME: - when there are no peers it should display an empty peers notification
  FIXME: - after adding a peer, the peer should show up
+ FIXME: - when kind of but not fully selecting a connection it doesn't show the appropriate menu item
+ FIXME: - need a way to see the channel status, like look at the related transaction
  */
 class ConnectionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets

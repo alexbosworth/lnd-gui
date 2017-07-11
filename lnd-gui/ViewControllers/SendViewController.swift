@@ -18,6 +18,7 @@ protocol ErrorReporting {
  FIXME: - don't allow sending to yourself
  FIXME: - remember who you send to and confirm on first send that you are sending to a new sender
  FIXME: - allow editing labels and images for senders
+ FIXME: - show issue when trying to send more money than is available
  */
 class SendViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets
@@ -60,6 +61,8 @@ class SendViewController: NSViewController, ErrorReporting {
   */
   fileprivate var sendOnChainViewController: SendOnChainViewController?
   
+  var walletTokenBalance: (() -> (Tokens?))?
+  
   /** Update balance closure
    */
   lazy var updateBalance: (() -> ()) = {}
@@ -75,7 +78,7 @@ extension SendViewController {
 
 // MARK: - Navigation
 extension SendViewController {
-  /** Prepare for segue
+  /** Prepare for segue. These segues setup container view controllers that show payment specific details.
    */
   override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
     let destinationController = segue.destinationController
@@ -95,6 +98,7 @@ extension SendViewController {
       commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
       commitSendViewController.paymentToSend = nil
       commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
+      commitSendViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
       
     case .sendOnChain:
       guard let sendOnChainViewController = destinationController as? SendOnChainViewController else {
@@ -120,12 +124,14 @@ extension SendViewController {
     [sendOnChainContainerView, sendChannelPaymentContainerView, sentStatusTextField].forEach { $0?.isHidden = true }
   }
 
-  /** Segues
+  /** Segue types
    */
   private enum Segue: String {
     case sendChannelPayment = "SendChannelPaymentSegue"
     case sendOnChain = "SendOnChainSegue"
     
+    /** Derive segue from StoryboardSegue
+     */
     init?(from segue: NSStoryboardSegue) {
       if let id = segue.identifier, let s = type(of: self).init(rawValue: id) { self = s } else { return nil }
     }
@@ -338,5 +344,11 @@ extension SendViewController: NSTextFieldDelegate {
     sendOnChainContainerView?.isHidden = true
     
     do { try getDecoded(paymentRequest: destination) } catch { reportError(error) }
+  }
+}
+
+extension SendViewController: WalletListener {
+  func wallet(updated: Wallet) {
+    commitSendViewController?.wallet(updated: updated)
   }
 }

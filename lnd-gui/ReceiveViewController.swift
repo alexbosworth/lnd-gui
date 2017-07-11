@@ -292,7 +292,9 @@ extension ReceiveViewController {
     
     amountTextField?.placeholderString = amountPlaceholder
 
-    currencyConversionTextField?.stringValue = try currencyConverted(from: amountTextField?.stringValue)
+    let converted = try currencyConverted(from: amountTextField?.stringValue)
+    
+    currencyConversionTextField?.stringValue = "\(converted)"
   }
   
   func currencyConverted(from amountString: String?) throws -> String {
