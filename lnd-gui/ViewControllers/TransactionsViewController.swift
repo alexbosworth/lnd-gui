@@ -212,7 +212,9 @@ extension TransactionsViewController: NSTableViewDataSource {
           title = (invoice.memo ?? invoice.id) as String
           
         case .payment(let payment):
-          title = "Sent to \(payment.destination.hexEncoded) for \(payment.id.hexEncoded)"
+          let destination = (payment.destination?.hexEncoded ?? String()) as String
+          
+          title = "Sent to \(destination) for \(payment.id.hexEncoded)"
         }
       }
     }

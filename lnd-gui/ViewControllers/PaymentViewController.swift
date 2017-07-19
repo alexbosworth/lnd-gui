@@ -56,7 +56,7 @@ extension PaymentViewController {
     
     feeTextField?.stringValue = "Free"
 
-    destinationTextField?.stringValue = payment.destination.hexEncoded
+    destinationTextField?.stringValue = (payment.destination?.hexEncoded ?? String()) as String
     
     idTextField?.stringValue = payment.id.hexEncoded
     

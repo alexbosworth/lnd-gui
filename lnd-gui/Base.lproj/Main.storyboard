@@ -1088,9 +1088,6 @@ Gw
                             </textField>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TIi-SZ-sJ0">
                                 <rect key="frame" x="290" y="205" width="146" height="32"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="134" id="c1d-fw-2r0"/>
-                                </constraints>
                                 <buttonCell key="cell" type="push" title="Request Payment" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="aQz-B9-cns">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1122,7 +1119,7 @@ DQ
                                 </textFieldCell>
                             </textField>
                             <textField verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="J1v-J2-xfd">
-                                <rect key="frame" x="196" y="241" width="155" height="22"/>
+                                <rect key="frame" x="196" y="241" width="159" height="22"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="0.00000000" drawsBackground="YES" id="q5X-08-OXL">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -1162,9 +1159,9 @@ DQ
                                 </connections>
                             </popUpButton>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hMc-Tw-ZND">
-                                <rect key="frame" x="357" y="244" width="75" height="17"/>
+                                <rect key="frame" x="361" y="244" width="71" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="$0.00 tUSD" id="459-6H-BJC">
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" metaFont="controlContent"/>
                                     <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>

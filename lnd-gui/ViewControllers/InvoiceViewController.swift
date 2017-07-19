@@ -67,12 +67,12 @@ extension InvoiceViewController {
     amountTextField?.stringValue = invoice.tokens.formatted(with: .testBitcoin)
     
     let invoiceLabelComment = "Invoice payment state description"
-    let invoiceLabel = invoice.isConfirmed ? "Received Payment" : "Unpaid Invoice"
+    let invoiceLabel = invoice.isConfirmed ? "Received Payment" : "Payment Request"
 
     let localizedInvoiceState = NSLocalizedString(invoiceLabel, comment: invoiceLabelComment)
     
     descriptionTextField?.stringValue = (invoice.memo ?? String()) as String
-    paymentRequestTextField?.stringValue = invoice.paymentRequest
+    paymentRequestTextField?.stringValue = (invoice.paymentRequest ?? String()) as String
     headingTextField?.stringValue = localizedInvoiceState
     paymentRequestTextField?.textColor = invoice.isConfirmed ? .disabledControlTextColor : .controlTextColor
     paymentRequestTextField?.isSelectable = !invoice.isConfirmed

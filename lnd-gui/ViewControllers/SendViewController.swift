@@ -263,6 +263,16 @@ extension SendViewController {
     let duration = Date().timeIntervalSince(start)
     sentStatusTextField?.isHidden = false
     sentStatusTextField?.stringValue = "Sent \(sentAmount) in \(String(format: "%.2f", duration)) seconds."
+    
+    guard let centsPerCoin = centsPerCoin?() else { return }
+    
+    do {
+      let converted = try payment.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+
+      sentStatusTextField?.stringValue = "Sent \(sentAmount)\(converted) in \(String(format: "%.2f", duration)) seconds."
+    } catch {
+      reportError(error)
+    }
   }
   
   private func send(_ payment: LightningPayment) throws {

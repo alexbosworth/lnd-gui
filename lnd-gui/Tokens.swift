@@ -32,7 +32,9 @@ extension Tokens {
     
     let number = (NSDecimalNumber(string: amount) as Decimal) * (NSDecimalNumber(value: valueDenominator) as Decimal)
     
-    self = type(of: self).init((number as NSDecimalNumber).doubleValue)
+    let value = (number as NSDecimalNumber).uint64Value
+    
+    self = (number as NSDecimalNumber).uint64Value
   }
   
   /** formatted returns the string formatted version of the value.
@@ -72,8 +74,10 @@ extension Tokens {
     formatter.locale = Locale(identifier: Locale.current.identifier)
     formatter.maximumFractionDigits = 2
     formatter.numberStyle = .currency
+    
+    let converted = Decimal(self) / Decimal(Formatting.valueDenominator) / Decimal(Formatting.centsDenominator)
 
-    let value = Decimal(self * UInt64(centsPerCoin) / UInt64(Formatting.valueDenominator)) / Decimal(Formatting.centsDenominator)
+    let value = converted * Decimal(centsPerCoin)
     
     guard let val = formatter.string(from: value as NSNumber) else { throw ConversionFailure.expectedFormatted }
 

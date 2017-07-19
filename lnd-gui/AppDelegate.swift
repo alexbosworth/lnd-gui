@@ -10,6 +10,7 @@ import Cocoa
 
 // FIXME: - cleanup
 // FIXME: - exhaustive commenting
+// FIXME: - the main application should start the daemons itself
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
   enum Failure: Error {

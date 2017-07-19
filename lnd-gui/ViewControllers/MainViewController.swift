@@ -30,14 +30,6 @@ class MainViewController: NSViewController {
   /** Cents per bitcoin
    */
   var centsPerCoin: Int? { didSet { do { try updateVisibleBalance() } catch { reportError(error) } } }
-  
-  /** chainBalance represents the amount of available value on chain.
-   */
-  fileprivate var chainBalance: Tokens? { didSet { do { try updateVisibleBalance() } catch { reportError(error) } } }
-  
-  /** channelBalance represents the value of the total funds in channels.
-   */
-  fileprivate var channelBalance: Tokens? { didSet { do { try updateVisibleBalance() } catch { reportError(error) } } }
 
   /** connected represents whether or not there a connection is present to the backing ln daemon.
    */
@@ -46,6 +38,14 @@ class MainViewController: NSViewController {
   /** mainTabViewController is the tab view controller for the main view
    */
   weak var mainTabViewController: MainTabViewController?
+  
+  /** Payments received
+   
+   FIXME: - abstract out notification
+   */
+  var receivedPayments: [ReceivedPayment]? {
+    willSet { do { try willUpdateReceivedPayments(with: newValue) } catch { reportError(error) } }
+  }
 
   /** Report error
    */
@@ -62,211 +62,77 @@ class MainViewController: NSViewController {
   /** Wallet
    */
   lazy var wallet = Wallet()
-  
-  /** receivedPayments represents payments received.
-   
-    FIXME: - abstract out notification
+
+  /** Wallet tokens
    */
-  var receivedPayments: [ReceivedPayment]? {
-    willSet {
-      guard let pastPayments = receivedPayments, let newPayments = newValue else { return }
-      
-      var payments = [String: ReceivedPayment]()
-      
-      pastPayments.forEach { payments[$0.payment] = $0 }
-      
-      let confirmationChanged = newPayments.filter { payment in
-        guard let previousInvoice = payments[payment.payment] else { return false }
-        
-        return previousInvoice.confirmed != payment.confirmed
-      }
-      
-      guard !confirmationChanged.isEmpty else { return }
-      
-      do { try refreshBalances() } catch { reportError(error) }
-      
-      confirmationChanged.forEach { payment in
-        let notification = NSUserNotification()
-        
-        notification.title = "Payment for \(payment.memo)"
-        notification.informativeText = "Received \(payment.tokens.formatted)"
-        notification.soundName = NSUserNotificationDefaultSoundName
-        
-        NSUserNotificationCenter.default.deliver(notification)
-      }
-    }
-  }
-  
-  // MARK: - UIViewController
-  
-  /** updateConnectedStatus updates the view to reflect the current connected state.
-   
-   FIXME: - use nicer colors
-   */
-  func updateConnectedStatus() {
-    let disconnectedColor = NSColor(calibratedRed: 204 / 255, green: 57 / 255, blue: 57 / 255, alpha: 1)
-    let connectedColor = NSColor(calibratedRed: 107 / 255, green: 234 / 255, blue: 107 / 255, alpha: 1)
-    
-    connectedBox?.fillColor = (connected ?? false) as Bool ? connectedColor : disconnectedColor
-  }
-
-  /** updateVisibleBalance updates the view to show the last retrieved balances
-   */
-  private func updateVisibleBalance() throws {
-    let chainBalance = (self.chainBalance ?? Tokens()) as Tokens
-    let channelBalance = (self.channelBalance ?? Tokens()) as Tokens
-    let formattedBalance: String
-    
-    let lnBalance = "Lightning Balance: \(channelBalance.formatted) tBTC"
-    
-    if chainBalance < 100_000 {
-      formattedBalance = lnBalance
-    } else {
-      formattedBalance = "\(lnBalance) - Chain Balance: \(chainBalance.formatted) tBTC"
-    }
-    
-    let amount: String
-    
-    if let centsPerCoin = centsPerCoin {
-      amount = try channelBalance.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
-    } else {
-      amount = String()
-    }
-    
-    balanceLabelTextField?.stringValue = "\(formattedBalance)\(amount)"
-  }
-
-  /** View did load
-   */
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    
-    do { try refreshBalances() } catch { reportError(error) }
-    
-    connected = false
-    
-    balanceLabelTextField?.stringValue = String()
-    
-    initWalletServiceConnection()
-    
-    do {
-      try refreshHistory()
-      
-      try refreshExchangeRate()
-    } catch {
-      reportError(error)
-    }
-  }
-
-  /** Initialize the wallet service connection
-   */
-  func initWalletServiceConnection(){
-    var messageNum = 0
-    let ws = WebSocket("ws://localhost:10554")
-    let send: () -> () = {
-      messageNum += 1
-      let msg = "\(messageNum): \(NSDate().description)"
-      print("send: \(msg)")
-      ws.send(msg)
-    }
-    ws.event.open = { [weak self] in
-      self?.connected = true
-      
-      self?.refreshInvoices()
-      
-      do {
-        try self?.refreshBalances()
-
-        try self?.refreshHistory()
-      } catch {
-        self?.reportError(error)
-      }
-      
-      send()
-    }
-    ws.event.close = { [weak self] code, reason, clean in
-      self?.connected = false
-      
-      ws.open()
-    }
-    ws.event.error = { error in
-      print("error \(error)")
-    }
-    ws.event.message = { [weak self] message in
-      if let message = message as? String { self?.activity(message: message) }
-      
-      self?.refreshInvoices()
-
-      do {
-        try self?.refreshBalances()
-
-        try self?.refreshHistory()
-      } catch {
-        self?.reportError(error)
-      }
-    }
+  fileprivate var walletTokens: WalletBalances? {
+    didSet { do { try updateVisibleBalance() } catch { reportError(error) } }
   }
 }
 
 extension MainViewController {
-  /** Received socket message
-   */
-  func activity(message: String) {
-    print("RECEIVED MESSAGE", message)
+  enum WalletObject: JsonInitialized {
+    case transaction(Transaction)
 
-    guard
-      let data = message.data(using: .utf8, allowLossyConversion: false),
-      let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments),
-      let json = jsonObject as? JsonDictionary
-      else
-    {
-      return print("EXPECTED JSON")
+    enum JsonAttribute: JsonAttributeName {
+      case type
+      
+      var asKey: JsonAttributeName { return rawValue }
     }
-
+    
+    enum JsonParseFailure: Error {
+      case unrecognizedType(String?)
+    }
+    
     enum RowType: String {
       case chainTransaction = "chain_transaction"
       case channelTransaction = "channel_transaction"
       
-      init?(from string: String) {
-        if let type = type(of: self).init(rawValue: string) { self = type } else {
-          print("UNRECOGNIZED ROW TYPE")
-          
-          return nil
-        }
+      init?(from string: String?) {
+        guard let string = string, let rowType = type(of: self).init(rawValue: string) else { return nil }
+
+        self = rowType
       }
     }
     
-    guard let rowType = json["type"] as? String, let type = RowType(from: rowType) else { return }
-    
-    switch type {
-    case .chainTransaction, .channelTransaction:
-      do {
-        let transaction = try Transaction(from: json)
-        
-        switch transaction {
-        case .blockchain(let chainTransaction) where chainTransaction.isConfirmed == false:
-          wallet.unconfirmedTransactions += [transaction]
+    init(from json: Data?) throws {
+      let json = try type(of: self).jsonDictionaryFromData(json)
 
-        case .blockchain(let chainTransaction) where chainTransaction.isConfirmed == true:
-          wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0 != transaction }
+      let type = json[JsonAttribute.type.asKey] as? String
+      
+      guard let rowType = RowType(from: type) else { throw JsonParseFailure.unrecognizedType(type) }
 
-        case .blockchain(_):
-          break
-          
-        case .lightning(_):
-          break
-        }
-        
-        guard let isOutgoing = transaction.isOutgoing else {
-          return print("EXPECTED IS OUTGOING")
-        }
-        
-        guard !isOutgoing else { return }
-        
-        notifyReceived(transaction)
-      } catch {
-        print(error)
+      switch rowType {
+      case .chainTransaction, .channelTransaction:
+        self = .transaction(try Transaction(from: json))
       }
+    }
+  }
+  
+  /** Received socket message
+   */
+  func receivedWalletServiceMessage(_ message: String) throws {
+    let walletObject = try WalletObject(from: message.data(using: .utf8, allowLossyConversion: false))
+    
+    switch walletObject {
+    case .transaction(let transaction):
+      switch transaction {
+      case .blockchain(let chainTransaction) where chainTransaction.isConfirmed == false:
+        wallet.unconfirmedTransactions += [transaction]
+        
+      case .blockchain(let chainTransaction) where chainTransaction.isConfirmed == true:
+        wallet.unconfirmedTransactions = wallet.unconfirmedTransactions.filter { $0 != transaction }
+        
+      case .blockchain(_):
+        break
+        
+      case .lightning(_):
+        break
+      }
+      
+      guard let isOutgoing = transaction.isOutgoing, !isOutgoing else { return }
+      
+      notifyReceived(transaction)
     }
   }
 }
@@ -275,6 +141,7 @@ extension MainViewController {
   /** Notify of received transaction
    
    FIXME: - when there is no memo, show a nicer received message
+   FIXME: - show units and fiat conversion
    */
   func notifyReceived(_ transaction: Transaction) {
     switch transaction {
@@ -289,15 +156,29 @@ extension MainViewController {
       }
       
       let notification = NSUserNotification()
+
+      let formattedTokens: String
+      
+      if let centsPerCoin = centsPerCoin {
+        do {
+          formattedTokens = try tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+        } catch {
+          reportError(error)
+          
+          formattedTokens = tokens.formatted
+        }
+      } else {
+        formattedTokens = tokens.formatted
+      }
       
       switch isConfirmed {
       case false:
         notification.title = "Incoming transaction"
-        notification.informativeText = "Receiving \(tokens.formatted)"
+        notification.informativeText = "Receiving \(formattedTokens)"
         
       case true:
         notification.title = "Received funds"
-        notification.informativeText = "Received \(tokens.formatted)"
+        notification.informativeText = "Received \(formattedTokens)"
       }
       
       notification.soundName = NSUserNotificationDefaultSoundName
@@ -354,11 +235,7 @@ extension MainViewController {
       do { try self?.refreshBalances() } catch { self?.reportError(error) }
     }
 
-    mainTabViewController.walletTokenBalance = { [weak self] in
-      guard let chain = self?.chainBalance, let channel = self?.channelBalance else { return nil }
-      
-      return chain + channel
-    }
+    mainTabViewController.walletTokenBalance = { [weak self] in self?.walletTokens?.spendableBalance }
     
     self.mainTabViewController = mainTabViewController
   }
@@ -400,6 +277,53 @@ extension MainViewController {
     }
   }
   
+  struct WalletBalances: JsonInitialized {
+    let chainTokens: Tokens
+    let channelTokens: Tokens
+    let pendingChainTokens: Tokens
+    let pendingChannelTokens: Tokens
+    
+    enum JsonAttribute: JsonAttributeName {
+      case chainBalance = "chain_balance"
+      case channelBalance = "channel_balance"
+      case pendingChainBalance = "pending_chain_balance"
+      case pendingChannelBalance = "pending_channel_balance"
+      
+      var asKey: JsonAttributeName { return rawValue }
+    }
+
+    enum JsonParseFailure: Error {
+      case missing(JsonAttribute)
+    }
+    
+    init(from data: Data?) throws {
+      let json = try type(of: self).jsonDictionaryFromData(data)
+      
+      guard let chainBalance = (json[JsonAttribute.chainBalance.asKey] as? NSNumber)?.tokensValue else {
+        throw JsonParseFailure.missing(.chainBalance)
+      }
+
+      guard let channelBalance = (json[JsonAttribute.channelBalance.asKey] as? NSNumber)?.tokensValue else {
+        throw JsonParseFailure.missing(.channelBalance)
+      }
+
+      guard let pendingChainBalance = (json[JsonAttribute.pendingChainBalance.asKey] as? NSNumber)?.tokensValue else {
+        throw JsonParseFailure.missing(.pendingChainBalance)
+      }
+
+      guard let pendingChannelBalance = (json[JsonAttribute.pendingChannelBalance.asKey] as? NSNumber)?.tokensValue else {
+        throw JsonParseFailure.missing(.pendingChannelBalance)
+      }
+      
+      self.chainTokens = chainBalance
+      self.channelTokens = channelBalance
+      self.pendingChainTokens = pendingChainBalance
+      self.pendingChannelTokens = pendingChannelBalance
+    }
+    
+    var spendableBalance: Tokens { return chainTokens + channelTokens }
+  }
+  
   /** refreshBalances updates the chain and channel balance from the LN daemon.
    
    FIXME: - switch to sockets
@@ -408,25 +332,7 @@ extension MainViewController {
     try Daemon.get(from: .balance) { [weak self] result in
       switch result {
       case .data(let data):
-        // FIXME: - abstract
-        let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
-        
-        let balance = dataDownloadedAsJson as? [String: Any]
-        
-        enum BalanceResponseJsonKey: String {
-          case chainBalance = "chain_balance"
-          case channelBalance = "channel_balance"
-          
-          var key: String { return rawValue }
-        }
-        
-        let chainBalance = (balance?[BalanceResponseJsonKey.chainBalance.key] as? NSNumber)?.tokensValue
-        let channelBalance = (balance?[BalanceResponseJsonKey.channelBalance.key] as? NSNumber)?.tokensValue
-        
-        DispatchQueue.main.async {
-          self?.chainBalance = chainBalance
-          self?.channelBalance = channelBalance
-        }
+        do { self?.walletTokens = try WalletBalances(from: data) } catch { self?.reportError(error) }
         
       case .error(let error):
         self?.reportError(error)
@@ -438,52 +344,43 @@ extension MainViewController {
    
    // FIXME: - switch to sockets
    */
-  func refreshInvoices() {
-    let url = URL(string: "http://localhost:10553/v0/invoices/")!
-    let session = URLSession.shared
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    
-    let task = session.dataTask(with: request) { [weak self] data, urlResponse, error in
-      guard error == nil else { return DispatchQueue.main.async { self?.connected = false } }
-      
-      guard (urlResponse as? HTTPURLResponse)?.statusCode == 200 else {
-        return DispatchQueue.main.async { self?.connected = false }
-      }
-      
-      guard let data = data else { return print("Expected data") }
-      
-      guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
-        return print("INVALID JSON")
-      }
-      
-      guard let json = jsonObject as? [[String: Any]] else {
-        return print("INVALID JSON PARSED")
-      }
-      
-      DispatchQueue.main.async { self?.connected = true }
-      
-      let receivedPayments: [ReceivedPayment] = json.map { payment in
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-        let createdAtString = payment["created_at"] as! String
-        let createdAt = dateFormatter.date(from: createdAtString)!
+  func refreshInvoices() throws {
+    try Daemon.get(from: .invoices) { [weak self] result in
+      switch result {
+      case .data(let data):
         
-        return ReceivedPayment(
-          confirmed: (payment["confirmed"] as? Bool) ?? false,
-          createdAt: createdAt,
-          memo: payment["memo"] as? String ?? String(),
-          payment: payment["payment_request"] as! String,
-          tokens: ((payment["tokens"] as? NSNumber)?.tokensValue ?? Tokens()) as Tokens
-        )
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else {
+          return print("INVALID JSON")
+        }
+        
+        guard let json = jsonObject as? [[String: Any]] else {
+          return print("INVALID JSON PARSED")
+        }
+        
+        self?.connected = true
+        
+        let receivedPayments: [ReceivedPayment] = json.map { payment in
+          let dateFormatter = DateFormatter()
+          dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+          dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
+          let createdAtString = payment["created_at"] as! String
+          let createdAt = dateFormatter.date(from: createdAtString)!
+          
+          return ReceivedPayment(
+            confirmed: (payment["confirmed"] as? Bool) ?? false,
+            createdAt: createdAt,
+            memo: payment["memo"] as? String ?? String(),
+            payment: payment["payment_request"] as! String,
+            tokens: ((payment["tokens"] as? NSNumber)?.tokensValue ?? Tokens()) as Tokens
+          )
+        }
+        
+        self?.receivedPayments = receivedPayments
+        
+      case .error(let error):
+        self?.reportError(error)
       }
-      
-      DispatchQueue.main.async { self?.receivedPayments = receivedPayments }
     }
-    
-    task.resume()
   }
 }
 
@@ -529,6 +426,165 @@ extension MainViewController {
         }
         
       case .error(let error):
+        self?.reportError(error)
+      }
+    }
+  }
+}
+
+// MARK: - UIViewController
+extension MainViewController {
+  /** receivedPayment is about to be updated
+   */
+  func willUpdateReceivedPayments(with payments: [ReceivedPayment]?) throws {
+    guard let pastPayments = receivedPayments, let newPayments = payments else { return }
+    
+    var payments = [String: ReceivedPayment]()
+    
+    pastPayments.forEach { payments[$0.payment] = $0 }
+    
+    let confirmationChanged = newPayments.filter { payment in
+      guard let previousInvoice = payments[payment.payment] else { return false }
+      
+      return previousInvoice.confirmed != payment.confirmed
+    }
+    
+    guard !confirmationChanged.isEmpty else { return }
+    
+    do { try refreshBalances() } catch { reportError(error) }
+    
+    try confirmationChanged.forEach { payment in
+      let notification = NSUserNotification()
+      
+      notification.title = "Received payment for \(payment.memo)"
+      notification.soundName = NSUserNotificationDefaultSoundName
+      
+      let fiatConversionNotice: String
+      
+      if let centsPerCoin = centsPerCoin {
+        fiatConversionNotice = try payment.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+      } else {
+        fiatConversionNotice = String()
+      }
+      
+      notification.informativeText = "+\(payment.tokens.formatted)\(fiatConversionNotice)"
+      
+      NSUserNotificationCenter.default.deliver(notification)
+    }
+  }
+  
+  /** updateConnectedStatus updates the view to reflect the current connected state.
+   
+   FIXME: - use nicer colors
+   */
+  func updateConnectedStatus() {
+    let disconnectedColor = NSColor(calibratedRed: 204 / 255, green: 57 / 255, blue: 57 / 255, alpha: 1)
+    let connectedColor = NSColor(calibratedRed: 107 / 255, green: 234 / 255, blue: 107 / 255, alpha: 1)
+    
+    connectedBox?.fillColor = (connected ?? false) as Bool ? connectedColor : disconnectedColor
+  }
+  
+  /** updateVisibleBalance updates the view to show the last retrieved balances
+   */
+  fileprivate func updateVisibleBalance() throws {
+    let chainBalance = (self.walletTokens?.chainTokens ?? Tokens()) as Tokens
+    let channelBalance = (self.walletTokens?.channelTokens ?? Tokens()) as Tokens
+    let pendingChainBalance = (walletTokens?.pendingChainTokens ?? Tokens()) as Tokens
+    let pendingChannelBalance = (walletTokens?.pendingChannelTokens ?? Tokens()) as Tokens
+    
+    let totalBalance = chainBalance + channelBalance
+    let pendingBalance = pendingChannelBalance + pendingChainBalance
+    
+    let formattedBalance = "Balance: \(totalBalance.formatted) tBTC"
+    
+    let amount: String
+    
+    if let centsPerCoin = centsPerCoin {
+      amount = try totalBalance.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+    } else {
+      amount = String()
+    }
+    
+    balanceLabelTextField?.stringValue = "\(formattedBalance)\(amount)"
+    
+    if pendingBalance != Tokens() {
+      balanceLabelTextField?.stringValue = "\(formattedBalance)\(amount) (+\(pendingBalance.formatted(with: .testBitcoin)) Pending)"
+    }
+    
+    mainTabViewController?.sendViewController?.wallet(updated: wallet)
+  }
+  
+  /** View did load
+   */
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    do { try refreshBalances() } catch { reportError(error) }
+    
+    connected = false
+    
+    balanceLabelTextField?.stringValue = String()
+    
+    initWalletServiceConnection()
+    
+    do {
+      try refreshHistory()
+      
+      try refreshExchangeRate()
+    } catch {
+      reportError(error)
+    }
+  }
+  
+  /** Initialize the wallet service connection
+   */
+  func initWalletServiceConnection(){
+    var messageNum = 0
+    let ws = WebSocket("ws://localhost:10554")
+    let send: () -> () = {
+      // FIXME: - short circuit daemon POST calls to use this socket when available
+      messageNum += 1
+      let msg = "\(messageNum): \(NSDate().description)"
+      print("send: \(msg)")
+      ws.send(msg)
+    }
+    ws.event.open = { [weak self] in
+      self?.connected = true
+      
+      do {
+        // FIXME: - abstract and combine, avoid excessive polling
+        try self?.refreshInvoices()
+        
+        try self?.refreshBalances()
+        
+        try self?.refreshHistory()
+      } catch {
+        self?.reportError(error)
+      }
+      
+      send()
+    }
+    ws.event.close = { [weak self] code, reason, clean in
+      self?.connected = false
+      
+      ws.open()
+    }
+    ws.event.error = { error in
+      print("error \(error)")
+    }
+    ws.event.message = { [weak self] message in
+      guard let message = message as? String else { return }
+      
+      do {
+        try self?.receivedWalletServiceMessage(message)
+      
+        // FIXME: - avoid refreshing and just use push messages, unless there is something missed
+        try self?.refreshInvoices()
+      
+        try self?.refreshBalances()
+        
+        try self?.refreshHistory()
+      } catch {
         self?.reportError(error)
       }
     }

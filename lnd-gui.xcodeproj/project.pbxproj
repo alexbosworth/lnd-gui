@@ -194,10 +194,10 @@
 		FA520AD71E6CC62D00AABE68 = {
 			isa = PBXGroup;
 			children = (
-				FAEDC31E1EB50AAD007DE94F /* README.md */,
+				FAF93BB21EABE49600864A6F /* Frameworks */,
 				FA520AE21E6CC62D00AABE68 /* lnd-gui */,
 				FA520AE11E6CC62D00AABE68 /* Products */,
-				FAF93BB21EABE49600864A6F /* Frameworks */,
+				FAEDC31E1EB50AAD007DE94F /* README.md */,
 			);
 			sourceTree = "<group>";
 		};

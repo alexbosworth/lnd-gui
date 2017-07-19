@@ -14,7 +14,7 @@ typealias SerializedPaymentRequest = String
  */
 struct LightningPayment: JsonInitialized {
   let createdAt: Date?
-  let destination: PublicKey
+  let destination: PublicKey?
   let id: PaymentHash
   let isConfirmed: Bool?
   let serializedPaymentRequest: SerializedPaymentRequest?
@@ -45,11 +45,11 @@ struct LightningPayment: JsonInitialized {
     
     isConfirmed = confirmed
     
-    guard let hexEncodedDestinationPublicKey = json[JsonAttribute.destination.asKey] as? HexEncodedData else {
-      throw ParseJsonFailure.missing(.destination)
+    if let hexEncodedDestinationPublicKey = json[JsonAttribute.destination.asKey] as? HexEncodedData {
+      destination = try PublicKey(from: hexEncodedDestinationPublicKey)
+    } else {
+      destination = nil
     }
-    
-    destination = try PublicKey(from: hexEncodedDestinationPublicKey)
     
     guard let paymentRequestId = json[JsonAttribute.id.asKey] as? HexEncodedData else {
       throw ParseJsonFailure.missing(.id)

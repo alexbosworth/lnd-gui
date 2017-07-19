@@ -17,6 +17,7 @@ import Cocoa
  FIXME: - after adding a peer, the peer should show up
  FIXME: - when kind of but not fully selecting a connection it doesn't show the appropriate menu item
  FIXME: - need a way to see the channel status, like look at the related transaction
+ FIXME: - when connecting, the connection should show as grayed out
  */
 class ConnectionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets
@@ -293,7 +294,7 @@ extension ConnectionsViewController: NSTableViewDataSource {
       
     case .online:
       let hasActivePeer = !connection.peers.isEmpty
-      
+
       guard hasActivePeer else { title = "Offline"; break }
       
       let hasActiveChannel = connection.channels.contains { $0.state == .active }

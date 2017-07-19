@@ -29,7 +29,7 @@ struct LightningInvoice {
   
   /** paymentRequest is the full encoding of the payment request.
    */
-  let paymentRequest: String
+  let paymentRequest: String?
   
   /** Invoice settled state
    */
@@ -72,13 +72,13 @@ struct LightningInvoice {
    */
   init(from json: [String: Any]) throws {
     guard let invoiceId = json[JsonAttribute.id.asKey] as? String else {
-      print("JSON MISSING ID", json)
-      
       throw JsonParseError.missing(.id)
     }
     
-    guard let invoicePaymentRequest = json[JsonAttribute.paymentRequest.asKey] as? String else {
-      throw JsonParseError.missing(.paymentRequest)
+    if let invoicePaymentRequest = json[JsonAttribute.paymentRequest.asKey] as? String {
+      self.paymentRequest = invoicePaymentRequest
+    } else {
+      self.paymentRequest = nil
     }
 
     guard let tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue else {
@@ -89,7 +89,6 @@ struct LightningInvoice {
     isConfirmed = (json[JsonAttribute.confirmed.asKey] as? Bool ?? false) as Bool
     id = invoiceId
     memo = json[JsonAttribute.memo.asKey] as? String
-    paymentRequest = invoicePaymentRequest
     self.tokens = tokens
     
     let createdAtString = json[JsonAttribute.createdAt.asKey] as? String

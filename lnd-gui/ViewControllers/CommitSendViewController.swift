@@ -119,7 +119,7 @@ extension CommitSendViewController {
       
     case .paymentRequest(let paymentRequest):
       amount = paymentRequest.tokens
-      destination = paymentRequest.destination.hexEncoded
+      destination = (paymentRequest.destination?.hexEncoded ?? String()) as String
       fee = Tokens()
       settlementTimeString = "Instant"
     }
@@ -142,6 +142,7 @@ extension CommitSendViewController {
     sendSettlementTimeTextField?.stringValue = settlementTimeString
     sendButton?.state = NSOnState
     sendButton?.isEnabled = true
+    sendButton?.title = "Send Payment"
     
     guard let localBalance = walletTokenBalance?() else { throw Failure.expectedLocalBalance }
     

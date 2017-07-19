@@ -15,7 +15,7 @@ import Cocoa
  FIXME: - add copy button
  FIXME: - don't allow entering too much or too little Satoshis
  FIXME: - when received, show received notification
- FIXME: - when setting tUSD, it creates invoice for tBTC
+ FIXME: - do not allow values that are higher than possible
  */
 class ReceiveViewController: NSViewController, ErrorReporting {
   // MARK: - @IBActions
@@ -194,7 +194,7 @@ extension ReceiveViewController {
       memoTextField?.isEditable = true
       requestButton?.isEnabled = true
       requestButton?.state = NSOnState
-      requestButton?.title = NSLocalizedString("Create Invoice", comment: "Create new invoice button")
+      requestButton?.title = NSLocalizedString("Request Payment", comment: "Create new invoice button")
       
     case true:
       amountTextField?.isEditable = false
@@ -294,7 +294,7 @@ extension ReceiveViewController {
 
     let converted = try currencyConverted(from: amountTextField?.stringValue)
     
-    currencyConversionTextField?.stringValue = "\(converted)"
+    currencyConversionTextField?.stringValue = converted
   }
   
   func currencyConverted(from amountString: String?) throws -> String {
@@ -313,7 +313,9 @@ extension ReceiveViewController {
     case .testUnitedStatesDollars:
       let dollars = CurrencyAmount(fromTestUnitedStatesDollars: numbers)
       
-      return try dollars.converted(to: .testBitcoin, rate: centsPerCoin)
+      let formattedCoins = try dollars.converted(to: .testBitcoin, rate: centsPerCoin)
+      
+      return "(\(formattedCoins))"
     }
   }
   
@@ -332,7 +334,7 @@ extension ReceiveViewController {
     paymentRequestTextField?.isHidden = false
     requestButton?.isEnabled = true
     requestButton?.state = NSOnState
-    requestButton?.title = NSLocalizedString("Create Invoice", comment: "Button to add a new payment request")
+    requestButton?.title = NSLocalizedString("Request Payment", comment: "Button to add a new payment request")
   }
   
   /** viewDidLoad triggers to initialize the view.
