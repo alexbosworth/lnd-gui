@@ -10,8 +10,12 @@ import Cocoa
 
 /** Invoice view controller
  */
-class InvoiceViewController: NSViewController, ErrorReporting {
+class InvoiceViewController: NSViewController {
   // MARK: - @IBOutlets
+  
+  /** Address label
+   */
+  @IBOutlet weak var addressLabel: NSTextField?
   
   /** Address text field
    */
@@ -48,14 +52,17 @@ class InvoiceViewController: NSViewController, ErrorReporting {
   lazy var reportError: (Error) -> () = { _ in }
 }
 
-// MARK: - Failures
-extension InvoiceViewController {
+// MARK: - ErrorReporting
+extension InvoiceViewController: ErrorReporting {
   /** Failures
    */
   enum Failure: Error {
     case expectedInvoice
   }
 }
+
+// MARK: - FiatConverting
+extension InvoiceViewController: FiatConverting {}
 
 // MARK: - NSViewController
 extension InvoiceViewController {
@@ -67,7 +74,7 @@ extension InvoiceViewController {
     amountTextField?.stringValue = invoice.tokens.formatted(with: .testBitcoin)
     
     let invoiceLabelComment = "Invoice payment state description"
-    let invoiceLabel = invoice.isConfirmed ? "Received Payment" : "Payment Request"
+    let invoiceLabel = invoice.isConfirmed ? "Received Payment" : "Requested Payment"
 
     let localizedInvoiceState = NSLocalizedString(invoiceLabel, comment: invoiceLabelComment)
     
@@ -85,6 +92,8 @@ extension InvoiceViewController {
     amountTextField?.stringValue += try invoice.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
     
     if let chainAddress = invoice.chainAddress { addressTextField?.stringValue = chainAddress }
+    
+    [addressLabel, addressTextField].forEach { $0?.isHidden = invoice.chainAddress == nil }
   }
   
   /** View appeared
@@ -97,7 +106,7 @@ extension InvoiceViewController {
     paymentRequestTextField?.isEditable = false
     
     do { try updatedInvoice() } catch { reportError(error) }
-
+    
     guard let invoice = invoice, invoice.isConfirmed else { return }
     
     DispatchQueue.main.async { [weak self] in self?.paymentRequestTextField?.resignFirstResponder() }

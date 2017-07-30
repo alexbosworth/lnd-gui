@@ -8,126 +8,56 @@
 
 import Cocoa
 
-// FIXME: - cleanup
-// FIXME: - exhaustive commenting
 // FIXME: - the main application should start the daemons itself
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-  enum Failure: Error {
-    case expectedInvoiceViewController
-    case expectedMainViewController
-    case expectedPaymentViewController
-    case expectedViewController(AppViewController)
-  }
-
   /** Show blockchain browser
    */
   @IBAction func showBlockchain(_ sender: AnyObject) {
-    guard let vc = AppViewController.blockchainInfo.asViewController(in: .blockchainInfo) as? BlockchainInfoViewController else {
-      return report(Failure.expectedViewController(.blockchainInfo))
-    }
-    
-    let window = NSWindow(contentViewController: vc)
-    
-    window.title = NSLocalizedString("Blockchain Info", comment: "Title for blockchain info window")
-    
-    window.makeKeyAndOrderFront(self)
-    
-    let controller = NSWindowController(window: window)
-    
-    windowControllers += [controller]
-    
-    controller.showWindow(self)
+    do { let _ = try presentViewController(.blockchainInfo) } catch { report(error) }
   }
   
-  /** Show connections view.
+  /** Show connections view. This interface allows for direct manipulation of Lightning channels and peers.
    */
   @IBAction func showConnections(_ sender: AnyObject) {
-    guard let mainViewController = mainViewController else { return report(Failure.expectedMainViewController) }
-    
-    mainViewController.showConnections()
+    do { let _ = try presentViewController(.connections) } catch { report(error) }
   }
-
-  /** Report an error
+  
+  /** Show daemons
    */
-  private func report(_ error: Error) {
-    NSAlert(error: error).runModal()
+  func showDaemons() {
+    do { let _ = try presentViewController(.daemons) } catch { report(error) }
   }
   
   /** Show individual invoice
    */
   func showInvoice(_ invoice: LightningInvoice) {
-    guard let invoiceVC = AppViewController.invoice.asViewController(in: .invoice) as? InvoiceViewController else {
-      return report(Failure.expectedInvoiceViewController)
-    }
-    
-    invoiceVC.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
-    invoiceVC.invoice = invoice
-    invoiceVC.reportError = { [weak self] error in self?.report(error) }
-
-    let window = NSWindow(contentViewController: invoiceVC)
-
-    window.title = NSLocalizedString("Invoice", comment: "Title for invoice window")
-
-    window.makeKeyAndOrderFront(self)
-
-    let controller = NSWindowController(window: window)
-    
-    windowControllers += [controller]
-    
-    controller.showWindow(self)
+    do { try presentInvoiceViewController(with: invoice) } catch { report(error) }
   }
   
   /** Show individual payment
    */
   func showPayment(_ payment: LightningPayment) {
-    guard let paymentVC = AppViewController.payment.asViewController(in: .payment) as? PaymentViewController else {
-      return report(Failure.expectedPaymentViewController)
-    }
-    
-    paymentVC.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
-    paymentVC.reportError = { [weak self] error in self?.report(error) }
-    paymentVC.payment = payment
-
-    let window = NSWindow(contentViewController: paymentVC)
-    
-    window.title = NSLocalizedString("Payment", comment: "Title for payment window")
-    
-    window.makeKeyAndOrderFront(self)
-    
-    let controller = NSWindowController(window: window)
-    
-    windowControllers += [controller]
-    
-    controller.showWindow(self)
+    do { try presentPaymentViewController(with: payment) } catch { report(error) }
   }
   
   /** Main view controller
    */
-  private var mainViewController: MainViewController?
+  fileprivate var mainViewController: MainViewController?
   
-  lazy private var windowControllers: [NSWindowController] = []
-
+  /** Application window controllers
+   */
+  lazy fileprivate var windowControllers: [NSWindowController] = []
+  
+  /** Initialize the application
+   */
   func applicationDidFinishLaunching(_ aNotification: Notification) {
-    // Insert code here to initialize your application
-    
     mainViewController = NSApplication.shared().windows.first?.contentViewController as? MainViewController
     
-    mainViewController?.reportError = { error in
-      print("ERROR", error)
-    }
-
-    mainViewController?.showInvoice = { [weak self] invoice in
-      self?.showInvoice(invoice)
-    }
-    
-    mainViewController?.showPayment = { [weak self] payment in
-      self?.showPayment(payment)
-    }
-  }
-
-  func applicationWillTerminate(_ aNotification: Notification) {
-    // Insert code here to tear down your application
+    mainViewController?.reportError = { [weak self] error in self?.report(error) }
+    mainViewController?.showDaemons = { [weak self] in self?.showDaemons() }
+    mainViewController?.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
+    mainViewController?.showPayment = { [weak self] payment in self?.showPayment(payment) }
   }
 
   // MARK: - Core Data stack
@@ -275,6 +205,68 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       // If we got here, it is time to quit.
       return .terminateNow
   }
-
 }
 
+// MARK: - Failures
+extension AppDelegate {
+  /** Errors at the app delegate level.
+   
+   These are situatiosn which should not occur, but should not necessarily terminate the application.
+   */
+  fileprivate enum Failure: Error {
+    case expectedViewController(AppViewController)
+  }
+  
+  /** Report an error
+   */
+  fileprivate func report(_ error: Error) {
+    print(error)
+    
+    NSAlert(error: error).runModal()
+  }
+}
+
+// MARK: - Navigation
+extension AppDelegate {
+  /** Present an invoice view controller
+   */
+  fileprivate func presentInvoiceViewController(with invoice: LightningInvoice) throws {
+    let invoiceViewController = try presentViewController(.invoice) as? InvoiceViewController
+    
+    invoiceViewController?.invoice = invoice
+  }
+
+  /** Present a payment view controller
+   */
+  fileprivate func presentPaymentViewController(with payment: LightningPayment) throws {
+    let paymentViewController = try presentViewController(.payment) as? PaymentViewController
+
+    paymentViewController?.payment = payment
+  }
+  
+  /** Show the blockchain info view controller
+   */
+  fileprivate func presentViewController(_ viewController: AppViewController) throws -> NSViewController? {
+    let windowController: NSWindowController
+    
+    if viewController.isUnique, let openWindowController = viewController.first(in: windowControllers) {
+      windowController = openWindowController
+    } else {
+      windowController = try viewController.asViewControllerInWindowController()
+      
+      windowControllers += [windowController]
+    }
+    
+    windowController.showWindow(self)
+
+    if var errorReportingViewController = windowController.contentViewController as? ErrorReporting {
+      errorReportingViewController.reportError = { [weak self] error in self?.report(error) }
+    }
+
+    if var fiatConvertingViewController = windowController.contentViewController as? FiatConverting {
+      fiatConvertingViewController.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
+    }
+    
+    return windowController.contentViewController
+  }
+}

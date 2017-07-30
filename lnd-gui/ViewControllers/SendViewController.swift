@@ -9,13 +9,13 @@
 import Cocoa
 
 protocol ErrorReporting {
-  var reportError: (Error) -> () { get }
+  var reportError: (Error) -> () { get set }
 }
 
 /** SendViewController is a view controller for performing a send.
  
- FIXME: - auto detect sending to a blockchain address
  FIXME: - don't allow sending to yourself
+ FIXME: - auto detect sending to a blockchain address
  FIXME: - remember who you send to and confirm on first send that you are sending to a new sender
  FIXME: - allow editing labels and images for senders
  FIXME: - show issue when trying to send more money than is available
@@ -111,6 +111,7 @@ extension SendViewController {
       sendOnChainViewController.clear = { [weak self] in self?.resetDestination() }
       sendOnChainViewController.reportError = { [weak self] error in self?.reportError(error) }
       sendOnChainViewController.send = { [weak self] payment in self?.send(payment) }
+      sendOnChainViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
     }
   }
   
@@ -332,13 +333,11 @@ extension SendViewController: NSTextFieldDelegate {
     commitSendViewController?.paymentToSend = nil
 
     sendChannelPaymentContainerView?.isHidden = true
-    
-    guard let destination = destinationTextField?.stringValue else {
-      return
-    }
-    
+    sendOnChainContainerView?.isHidden = true
     sentStatusTextField?.isHidden = true
-
+    
+    guard let destination = destinationTextField?.stringValue, !destination.isEmpty else { return }
+    
     if destination.hasPrefix("2") || destination.hasPrefix("m") {
       sendOnChainContainerView?.isHidden = false
 

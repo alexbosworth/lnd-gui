@@ -13,6 +13,12 @@ import Cocoa
  FIXME: - cleanup, comment
  */
 class MainViewController: NSViewController {
+  // MARK: - @IBActions
+  
+  @IBAction func pressedDaemonsButton(_ button: NSButton) {
+    showDaemons()
+  }
+  
   // MARK: - @IBOutlets
   
   /** Balance label text field is the balance label that shows the amount of funds available.
@@ -20,10 +26,12 @@ class MainViewController: NSViewController {
   @IBOutlet weak var balanceLabelTextField: NSTextField?
 
   /** Connected box is the box that reflects the last known connected state to the LN daemon.
-   
-   FIXME: - switch to active and inactive images
    */
-  @IBOutlet weak var connectedBox: NSBox?
+  @IBOutlet weak var connectivityStatusButton: NSButton?
+  
+  /** Fiat conversion rate text field
+   */
+  @IBOutlet weak var priceTextField: NSTextField?
   
   // MARK: - Properties
 
@@ -33,7 +41,7 @@ class MainViewController: NSViewController {
 
   /** connected represents whether or not there a connection is present to the backing ln daemon.
    */
-  fileprivate var connected: Bool? { didSet { updateConnectedStatus() } }
+  fileprivate var connected: ConnectivityStatus = .initializing { didSet { updateConnectedStatus() } }
   
   /** mainTabViewController is the tab view controller for the main view
    */
@@ -51,6 +59,10 @@ class MainViewController: NSViewController {
    */
   lazy var reportError: (Error) -> () = { _ in }
 
+  /** Show daemons
+   */
+  lazy var showDaemons: () -> () = {}
+  
   /** Show invoice
    */
   lazy var showInvoice: (LightningInvoice) -> () = { _ in }
@@ -357,7 +369,7 @@ extension MainViewController {
           return print("INVALID JSON PARSED")
         }
         
-        self?.connected = true
+        self?.connected = .connected
         
         let receivedPayments: [ReceivedPayment] = json.map { payment in
           let dateFormatter = DateFormatter()
@@ -472,16 +484,30 @@ extension MainViewController {
       NSUserNotificationCenter.default.deliver(notification)
     }
   }
+
+  enum ConnectivityStatus {
+    case connected, disconnected, initializing
+  }
   
   /** updateConnectedStatus updates the view to reflect the current connected state.
-   
-   FIXME: - use nicer colors
    */
   func updateConnectedStatus() {
-    let disconnectedColor = NSColor(calibratedRed: 204 / 255, green: 57 / 255, blue: 57 / 255, alpha: 1)
-    let connectedColor = NSColor(calibratedRed: 107 / 255, green: 234 / 255, blue: 107 / 255, alpha: 1)
+    let imageName: String
     
-    connectedBox?.fillColor = (connected ?? false) as Bool ? connectedColor : disconnectedColor
+    switch connected {
+    case .connected:
+      imageName = NSImageNameStatusAvailable
+      connectivityStatusButton?.toolTip = "Connected"
+      
+    case .disconnected:
+      imageName = NSImageNameStatusUnavailable
+      connectivityStatusButton?.toolTip = "Disconnected"
+      
+    case .initializing:
+      imageName = NSImageNameStatusNone
+    }
+    
+    connectivityStatusButton?.image = NSImage(named: imageName)
   }
   
   /** updateVisibleBalance updates the view to show the last retrieved balances
@@ -500,8 +526,21 @@ extension MainViewController {
     let amount: String
     
     if let centsPerCoin = centsPerCoin {
+      let currencyFormatter = NumberFormatter()
+      currencyFormatter.usesGroupingSeparator = true
+      currencyFormatter.numberStyle = .currency
+      // localize to your grouping and decimal separator
+      currencyFormatter.locale = .current
+      let dollarsPerCoin: Double = Double(centsPerCoin) / Double(100)
+
+      let priceString = (currencyFormatter.string(from: NSNumber(value: dollarsPerCoin)) ?? String()) as String
+      
+      priceTextField?.stringValue = "1 BTC = \(priceString)"
+      
       amount = try totalBalance.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
     } else {
+      priceTextField?.stringValue = String()
+
       amount = String()
     }
     
@@ -520,8 +559,6 @@ extension MainViewController {
     super.viewDidLoad()
     
     do { try refreshBalances() } catch { reportError(error) }
-    
-    connected = false
     
     balanceLabelTextField?.stringValue = String()
     
@@ -549,7 +586,7 @@ extension MainViewController {
       ws.send(msg)
     }
     ws.event.open = { [weak self] in
-      self?.connected = true
+      self?.connected = .connected
       
       do {
         // FIXME: - abstract and combine, avoid excessive polling
@@ -565,7 +602,7 @@ extension MainViewController {
       send()
     }
     ws.event.close = { [weak self] code, reason, clean in
-      self?.connected = false
+      self?.connected = .disconnected
       
       ws.open()
     }

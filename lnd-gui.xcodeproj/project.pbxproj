@@ -41,6 +41,8 @@
 		FA719F3D1EB9884D0080F67E /* JsonInitialized.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA719F3C1EB9884D0080F67E /* JsonInitialized.swift */; };
 		FA719F3F1EB988E70080F67E /* PaymentHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA719F3E1EB988E70080F67E /* PaymentHash.swift */; };
 		FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA759F9D1E6E74C70024DF80 /* MainViewController.swift */; };
+		FA768BEE1F2D559900585388 /* Daemons.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA768BED1F2D559900585388 /* Daemons.storyboard */; };
+		FA768BF01F2D5FDD00585388 /* DaemonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA768BEF1F2D5FDD00585388 /* DaemonsViewController.swift */; };
 		FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */; };
 		FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857ED1E91F41A00E834D3 /* Invoice.swift */; };
 		FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */; };
@@ -48,6 +50,8 @@
 		FA97BA5F1F11B0AD009F6A96 /* BlockchainTransactionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA97BA5E1F11B0AD009F6A96 /* BlockchainTransactionInput.swift */; };
 		FA97BA611F11B16E009F6A96 /* BlockchainTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA97BA601F11B16E009F6A96 /* BlockchainTransaction.swift */; };
 		FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */; };
+		FABEE76C1F242AD500277A80 /* Connections.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FABEE76B1F242AD500277A80 /* Connections.storyboard */; };
+		FABEE76E1F25718500277A80 /* FiatConverting.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABEE76D1F25718500277A80 /* FiatConverting.swift */; };
 		FABF354D1EB8286C00D8AC13 /* TransactionStatusCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABF354C1EB8286C00D8AC13 /* TransactionStatusCell.swift */; };
 		FAD9C0931EC2B2AF00B10888 /* PaymentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */; };
 		FAE422DF1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE422DE1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift */; };
@@ -99,6 +103,8 @@
 		FA719F3C1EB9884D0080F67E /* JsonInitialized.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JsonInitialized.swift; path = Types/JsonInitialized.swift; sourceTree = "<group>"; };
 		FA719F3E1EB988E70080F67E /* PaymentHash.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentHash.swift; sourceTree = "<group>"; };
 		FA759F9D1E6E74C70024DF80 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainViewController.swift; path = ViewControllers/MainViewController.swift; sourceTree = "<group>"; };
+		FA768BED1F2D559900585388 /* Daemons.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Daemons.storyboard; path = Storyboards/Daemons.storyboard; sourceTree = "<group>"; };
+		FA768BEF1F2D5FDD00585388 /* DaemonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DaemonsViewController.swift; path = ViewControllers/DaemonsViewController.swift; sourceTree = "<group>"; };
 		FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceivedPayment.swift; path = Lightning/ReceivedPayment.swift; sourceTree = "<group>"; };
 		FA7857ED1E91F41A00E834D3 /* Invoice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Invoice.swift; sourceTree = "<group>"; };
 		FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionsViewController.swift; sourceTree = "<group>"; };
@@ -106,6 +112,8 @@
 		FA97BA5E1F11B0AD009F6A96 /* BlockchainTransactionInput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlockchainTransactionInput.swift; sourceTree = "<group>"; };
 		FA97BA601F11B16E009F6A96 /* BlockchainTransaction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BlockchainTransaction.swift; path = Blockchain/BlockchainTransaction.swift; sourceTree = "<group>"; };
 		FA9C756B1EA86EFF00B881AF /* AddPeerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPeerViewController.swift; sourceTree = "<group>"; };
+		FABEE76B1F242AD500277A80 /* Connections.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Connections.storyboard; path = Storyboards/Connections.storyboard; sourceTree = "<group>"; };
+		FABEE76D1F25718500277A80 /* FiatConverting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FiatConverting.swift; path = Currency/FiatConverting.swift; sourceTree = "<group>"; };
 		FABF354C1EB8286C00D8AC13 /* TransactionStatusCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionStatusCell.swift; path = Views/TransactionStatusCell.swift; sourceTree = "<group>"; };
 		FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PaymentRequest.swift; path = Lightning/PaymentRequest.swift; sourceTree = "<group>"; };
 		FAE422DE1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CurrencyTypeMenuItem.swift; path = Views/CurrencyTypeMenuItem.swift; sourceTree = "<group>"; };
@@ -159,6 +167,8 @@
 			isa = PBXGroup;
 			children = (
 				FA35527D1F0C5D9F00BAE305 /* BlockchainInfo.storyboard */,
+				FABEE76B1F242AD500277A80 /* Connections.storyboard */,
+				FA768BED1F2D559900585388 /* Daemons.storyboard */,
 				FA0E27BD1EC92F7200734661 /* Invoice.storyboard */,
 				FA520AEC1E6CC62D00AABE68 /* Main.storyboard */,
 				FA02FB531ECD3C6600FAC332 /* Payment.storyboard */,
@@ -187,6 +197,7 @@
 			isa = PBXGroup;
 			children = (
 				FA5E64231ED544B500050C81 /* CurrencyType.swift */,
+				FABEE76D1F25718500277A80 /* FiatConverting.swift */,
 			);
 			name = Currency;
 			sourceTree = "<group>";
@@ -250,6 +261,7 @@
 				2157F75D1E87349F00847E4C /* BlockchainInfoViewController.swift */,
 				FAF017F91EC01FA4008FEA13 /* CommitSendViewController.swift */,
 				FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */,
+				FA768BEF1F2D5FDD00585388 /* DaemonsViewController.swift */,
 				FA0E27BA1EC92EF500734661 /* InvoiceViewController.swift */,
 				FA759F9D1E6E74C70024DF80 /* MainViewController.swift */,
 				FA02FB551ECD44EB00FAC332 /* PaymentViewController.swift */,
@@ -401,9 +413,11 @@
 			files = (
 				FA520AEB1E6CC62D00AABE68 /* Assets.xcassets in Resources */,
 				FA520AEE1E6CC62D00AABE68 /* Main.storyboard in Resources */,
+				FABEE76C1F242AD500277A80 /* Connections.storyboard in Resources */,
 				FA35527E1F0C5D9F00BAE305 /* BlockchainInfo.storyboard in Resources */,
 				FA0E27BE1EC92F7200734661 /* Invoice.storyboard in Resources */,
 				FA02FB541ECD3C6600FAC332 /* Payment.storyboard in Resources */,
+				FA768BEE1F2D559900585388 /* Daemons.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,6 +446,8 @@
 				FAF017F41EBE9F21008FEA13 /* Daemon.swift in Sources */,
 				FAE422DF1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift in Sources */,
 				FA5E64241ED544B500050C81 /* CurrencyType.swift in Sources */,
+				FA768BF01F2D5FDD00585388 /* DaemonsViewController.swift in Sources */,
+				FABEE76E1F25718500277A80 /* FiatConverting.swift in Sources */,
 				FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */,
 				FA0E27AF1EC7896300734661 /* Payment.swift in Sources */,
 				FAF017F61EC002EB008FEA13 /* SendOnChainViewController.swift in Sources */,

@@ -8,11 +8,17 @@
 
 import Cocoa
 
+/** Payment view controller
+ */
 class PaymentViewController: NSViewController {
   // MARK: - @IBOutlets
   
+  /** Amount text field
+   */
   @IBOutlet weak var amountTextField: NSTextField?
   
+  /** Confirmed text field
+   */
   @IBOutlet weak var confirmedTextField: NSTextField?
   
   @IBOutlet weak var dateTextField: NSTextField?
@@ -35,6 +41,9 @@ class PaymentViewController: NSViewController {
 
   var payment: LightningPayment? { didSet { do { try updatedPayment() } catch { reportError(error) } } }
 }
+
+// MARK: - FiatConverting
+extension PaymentViewController: FiatConverting {}
 
 // MARK: - NSViewController
 extension PaymentViewController {

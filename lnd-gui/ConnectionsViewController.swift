@@ -18,6 +18,7 @@ import Cocoa
  FIXME: - when kind of but not fully selecting a connection it doesn't show the appropriate menu item
  FIXME: - need a way to see the channel status, like look at the related transaction
  FIXME: - when connecting, the connection should show as grayed out
+ FIXME: - this should be part of a window with other preferences
  */
 class ConnectionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="gtz-55-LBE">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
+    </dependencies>
+    <scenes>
+        <!--Window Controller-->
+        <scene sceneID="EAR-wT-RnU">
+            <objects>
+                <windowController id="gtz-55-LBE" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="qm7-Ej-BHb">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="245" y="310" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1050"/>
+                    </window>
+                    <connections>
+                        <segue destination="Y5h-CN-6HE" kind="relationship" relationship="window.shadowedContentViewController" id="00u-1c-9bL"/>
+                    </connections>
+                </windowController>
+                <customObject id="xeq-jz-6tn" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="92" y="160"/>
+        </scene>
+        <!--Daemons View Controller-->
+        <scene sceneID="Vuf-Gn-M6S">
+            <objects>
+                <viewController storyboardIdentifier="DaemonsViewController" id="Y5h-CN-6HE" customClass="DaemonsViewController" customModule="lnd_gui" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="vAO-CY-UZU">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aUt-7t-Z9T">
+                                <rect key="frame" x="54" y="222" width="303" height="28"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Connected" id="8Id-V1-4S8">
+                                    <font key="font" metaFont="systemBlack" size="23"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="d6h-Zt-lSO">
+                                <rect key="frame" x="20" y="222" width="28" height="28"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="d6h-Zt-lSO" secondAttribute="height" multiplier="1:1" id="9EK-cS-8lr"/>
+                                    <constraint firstAttribute="width" constant="28" id="Am2-cY-tpZ"/>
+                                </constraints>
+                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NSStatusAvailable" id="qIm-cU-q7M"/>
+                            </imageView>
+                            <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="dxA-Bu-GPT">
+                                <rect key="frame" x="20" y="203" width="440" height="5"/>
+                            </box>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="d7D-1i-4F1">
+                                <rect key="frame" x="18" y="172" width="100" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="96" id="hTQ-SF-asz"/>
+                                </constraints>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Blockchain:" id="fk5-M6-fsD">
+                                    <font key="font" metaFont="cellTitle"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iXU-bD-9sm">
+                                <rect key="frame" x="18" y="141" width="100" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="96" id="ppw-JI-Gkf"/>
+                                </constraints>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Lightning:" id="Q3X-ie-ewc">
+                                    <font key="font" metaFont="cellTitle"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ES7-Si-nwa">
+                                <rect key="frame" x="122" y="172" width="340" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="8 active connections to the Bitcoin Network" id="LBx-2U-tjv">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nSZ-Qj-2z4">
+                                <rect key="frame" x="122" y="141" width="204" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="4 active channels" id="M3x-Y0-KvH">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="LWj-NL-gio">
+                                <rect key="frame" x="357" y="219" width="109" height="32"/>
+                                <buttonCell key="cell" type="push" title="Disconnect" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BPv-Hn-GLa">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                            </button>
+                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="RQ9-Bh-CDb">
+                                <rect key="frame" x="325" y="131" width="141" height="32"/>
+                                <buttonCell key="cell" type="push" title="Manage Channels" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="MsU-nB-AUI">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="controlContent"/>
+                                </buttonCell>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="d6h-Zt-lSO" firstAttribute="top" secondItem="vAO-CY-UZU" secondAttribute="top" constant="20" id="4sm-e6-xJJ"/>
+                            <constraint firstItem="ES7-Si-nwa" firstAttribute="trailing" secondItem="dxA-Bu-GPT" secondAttribute="trailing" id="Be9-pe-4Cj"/>
+                            <constraint firstItem="dxA-Bu-GPT" firstAttribute="top" secondItem="aUt-7t-Z9T" secondAttribute="bottom" constant="16" id="E09-bn-Ao3"/>
+                            <constraint firstItem="aUt-7t-Z9T" firstAttribute="leading" secondItem="d6h-Zt-lSO" secondAttribute="trailing" constant="8" id="H0B-eu-rwN"/>
+                            <constraint firstItem="d6h-Zt-lSO" firstAttribute="leading" secondItem="vAO-CY-UZU" secondAttribute="leading" constant="20" id="Iav-jc-M5G"/>
+                            <constraint firstItem="iXU-bD-9sm" firstAttribute="leading" secondItem="d7D-1i-4F1" secondAttribute="leading" id="PgA-eO-C0C"/>
+                            <constraint firstItem="d7D-1i-4F1" firstAttribute="leading" secondItem="dxA-Bu-GPT" secondAttribute="leading" id="QPT-9s-EW9"/>
+                            <constraint firstItem="nSZ-Qj-2z4" firstAttribute="top" secondItem="ES7-Si-nwa" secondAttribute="bottom" constant="14" id="QiJ-NO-mIo"/>
+                            <constraint firstAttribute="trailing" secondItem="LWj-NL-gio" secondAttribute="trailing" constant="20" id="Sh4-8i-fTP"/>
+                            <constraint firstItem="RQ9-Bh-CDb" firstAttribute="leading" secondItem="nSZ-Qj-2z4" secondAttribute="trailing" constant="7" id="Wyq-fJ-kDp"/>
+                            <constraint firstItem="d7D-1i-4F1" firstAttribute="baseline" secondItem="ES7-Si-nwa" secondAttribute="baseline" id="XTa-Ep-jum"/>
+                            <constraint firstItem="dxA-Bu-GPT" firstAttribute="leading" secondItem="d6h-Zt-lSO" secondAttribute="leading" id="ceG-37-ydJ"/>
+                            <constraint firstItem="LWj-NL-gio" firstAttribute="leading" secondItem="aUt-7t-Z9T" secondAttribute="trailing" constant="8" id="dDQ-z7-5ia"/>
+                            <constraint firstItem="ES7-Si-nwa" firstAttribute="leading" secondItem="d7D-1i-4F1" secondAttribute="trailing" constant="8" id="dEm-1U-3QP"/>
+                            <constraint firstItem="nSZ-Qj-2z4" firstAttribute="leading" secondItem="iXU-bD-9sm" secondAttribute="trailing" constant="8" id="dcu-iM-JNd"/>
+                            <constraint firstItem="ES7-Si-nwa" firstAttribute="top" secondItem="dxA-Bu-GPT" secondAttribute="bottom" constant="16" id="gT8-gJ-N2m"/>
+                            <constraint firstItem="iXU-bD-9sm" firstAttribute="baseline" secondItem="nSZ-Qj-2z4" secondAttribute="baseline" id="jqs-9j-i5y"/>
+                            <constraint firstItem="RQ9-Bh-CDb" firstAttribute="baseline" secondItem="nSZ-Qj-2z4" secondAttribute="baseline" id="n0u-BA-hk8"/>
+                            <constraint firstItem="LWj-NL-gio" firstAttribute="centerY" secondItem="aUt-7t-Z9T" secondAttribute="centerY" id="n2d-wC-Edn"/>
+                            <constraint firstItem="aUt-7t-Z9T" firstAttribute="top" secondItem="d6h-Zt-lSO" secondAttribute="top" id="s67-cI-6QT"/>
+                            <constraint firstItem="RQ9-Bh-CDb" firstAttribute="trailing" secondItem="ES7-Si-nwa" secondAttribute="trailing" id="tQZ-47-FpH"/>
+                            <constraint firstItem="dxA-Bu-GPT" firstAttribute="trailing" secondItem="LWj-NL-gio" secondAttribute="trailing" id="x3c-hF-02t"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <customObject id="YFV-Ts-z9u" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="799" y="135"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="NSStatusAvailable" width="16" height="16"/>
+    </resources>
+</document>

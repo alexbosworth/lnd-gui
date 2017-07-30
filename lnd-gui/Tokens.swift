@@ -32,8 +32,6 @@ extension Tokens {
     
     let number = (NSDecimalNumber(string: amount) as Decimal) * (NSDecimalNumber(value: valueDenominator) as Decimal)
     
-    let value = (number as NSDecimalNumber).uint64Value
-    
     self = (number as NSDecimalNumber).uint64Value
   }
   

@@ -13,6 +13,7 @@ import Cocoa
   FIXME: - make this work
   FIXME: - show both fiat and chain balances
   FIXME: - do not allow non-numeric amounts
+  FIXME: - fiat entry does not match up with fiat conversion
  */
 class SendOnChainViewController: NSViewController {
   // MARK: - @IBActions
@@ -39,6 +40,8 @@ class SendOnChainViewController: NSViewController {
   
   // MARK: - Properties
   
+  /** Cents per coin
+   */
   var centsPerCoin: (() -> (Int?))?
 
   /** Clear send
@@ -49,6 +52,8 @@ class SendOnChainViewController: NSViewController {
    */
   fileprivate weak var commitSendViewController: CommitSendViewController?
 
+  /** Currency type selected for amount input
+   */
   var currencyType: CurrencyType = .testBitcoin { didSet { updatePaymentToSendFromInput() } }
   
   /** Payment to send
@@ -64,6 +69,8 @@ class SendOnChainViewController: NSViewController {
   /** Commit send
    */
   lazy var send: (Payment) -> () = { _ in }
+  
+  var walletTokenBalance: (() -> (Tokens?))?
 }
 
 // MARK: - Failures
@@ -106,6 +113,7 @@ extension SendOnChainViewController {
     commitSendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     commitSendViewController.clearDestination = { [weak self] in self?.clear() }
     commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
+    commitSendViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
     commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
   }
 }
