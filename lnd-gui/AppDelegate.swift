@@ -8,7 +8,7 @@
 
 import Cocoa
 
-// FIXME: - the main application should start the daemons itself
+// FIXME: - all data should live in an object that is synced at the top level and broadcast downward
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
   /** Show blockchain browser
@@ -20,13 +20,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   /** Show connections view. This interface allows for direct manipulation of Lightning channels and peers.
    */
   @IBAction func showConnections(_ sender: AnyObject) {
-    do { let _ = try presentViewController(.connections) } catch { report(error) }
+    do { try presentConnectionsViewController() } catch { report(error) }
   }
   
   /** Show daemons
    */
   func showDaemons() {
-    do { let _ = try presentViewController(.daemons) } catch { report(error) }
+    do { try presentDaemonsViewController() } catch { report(error) }
   }
   
   /** Show individual invoice
@@ -49,6 +49,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
    */
   lazy fileprivate var windowControllers: [NSWindowController] = []
   
+  var connectivity: ConnectivityStatus = .initializing { didSet { updatedConnectivity() } }
+
+  var daemonsViewController: DaemonsViewController?
+  
+  func updatedConnectivity() {
+    daemonsViewController?.connectivityStatus = connectivity
+  }
+  
   /** Initialize the application
    */
   func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -58,6 +66,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     mainViewController?.showDaemons = { [weak self] in self?.showDaemons() }
     mainViewController?.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
     mainViewController?.showPayment = { [weak self] payment in self?.showPayment(payment) }
+    mainViewController?.updateConnectivity = { [weak self] connectivity in self?.connectivity = connectivity }
   }
 
   // MARK: - Core Data stack
@@ -228,6 +237,28 @@ extension AppDelegate {
 
 // MARK: - Navigation
 extension AppDelegate {
+  fileprivate func presentConnectionsViewController() throws {
+    let _ = try presentViewController(.connections)
+  }
+  
+  fileprivate func presentDaemonsViewController() throws {
+    daemonsViewController = try presentViewController(.daemons) as? DaemonsViewController
+    
+    daemonsViewController?.showConnections = { [weak self] in
+      do { try self?.presentConnectionsViewController() } catch { self?.report(error) }
+    }
+
+    try Daemon.getConnections { [weak self] result in
+      switch result {
+      case .connections(let connections):
+        self?.daemonsViewController?.connectionsCount = connections.count
+        
+      case .error(let error):
+        self?.report(error)
+      }
+    }
+  }
+  
   /** Present an invoice view controller
    */
   fileprivate func presentInvoiceViewController(with invoice: LightningInvoice) throws {

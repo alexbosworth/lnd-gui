@@ -9,6 +9,8 @@
 import Foundation
 
 /** Protocol for fiat converting
+
+ FIXME: - Make more generic to support different fiat currencies
  */
 protocol FiatConverting {
   /** Converter for coins to fiat

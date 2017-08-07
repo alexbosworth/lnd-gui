@@ -63,6 +63,8 @@ class CommitSendViewController: NSViewController {
 
   // MARK: - Properties
   
+  /** Fiat conversion
+   */
   var centsPerCoin: (() -> (Int?))?
   
   /** Commit send
@@ -77,6 +79,8 @@ class CommitSendViewController: NSViewController {
    */
   var isSending = false { didSet { updatedSendingState() } }
 
+  /** Current total wallet tokens balance
+   */
   var walletTokenBalance: (() -> Tokens?)?
   
   /** Payment to send

@@ -112,9 +112,7 @@ extension ConnectionsViewController {
   
   /** Show connections
    */
-  private func showConnections(jsonArray: [[String: Any]]) throws {
-    let connections = try jsonArray.map { try Connection(from: $0) }
-      
+  private func show(connections: [Connection]) throws {
     self.connections = connections
         
     connectionsTableView?.reloadData()
@@ -123,14 +121,10 @@ extension ConnectionsViewController {
   /** Refresh connections
    */
   func refreshConnections() throws {
-    try Daemon.get(from: .connections) { [weak self] result in
+    try Daemon.getConnections { [weak self] result in
       switch result {
-      case .data(let data):
-        let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
-        
-        guard let jsonArray = jsonObject as? [JsonDictionary] else { return print(GetJsonFailure.expectedJson) }
-        
-        do { try self?.showConnections(jsonArray: jsonArray) } catch { self?.reportError(error) }
+      case .connections(let connections):
+        do { try self?.show(connections: connections) } catch { self?.reportError(error) }
         
       case .error(let error):
         self?.reportError(error)
@@ -176,7 +170,7 @@ extension ConnectionsViewController: NSMenuDelegate {
 
     guard let _ = connection.peers.first else { return print("expectedPeer") }
 
-    openChannel(with: connection)
+    do { try openChannel(with: connection) } catch { reportError(error) }
   }
   
   /** Init the connections table menu
@@ -242,23 +236,18 @@ extension ConnectionsViewController: NSMenuDelegate {
   
   /** Open a channel with a connection
    */
-  func openChannel(with connection: Connection) {
-    let session = URLSession.shared
-    let sendUrl = URL(string: "http://localhost:10553/v0/channels/")!
-    var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
-    sendUrlRequest.httpMethod = "POST"
-    sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+  func openChannel(with connection: Connection) throws {
+    let json = ["partner_public_key": connection.publicKey.hexEncoded]
     
-    let data = "{\"partner_public_key\": \"\(connection.publicKey.hexEncoded)\"}".data(using: .utf8)
-    
-    // FIXME: - cleanup
-    let sendTask = session.uploadTask(with: sendUrlRequest, from: data) { data, urlResponse, error in
-      if let error = error { return print("ERROR \(error)") }
-
-      print("OPENED CHANNEL")
+    try Daemon.send(json: json, to: .channels(String())) { [weak self] result in
+      switch result {
+      case .error(let error):
+        self?.reportError(error)
+        
+      case .success(_):
+        do { try self?.refreshConnections() } catch { self?.reportError(error) }
+      }
     }
-    
-    sendTask.resume()
   }
 }
 

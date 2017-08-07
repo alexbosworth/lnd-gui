@@ -15,6 +15,8 @@ import Cocoa
 class MainViewController: NSViewController {
   // MARK: - @IBActions
   
+  /** Pressed daemons button
+   */
   @IBAction func pressedDaemonsButton(_ button: NSButton) {
     showDaemons()
   }
@@ -71,6 +73,8 @@ class MainViewController: NSViewController {
    */
   lazy var showPayment: (LightningPayment) -> () = { _ in }
   
+  lazy var updateConnectivity: (ConnectivityStatus) -> () = { _ in }
+  
   /** Wallet
    */
   lazy var wallet = Wallet()
@@ -83,43 +87,6 @@ class MainViewController: NSViewController {
 }
 
 extension MainViewController {
-  enum WalletObject: JsonInitialized {
-    case transaction(Transaction)
-
-    enum JsonAttribute: JsonAttributeName {
-      case type
-      
-      var asKey: JsonAttributeName { return rawValue }
-    }
-    
-    enum JsonParseFailure: Error {
-      case unrecognizedType(String?)
-    }
-    
-    enum RowType: String {
-      case chainTransaction = "chain_transaction"
-      case channelTransaction = "channel_transaction"
-      
-      init?(from string: String?) {
-        guard let string = string, let rowType = type(of: self).init(rawValue: string) else { return nil }
-
-        self = rowType
-      }
-    }
-    
-    init(from json: Data?) throws {
-      let json = try type(of: self).jsonDictionaryFromData(json)
-
-      let type = json[JsonAttribute.type.asKey] as? String
-      
-      guard let rowType = RowType(from: type) else { throw JsonParseFailure.unrecognizedType(type) }
-
-      switch rowType {
-      case .chainTransaction, .channelTransaction:
-        self = .transaction(try Transaction(from: json))
-      }
-    }
-  }
   
   /** Received socket message
    */
@@ -289,62 +256,15 @@ extension MainViewController {
     }
   }
   
-  struct WalletBalances: JsonInitialized {
-    let chainTokens: Tokens
-    let channelTokens: Tokens
-    let pendingChainTokens: Tokens
-    let pendingChannelTokens: Tokens
-    
-    enum JsonAttribute: JsonAttributeName {
-      case chainBalance = "chain_balance"
-      case channelBalance = "channel_balance"
-      case pendingChainBalance = "pending_chain_balance"
-      case pendingChannelBalance = "pending_channel_balance"
-      
-      var asKey: JsonAttributeName { return rawValue }
-    }
-
-    enum JsonParseFailure: Error {
-      case missing(JsonAttribute)
-    }
-    
-    init(from data: Data?) throws {
-      let json = try type(of: self).jsonDictionaryFromData(data)
-      
-      guard let chainBalance = (json[JsonAttribute.chainBalance.asKey] as? NSNumber)?.tokensValue else {
-        throw JsonParseFailure.missing(.chainBalance)
-      }
-
-      guard let channelBalance = (json[JsonAttribute.channelBalance.asKey] as? NSNumber)?.tokensValue else {
-        throw JsonParseFailure.missing(.channelBalance)
-      }
-
-      guard let pendingChainBalance = (json[JsonAttribute.pendingChainBalance.asKey] as? NSNumber)?.tokensValue else {
-        throw JsonParseFailure.missing(.pendingChainBalance)
-      }
-
-      guard let pendingChannelBalance = (json[JsonAttribute.pendingChannelBalance.asKey] as? NSNumber)?.tokensValue else {
-        throw JsonParseFailure.missing(.pendingChannelBalance)
-      }
-      
-      self.chainTokens = chainBalance
-      self.channelTokens = channelBalance
-      self.pendingChainTokens = pendingChainBalance
-      self.pendingChannelTokens = pendingChannelBalance
-    }
-    
-    var spendableBalance: Tokens { return chainTokens + channelTokens }
-  }
-  
   /** refreshBalances updates the chain and channel balance from the LN daemon.
    
    FIXME: - switch to sockets
    */
   func refreshBalances() throws {
-    try Daemon.get(from: .balance) { [weak self] result in
+    try Daemon.getBalances { [weak self] result in
       switch result {
-      case .data(let data):
-        do { self?.walletTokens = try WalletBalances(from: data) } catch { self?.reportError(error) }
+      case .balances(let balances):
+        self?.walletTokens = balances
         
       case .error(let error):
         self?.reportError(error)
@@ -484,30 +404,14 @@ extension MainViewController {
       NSUserNotificationCenter.default.deliver(notification)
     }
   }
-
-  enum ConnectivityStatus {
-    case connected, disconnected, initializing
-  }
   
   /** updateConnectedStatus updates the view to reflect the current connected state.
    */
   func updateConnectedStatus() {
-    let imageName: String
+    updateConnectivity(connected)
     
-    switch connected {
-    case .connected:
-      imageName = NSImageNameStatusAvailable
-      connectivityStatusButton?.toolTip = "Connected"
-      
-    case .disconnected:
-      imageName = NSImageNameStatusUnavailable
-      connectivityStatusButton?.toolTip = "Disconnected"
-      
-    case .initializing:
-      imageName = NSImageNameStatusNone
-    }
-    
-    connectivityStatusButton?.image = NSImage(named: imageName)
+    connectivityStatusButton?.image = connected.statusImage
+    connectivityStatusButton?.toolTip = connected.localizedDescription
   }
   
   /** updateVisibleBalance updates the view to show the last retrieved balances

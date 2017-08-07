@@ -201,6 +201,63 @@ extension Daemon {
   }
 }
 
+// getConnections
+extension Daemon {
+  enum GetConnectionsResult {
+    case connections([Connection])
+    case error(Error)
+  }
+  
+  enum GetConnectionsFailure: Error {
+    case expectedJson
+  }
+  
+  static func getConnections(completion: @escaping (GetConnectionsResult) -> ()) throws {
+    try get(from: .connections) { result in
+      switch result {
+      case .data(let data):
+        do {
+          let jsonObject = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+        
+          guard let jsonArray = jsonObject as? [JsonDictionary] else {
+            return completion(.error(GetConnectionsFailure.expectedJson))
+          }
+          
+          completion(.connections(try jsonArray.map { try Connection(from: $0) }))
+        } catch {
+          return completion(.error(error))
+        }
+        
+      case .error(let error):
+        completion(.error(error))
+      }
+    }
+  }
+}
+
+extension Daemon {
+  enum GetBalancesResult {
+    case error(Error)
+    case balances(WalletBalances)
+  }
+  
+  static func getBalances(completion: @escaping (GetBalancesResult) -> ()) throws {
+    try get(from: .balance) { result in
+      switch result {
+      case .data(let data):
+        do {
+          completion(.balances(try WalletBalances(from: data)))
+        } catch {
+          completion(.error(error))
+        }
+
+      case .error(let error):
+        completion(.error(error))
+      }
+    }
+  }
+}
+
 extension Daemon {
   enum AddPeerResult {
     case error(Error)
