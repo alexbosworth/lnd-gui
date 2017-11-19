@@ -46,10 +46,14 @@ class InvoiceViewController: NSViewController {
   /** Invoice
    */
   var invoice: LightningInvoice? { didSet { do { try updatedInvoice() } catch { reportError(error) } } }
-
+  
   /** Report error
    */
   lazy var reportError: (Error) -> () = { _ in }
+  
+  /** Wallet
+   */
+  var wallet: Wallet?
 }
 
 // MARK: - ErrorReporting
@@ -117,8 +121,8 @@ extension InvoiceViewController {
 extension InvoiceViewController: WalletListener {
   /** Wallet was updated
    */
-  func wallet(updated wallet: Wallet) {
-    guard let invoice = invoice, let updatedInvoice = wallet.invoice(invoice) else { return }
+  func walletUpdated() {
+    guard let invoice = invoice, let updatedInvoice = wallet?.invoice(invoice) else { return }
     
     self.invoice = updatedInvoice
   }

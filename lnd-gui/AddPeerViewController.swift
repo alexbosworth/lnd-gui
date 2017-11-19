@@ -9,6 +9,10 @@
 import Cocoa
 
 /** Add peer dialog view controller
+ 
+ FIXME: - make the peer address be pubkey@ip format
+ FIXME: - when chain is still syncing, show indicator that peer cannot be added
+ FIXME: - show pending state of peer
  */
 class AddPeerViewController: NSViewController {
   // MARK: - @IBActions
@@ -35,6 +39,8 @@ class AddPeerViewController: NSViewController {
   
   // MARK: - Properties
   
+  var addedPeer: (() -> ())?
+  
   /** Report error
    */
   lazy var reportError: (Error) -> () = { _ in }
@@ -51,7 +57,7 @@ extension AddPeerViewController: NSTextViewDelegate {
     addPeerButton?.isEnabled = false
 
     // Confirm that the host looks valid
-    guard let ip = ipValue, let _ = try? IpAddress(from: ip) else { return }
+    guard let ip = ipValue, !ip.isEmpty else { return }
     
     // Confirm that the node key looks valid
     guard let publicKeyValue = publicKeyValue, let _ = try? PublicKey(from: publicKeyValue) else { return }
@@ -73,14 +79,14 @@ extension AddPeerViewController {
   /** Add a peer
    */
   fileprivate func addPeer(ip: String?, publicKeyHex: String?) throws {
-    guard let ip = ip, let key = publicKeyHex else { return }
+    guard let ip = ip, !ip.isEmpty, let key = publicKeyHex, !key.isEmpty else { return }
     
-    try addPeer(ip: try IpAddress(from: ip), publicKey: try PublicKey(from: key))
+    try addPeer(ip: ip, publicKey: try PublicKey(from: key))
   }
 
   /** Add a peer
    */
-  private func addPeer(ip: IpAddress, publicKey: PublicKey) throws {
+  private func addPeer(ip: String, publicKey: PublicKey) throws {
     addPeerButton?.isEnabled = false
     
     try Daemon.addPeer(ip: ip, publicKey: publicKey) { [weak self] result in
@@ -91,6 +97,8 @@ extension AddPeerViewController {
         self?.reportError(error)
         
       case .success:
+        self?.addedPeer?()
+        
         self?.dismiss(self)
       }
     }

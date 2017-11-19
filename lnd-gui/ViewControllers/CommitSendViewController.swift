@@ -9,6 +9,8 @@
 import Cocoa
 
 /** Commit send view controller
+ 
+ FIXME: - add a way to set the fee
  */
 class CommitSendViewController: NSViewController {
   // MARK: - @IBActions
@@ -32,7 +34,11 @@ class CommitSendViewController: NSViewController {
   /** Button to clear the current payment details.
    */
   @IBOutlet weak var clearPaymentButton: NSButton?
-  
+
+  /** Destination label
+   */
+  @IBOutlet weak var destinationLabel: NSTextField?
+
   /** Label for payment amount
    */
   @IBOutlet weak var paymentAmountLabel: NSTextField?
@@ -63,10 +69,6 @@ class CommitSendViewController: NSViewController {
 
   // MARK: - Properties
   
-  /** Fiat conversion
-   */
-  var centsPerCoin: (() -> (Int?))?
-  
   /** Commit send
    */
   lazy var commitSend: (Payment) -> () = { _ in }
@@ -78,10 +80,6 @@ class CommitSendViewController: NSViewController {
   /** Is currently sending
    */
   var isSending = false { didSet { updatedSendingState() } }
-
-  /** Current total wallet tokens balance
-   */
-  var walletTokenBalance: (() -> Tokens?)?
   
   /** Payment to send
    */
@@ -90,6 +88,10 @@ class CommitSendViewController: NSViewController {
   /** Report error
    */
   lazy var reportError: (Error) -> () = { _ in }
+  
+  /** Wallet
+   */
+  var wallet: Wallet?
 }
 
 // MARK: - Errors
@@ -99,6 +101,7 @@ extension CommitSendViewController {
   enum Failure: Error {
     case expectedLocalBalance
     case expectedPaymentToSend
+    case expectedWalletForBalanceCheck
   }
 }
 
@@ -107,10 +110,22 @@ extension CommitSendViewController {
   /** Update payment request
    */
   fileprivate func updatedPaymentRequest() throws {
+    guard let wallet = wallet else {
+      sendAmountTextField?.stringValue = String()
+      sendFeeTextField?.stringValue = String()
+      sendSettlementTimeTextField?.stringValue = String()
+      sendButton?.state = NSOnState
+      sendButton?.isEnabled = false
+      sendButton?.title = "Send Payment"
+
+      return
+    }
+    
     guard let payment = paymentToSend else { return }
 
     let amount: Tokens
     let destination: String
+    let localBalance: Tokens
     let fee: Tokens
     let settlementTimeString: String
     
@@ -118,20 +133,24 @@ extension CommitSendViewController {
     case .chainSend(let chainSend):
       amount = chainSend.tokens
       destination = chainSend.address
+      destinationLabel?.stringValue = "Chain Address"
       fee = 225
+      localBalance = (wallet.balances?.spendableBalance ?? Tokens()) as Tokens
       settlementTimeString = "10-20 min"
       
     case .paymentRequest(let paymentRequest):
       amount = paymentRequest.tokens
       destination = (paymentRequest.destination?.hexEncoded ?? String()) as String
+      destinationLabel?.stringValue = "Lightning Address"
       fee = Tokens()
+      localBalance = (wallet.balances?.channelTokens ?? Tokens()) as Tokens
       settlementTimeString = "Instant"
     }
     
     let feeAmount: String
     let payAmount: String
     
-    if let centsPerCoin = centsPerCoin?() {
+    if let centsPerCoin = wallet.centsPerCoin {
       feeAmount = try fee.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
       payAmount = try amount.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
     } else {
@@ -140,15 +159,18 @@ extension CommitSendViewController {
     }
     
     sendToPublicKeyTextField?.toolTip = destination
-    sendToPublicKeyTextField?.stringValue = destination
+    
+    sendToPublicKeyTextField?.attributedStringValue = NSAttributedString(
+      string: destination,
+      attributes: [NSFontAttributeName: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: NSFontWeightRegular)]
+    )
+    
     sendAmountTextField?.stringValue = "\(amount.formatted(with: .testBitcoin))\(payAmount)"
     sendFeeTextField?.stringValue = fee > Tokens() ? "\(fee.formatted(with: .testBitcoin)) \(feeAmount)" : "Free"
     sendSettlementTimeTextField?.stringValue = settlementTimeString
     sendButton?.state = NSOnState
     sendButton?.isEnabled = true
     sendButton?.title = "Send Payment"
-    
-    guard let localBalance = walletTokenBalance?() else { throw Failure.expectedLocalBalance }
     
     if localBalance < amount + fee {
       sendButton?.state = NSOffState
@@ -168,7 +190,7 @@ extension CommitSendViewController {
 }
 
 extension CommitSendViewController: WalletListener {
-  func wallet(updated: Wallet) {
+  func walletUpdated() {
     do { try updatedPaymentRequest() } catch { reportError(error) }
   }
 }

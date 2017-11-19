@@ -8,13 +8,17 @@
 
 import Cocoa
 
-// FIXME: - all data should live in an object that is synced at the top level and broadcast downward
+// FIXME: - minimal payment value should be dynamic
+// FIXME: - register for lightning:// url handler
+// FIXME: - when receiving very small amounts under $0.00 use a different way to express it than 0.000
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+  // MARK: - @IBActions
+  
   /** Show blockchain browser
    */
   @IBAction func showBlockchain(_ sender: AnyObject) {
-    do { let _ = try presentViewController(.blockchainInfo) } catch { report(error) }
+    do { try presentBlockchainViewController() } catch { report(error) }
   }
   
   /** Show connections view. This interface allows for direct manipulation of Lightning channels and peers.
@@ -23,50 +27,171 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     do { try presentConnectionsViewController() } catch { report(error) }
   }
   
-  /** Show daemons
+  // MARK: - Properties
+
+  /** Daemons view controller. This shows the connectivity to the backing daemons.
    */
-  func showDaemons() {
-    do { try presentDaemonsViewController() } catch { report(error) }
-  }
-  
-  /** Show individual invoice
-   */
-  func showInvoice(_ invoice: LightningInvoice) {
-    do { try presentInvoiceViewController(with: invoice) } catch { report(error) }
-  }
-  
-  /** Show individual payment
-   */
-  func showPayment(_ payment: LightningPayment) {
-    do { try presentPaymentViewController(with: payment) } catch { report(error) }
-  }
-  
-  /** Main view controller
+  fileprivate var daemonsViewController: DaemonsViewController?
+
+  /** Main view controller. This is the main backing window, it has the balance and price, as well as connection info.
    */
   fileprivate var mainViewController: MainViewController?
+
+  /** Minimal payment amount - used for skipping payment confirmation
+   */
+  lazy fileprivate var minimalPaymentAmount: Tokens = 200
   
-  /** Application window controllers
+  /** Wallet
+   */
+  lazy var wallet: Wallet = Wallet()
+
+  /** Controllers for application windows
    */
   lazy fileprivate var windowControllers: [NSWindowController] = []
-  
-  var connectivity: ConnectivityStatus = .initializing { didSet { updatedConnectivity() } }
 
-  var daemonsViewController: DaemonsViewController?
-  
-  func updatedConnectivity() {
-    daemonsViewController?.connectivityStatus = connectivity
-  }
-  
   /** Initialize the application
    */
   func applicationDidFinishLaunching(_ aNotification: Notification) {
     mainViewController = NSApplication.shared().windows.first?.contentViewController as? MainViewController
     
+    NSAppleEventManager.shared().setEventHandler(
+      self,
+      andSelector: #selector(handleUrl(event:reply:)),
+      forEventClass: UInt32(kInternetEventClass),
+      andEventID: UInt32(kAEGetURL)
+    )
+    
     mainViewController?.reportError = { [weak self] error in self?.report(error) }
-    mainViewController?.showDaemons = { [weak self] in self?.showDaemons() }
-    mainViewController?.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
-    mainViewController?.showPayment = { [weak self] payment in self?.showPayment(payment) }
-    mainViewController?.updateConnectivity = { [weak self] connectivity in self?.connectivity = connectivity }
+    mainViewController?.showDaemons = { [weak self] in self?.presentDaemons() }
+    mainViewController?.showInvoice = { [weak self] invoice in self?.present(invoice) }
+    mainViewController?.showPayment = { [weak self] payment in self?.present(payment) }
+    mainViewController?.mainTabViewController?.wallet = wallet
+    mainViewController?.wallet = wallet
+
+    do { try refreshExchangeRate() } catch { report(error) }
+    
+    do { try wallet.initWalletServiceConnection() } catch { report(error) }
+    
+    wallet.didInsertTransaction = { [weak self] transaction in
+      do { try self?.notify(of: transaction) } catch { self?.report(error) }
+    }
+    
+    wallet.didUpdate = { [weak self] in
+      guard let wallet = self?.wallet else { return }
+
+      self?.mainViewController?.wallet = wallet
+      self?.mainViewController?.walletUpdated()
+      self?.updatedConnectivity()
+      
+      NSApplication.shared().windows.map { $0.contentViewController as? WalletListener }.forEach { $0?.walletUpdated() }
+    }
+    
+    wallet.reportError = { [weak self] error in self?.report(error) }
+  }
+  
+  /** Refresh exchange rate
+   */
+  func refreshExchangeRate() throws {
+    try Daemon.getExchangeRate(currency: .testUnitedStatesDollars) { [weak self] result in
+      switch result {
+      case .centsPerCoin(let centsPerCoin):
+        self?.wallet.centsPerCoin = centsPerCoin
+        
+      case .error(let error):
+        self?.report(error)
+      }
+    }
+  }
+  
+  func formatted(tokens: Tokens) throws -> String {
+    guard let centsPerCoin = wallet.centsPerCoin else { return tokens.formatted }
+    
+    return try tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
+  }
+  
+  /** Notify of transaction
+   
+   FIXME: - when there is no memo, show a nicer received message
+   FIXME: - show units and fiat conversion
+   */
+  func notify(of transaction: Transaction) throws {
+    guard
+      let isConfirmed = transaction.isConfirmed,
+      let isOutgoing = transaction.isOutgoing,
+      let tokens = transaction.sendTokens
+      else
+    {
+      throw Failure.expectedTransactionMetadata
+    }
+    
+    enum TransactionType {
+      case incoming
+      case outgoing
+    }
+    
+    let type: TransactionType = isOutgoing ? .outgoing : .incoming
+
+    enum ConfirmationStatus {
+      case confirmed
+      case unconfirmed
+    }
+    
+    let confirmation: ConfirmationStatus = isConfirmed ? .confirmed : .unconfirmed
+    
+    switch (transaction, type, confirmation) {
+    // Received blockchain tokens.
+    case (.blockchain(_), .incoming, .confirmed):
+      let notification = NSUserNotification()
+        
+      notification.title = "Received funds"
+      notification.informativeText = "Received \(try formatted(tokens: tokens))"
+      notification.soundName = NSUserNotificationDefaultSoundName
+        
+      NSUserNotificationCenter.default.deliver(notification)
+    
+    // Receiving blockchain tokens.
+    case (.blockchain(_), .incoming, .unconfirmed):
+      let notification = NSUserNotification()
+      
+      notification.title = "Incoming transaction"
+      notification.informativeText = "Receiving \(try formatted(tokens: tokens))"
+      notification.soundName = NSUserNotificationDefaultSoundName
+      
+      NSUserNotificationCenter.default.deliver(notification)
+      
+    case (.blockchain(_), .outgoing, .confirmed):
+      break
+      
+    case (.blockchain(_), .outgoing, .unconfirmed):
+      break
+      
+    // Received payment for a channel invoice.
+    case (.lightning(let lightningTransaction), .incoming, .confirmed):
+      let notification = NSUserNotification()
+      
+      if let memo = lightningTransaction.memo {
+        notification.title = "Payment for \(memo)"
+      } else {
+        notification.title = "Payment Received"
+      }
+      
+      notification.informativeText = "Received \(try formatted(tokens: lightningTransaction.tokens))"
+      notification.soundName = NSUserNotificationDefaultSoundName
+      
+      NSUserNotificationCenter.default.deliver(notification)
+      
+    // New unpaid channel invoice
+    case (.lightning(_), .incoming, .unconfirmed):
+      break
+
+    // Sent a channel payment
+    case (.lightning(_), .outgoing, .confirmed):
+      break
+      
+    // Sending a channel payment
+    case (.lightning(_), .outgoing, .unconfirmed):
+      break
+    }
   }
 
   // MARK: - Core Data stack
@@ -223,6 +348,7 @@ extension AppDelegate {
    These are situatiosn which should not occur, but should not necessarily terminate the application.
    */
   fileprivate enum Failure: Error {
+    case expectedTransactionMetadata
     case expectedViewController(AppViewController)
   }
   
@@ -230,19 +356,95 @@ extension AppDelegate {
    */
   fileprivate func report(_ error: Error) {
     print(error)
-    
-    NSAlert(error: error).runModal()
+   
+    DispatchQueue.main.async {
+      print("ALERT", error)
+//      NSAlert(error: error).runModal()
+    }
   }
 }
 
 // MARK: - Navigation
 extension AppDelegate {
+  /** Handle a payment request
+   */
+  func handlePayment(_ serializedPaymentRequest: SerializedPaymentRequest) throws {
+    try Daemon.getDecodedPaymentRequest(serializedPaymentRequest) { [weak self] result in
+      switch result {
+      case .error(let error):
+        self?.report(error)
+        
+      case .paymentRequest(let paymentRequest):
+        // Exit early on minimal payment amounts
+        if let minimalPaymentAmount = self?.minimalPaymentAmount {
+          guard paymentRequest.tokens > minimalPaymentAmount else {
+            self?.hide()
+            
+            do { try self?.makePayment(paymentRequest) } catch { self?.report(error) }
+            
+            return
+          }
+        }
+        
+        do { try self?.presentPaymentConfirmation(serializedPaymentRequest) } catch { self?.report(error) }
+      }
+    }
+  }
+  
+  /** Handle URL open
+   */
+  func handleUrl(event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
+    guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else { return }
+    
+    let scheme = ((URL(string: urlString)?.scheme ?? String()) as String) + ":"
+    
+    let serializedPaymentRequest = urlString.substring(from: urlString.index(urlString.startIndex, offsetBy: scheme.utf8.count)).trimmingCharacters(in: NSCharacterSet(charactersIn: "/") as CharacterSet)
+
+    do { try handlePayment(serializedPaymentRequest) } catch { report(error) }
+  }
+
+  /** Hide the Application
+   */
+  func hide() {
+    NSApplication.shared().windows.forEach { $0.orderBack(self) }
+  }
+  
+  /** Show daemons
+   */
+  func presentDaemons() {
+    do { try presentDaemonsViewController() } catch { report(error) }
+  }
+  
+  /** Show individual invoice
+   */
+  func present(_ invoice: LightningInvoice) {
+    do { try presentInvoiceViewController(with: invoice) } catch { report(error) }
+  }
+  
+  /** Show individual payment
+   */
+  func present(_ payment: LightningPayment) {
+    do { try presentPaymentViewController(with: payment) } catch { report(error) }
+  }
+
+  /** Show a confirmation for a payment request
+   */
+  func presentPaymentConfirmation(_ paymentRequest: SerializedPaymentRequest) throws {
+    try mainViewController?.mainTabViewController?.showPayment(paymentRequest)
+  }
+  
+  fileprivate func presentBlockchainViewController() throws {
+    let _ = try presentViewController(.blockchainInfo)
+  }
+  
   fileprivate func presentConnectionsViewController() throws {
     let _ = try presentViewController(.connections)
   }
   
   fileprivate func presentDaemonsViewController() throws {
     daemonsViewController = try presentViewController(.daemons) as? DaemonsViewController
+    
+    daemonsViewController?.connectivityStatus = wallet.realtimeConnectionStatus
     
     daemonsViewController?.showConnections = { [weak self] in
       do { try self?.presentConnectionsViewController() } catch { self?.report(error) }
@@ -265,6 +467,7 @@ extension AppDelegate {
     let invoiceViewController = try presentViewController(.invoice) as? InvoiceViewController
     
     invoiceViewController?.invoice = invoice
+    invoiceViewController?.wallet = wallet
   }
 
   /** Present a payment view controller
@@ -295,9 +498,41 @@ extension AppDelegate {
     }
 
     if var fiatConvertingViewController = windowController.contentViewController as? FiatConverting {
-      fiatConvertingViewController.centsPerCoin = { [weak self] in self?.mainViewController?.centsPerCoin }
+      fiatConvertingViewController.centsPerCoin = { [weak self] in self?.wallet.centsPerCoin }
     }
     
     return windowController.contentViewController
+  }
+}
+
+// MARK: - Payments
+extension AppDelegate {
+  func makePayment(_ paymentRequest: LightningPayment) throws {
+    let amount = try formatted(tokens: paymentRequest.tokens)
+    
+    try Daemon.makePayment(paymentRequest) { [weak self] response in
+      switch response {
+      case .error(let error):
+        self?.report(error)
+        
+      case .success:
+        let notification = NSUserNotification()
+        
+        notification.title = "Sent payment"
+        notification.informativeText = "Sent \(amount)"
+        notification.soundName = NSUserNotificationDefaultSoundName
+        
+        NSUserNotificationCenter.default.deliver(notification)
+      }
+    }
+  }
+}
+
+// MARK: - Updates
+extension AppDelegate {
+  /** Updated connectivity status
+   */
+  func updatedConnectivity() {
+    daemonsViewController?.connectivityStatus = wallet.realtimeConnectionStatus
   }
 }

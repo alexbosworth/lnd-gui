@@ -19,6 +19,7 @@ import Cocoa
  FIXME: - need a way to see the channel status, like look at the related transaction
  FIXME: - when connecting, the connection should show as grayed out
  FIXME: - this should be part of a window with other preferences
+ FIXME: - allow viewing the fee policies and updating them
  */
 class ConnectionsViewController: NSViewController, ErrorReporting {
   // MARK: - @IBOutlets
@@ -29,6 +30,8 @@ class ConnectionsViewController: NSViewController, ErrorReporting {
   
   // MARK: - Properties
   
+  /** Add peer view controller
+   */
   var addPeerViewController: AddPeerViewController?
 
   /** Connections
@@ -224,6 +227,14 @@ extension ConnectionsViewController: NSMenuDelegate {
       
       self.addPeerViewController = vc
       
+      vc.addedPeer = { [weak self] in
+        do {
+          try self?.refreshConnections()
+        } catch {
+          self?.reportError(error)
+        }
+      }
+
       vc.reportError = { [weak self] error in self?.reportError(error) }
     }
   }
@@ -356,7 +367,7 @@ extension ConnectionsViewController {
 extension ConnectionsViewController: WalletListener {
   /** Wallet was updated
    */
-  func wallet(updated: Wallet) {
+  func walletUpdated() {
     do { try refreshConnections() } catch { reportError(error) }
 
     // FIXME: - animate changes

@@ -8,6 +8,7 @@
 
 import Cocoa
 
+// FIXME: - add a way to get notified on a transaction when it confirms
 // FIXME: - eliminate all this fake stuff
 
 enum TransactionLookupResult {

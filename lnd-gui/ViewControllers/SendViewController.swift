@@ -44,9 +44,9 @@ class SendViewController: NSViewController, ErrorReporting {
   @IBOutlet weak var sentTransactionContainerView: NSView?
   
   // MARK: - Properties
-  
-  var centsPerCoin: (() -> (Int?))?
 
+  /** Selected currency type
+   */
   fileprivate var currencyType: CurrencyType = .testBitcoin
   
   /** Commit send view controller
@@ -61,17 +61,22 @@ class SendViewController: NSViewController, ErrorReporting {
   */
   fileprivate var sendOnChainViewController: SendOnChainViewController?
   
-  var walletTokenBalance: (() -> (Tokens?))?
+  var showPaymentRequest: SerializedPaymentRequest?
   
-  /** Update balance closure
+  /** Wallet
    */
-  lazy var updateBalance: (() -> ()) = {}
+  var wallet: Wallet? {
+    didSet {
+      sendOnChainViewController?.wallet = wallet
+    }
+  }
 }
 
 extension SendViewController {
   enum Failure: Error {
     case expectedCommitSendViewController
     case expectedSendOnChainController
+    case expectedWallet
     case unknownSegue
   }
 }
@@ -93,12 +98,10 @@ extension SendViewController {
       
       self.commitSendViewController = commitSendViewController
       
-      commitSendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
       commitSendViewController.clearDestination = { [weak self] in self?.resetDestination() }
       commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
       commitSendViewController.paymentToSend = nil
       commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
-      commitSendViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
       
     case .sendOnChain:
       guard let sendOnChainViewController = destinationController as? SendOnChainViewController else {
@@ -107,11 +110,10 @@ extension SendViewController {
       
       self.sendOnChainViewController = sendOnChainViewController
     
-      sendOnChainViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
       sendOnChainViewController.clear = { [weak self] in self?.resetDestination() }
       sendOnChainViewController.reportError = { [weak self] error in self?.reportError(error) }
       sendOnChainViewController.send = { [weak self] payment in self?.send(payment) }
-      sendOnChainViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
+      sendOnChainViewController.wallet = wallet
     }
   }
   
@@ -144,8 +146,10 @@ extension SendViewController {
   override func viewDidAppear() {
     super.viewDidAppear()
     
-    if centsPerCoin == nil {
-      print("CENTS PER COIN METHOD UNDEFINED")
+    if let payReq = self.showPaymentRequest {
+      destinationTextField?.stringValue = payReq
+      
+      didChangeDestination()
     }
   }
   
@@ -173,11 +177,14 @@ extension SendViewController {
   private func showDecodedPaymentRequest(_ data: Data, for paymentRequest: String) {
     let payReq: LightningPayment
     
-    do { payReq = try LightningPayment(from: data, paymentRequest: paymentRequest) } catch { return reportError(error) }
+    // Exit early on errors on payment request decoding.
+    do { payReq = try LightningPayment(from: data, paymentRequest: paymentRequest) } catch { return }
     
     sendChannelPaymentContainerView?.isHidden = false
     
     guard let commitVc = commitSendViewController else { return reportError(Failure.expectedCommitSendViewController) }
+
+    commitVc.wallet = wallet
     
     commitVc.paymentToSend = .paymentRequest(payReq)
   }
@@ -191,8 +198,9 @@ extension SendViewController {
       case .data(let data):
         self?.showDecodedPaymentRequest(data, for: paymentRequest)
 
-      case .error(let error):
-        self?.reportError(error)
+      // Errors are expected since we don't know if the payment request is valid.
+      case .error(_):
+        break
       }
     }
   }
@@ -240,7 +248,7 @@ extension SendViewController {
         DispatchQueue.main.async {
           switch result {
           case .error(let error):
-            self?.reportError(error)
+            NSAlert(error: error).runModal()
             
           case .success:
             self?.showSendOnChainResult(tokens: chainSend.tokens)
@@ -253,6 +261,8 @@ extension SendViewController {
   }
   
   /** Show payment result
+   
+   FIXME: - show this differently
    */
   private func showPaymentResult(payment: LightningPayment, start: Date) {
     sendChannelPaymentContainerView?.isHidden = true
@@ -265,7 +275,7 @@ extension SendViewController {
     sentStatusTextField?.isHidden = false
     sentStatusTextField?.stringValue = "Sent \(sentAmount) in \(String(format: "%.2f", duration)) seconds."
     
-    guard let centsPerCoin = centsPerCoin?() else { return }
+    guard let centsPerCoin = wallet?.centsPerCoin else { return }
     
     do {
       let converted = try payment.tokens.converted(to: .testUnitedStatesDollars, with: centsPerCoin)
@@ -326,12 +336,15 @@ extension SendViewController {
 }
 
 // FIXME: - cleanup - localization prep
+// MARK: - NSTextFieldDelegate
 extension SendViewController: NSTextFieldDelegate {
-  /** Control text did change
-   */
-  override func controlTextDidChange(_ obj: Notification) {
+  func didChangeDestination() {
+    guard let wallet = wallet else {
+      return reportError(Failure.expectedWallet)
+    }
+    
     commitSendViewController?.paymentToSend = nil
-
+    
     sendChannelPaymentContainerView?.isHidden = true
     sendOnChainContainerView?.isHidden = true
     sentStatusTextField?.isHidden = true
@@ -340,7 +353,8 @@ extension SendViewController: NSTextFieldDelegate {
     
     if destination.hasPrefix("2") || destination.hasPrefix("m") {
       sendOnChainContainerView?.isHidden = false
-
+      sendOnChainViewController?.wallet = wallet
+      
       let tokens: Tokens = (sendOnChainViewController?.paymentToSend?.tokens ?? Tokens()) as Tokens
       
       sendOnChainViewController?.paymentToSend = ChainSend(address: destination, tokens: tokens)
@@ -352,12 +366,26 @@ extension SendViewController: NSTextFieldDelegate {
     
     sendOnChainContainerView?.isHidden = true
     
-    do { try getDecoded(paymentRequest: destination) } catch { reportError(error) }
+    // Swallow errors on get decoded, it is expected the destination may be invalid
+    do { try getDecoded(paymentRequest: destination) } catch {}
+  }
+  
+  /** Control text did change
+   */
+  override func controlTextDidChange(_ obj: Notification) {
+    didChangeDestination()
   }
 }
 
+// MARK: - WalletListener
 extension SendViewController: WalletListener {
-  func wallet(updated: Wallet) {
-    commitSendViewController?.wallet(updated: updated)
+  func walletUpdated() {
+    guard let wallet = wallet else { return }
+    
+    commitSendViewController?.wallet = wallet
+    commitSendViewController?.walletUpdated()
+    
+    sendOnChainViewController?.wallet = wallet
+    sendOnChainViewController?.walletUpdated()
   }
 }

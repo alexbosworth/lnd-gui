@@ -57,7 +57,7 @@ struct LightningInvoice {
   }
 
   enum JsonAttribute: JsonAttributeName {
-    case address
+    case chainAddress = "chain_address"
     case confirmed
     case createdAt = "created_at"
     case id
@@ -70,7 +70,7 @@ struct LightningInvoice {
   
   /** init creates an invoice from a JSON dictionary.
    */
-  init(from json: [String: Any]) throws {
+  init(from json: [String: Any]) throws {    
     guard let invoiceId = json[JsonAttribute.id.asKey] as? String else {
       throw JsonParseError.missing(.id)
     }
@@ -85,7 +85,7 @@ struct LightningInvoice {
       throw JsonParseError.missing(.tokens)
     }
     
-    chainAddress = json[JsonAttribute.address.asKey] as? String
+    chainAddress = json[JsonAttribute.chainAddress.asKey] as? String
     isConfirmed = (json[JsonAttribute.confirmed.asKey] as? Bool ?? false) as Bool
     id = invoiceId
     memo = json[JsonAttribute.memo.asKey] as? String

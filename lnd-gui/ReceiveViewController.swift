@@ -16,6 +16,8 @@ import Cocoa
  FIXME: - don't allow entering too much or too little Satoshis
  FIXME: - when received, show received notification
  FIXME: - do not allow values that are higher than possible
+ FIXME: - sometimes the regular address doesn't show up
+ FIXME: - show feedback when the amount to send is invalid
  */
 class ReceiveViewController: NSViewController, ErrorReporting {
   // MARK: - @IBActions
@@ -53,6 +55,8 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   }
   
   /** Pressed request button to trigger the creation of a new request
+  
+    FIXME: - deal with what happens when there is no forex rate
    */
   @IBAction func pressedRequestButton(_ button: NSButton) {
     guard let amountString = amountTextField?.stringValue else { return }
@@ -75,7 +79,9 @@ class ReceiveViewController: NSViewController, ErrorReporting {
       amount = tokens
       
     case .testUnitedStatesDollars(let dollars):
-      guard let rate = centsPerCoin?() else { return print("EXPECTED CENTS PER COIN") }
+      guard let wallet = wallet else { return print("EXPECTED WALLET") }
+      
+      let rate = wallet.centsPerCoin ?? Int()
       
       let cents = dollars * Decimal(100)
       
@@ -90,7 +96,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
     
     guard amount > Tokens() else { return }
     
-    do { try addInvoice(amount: amount, memo: memoTextField?.stringValue) } catch { reportError(error) }
+    do { try addInvoice(amount: amount, description: memoTextField?.stringValue) } catch { reportError(error) }
   }
 
   // MARK: - @IBOutlets
@@ -147,8 +153,6 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   
   // MARK: - Properties
   
-  var centsPerCoin: (() -> (Int?))?
-  
   var creatingInvoice = false { didSet { updatedCreatingInvoice() } }
   
   var currency: CurrencyType = .testBitcoin { didSet { do { try updatedSelectedCurrency() } catch { reportError(error) } } }
@@ -168,6 +172,10 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   /** Show an invoice
    */
   lazy var showInvoice: (LightningInvoice) -> () = { _ in }
+  
+  /** Wallet
+   */
+  var wallet: Wallet?
 }
 
 // MARK: - Failures
@@ -209,11 +217,11 @@ extension ReceiveViewController {
   
   /** Send a request to make an invoice.
    */
-  func addInvoice(amount: Tokens, memo: String? = nil) throws {
+  func addInvoice(amount: Tokens, description: String? = nil) throws {
     // Use defer to avoid setting create invoice to true when the addInvoice method throws an Error
     defer { creatingInvoice = true }
 
-    try Daemon.addInvoice(amount: amount, memo: memo) { [weak self] result in
+    try Daemon.addInvoice(amount: amount, description: description) { [weak self] result in
       self?.clear()
       
       self?.creatingInvoice = false
@@ -302,7 +310,7 @@ extension ReceiveViewController {
     
     let numbers = amountString.components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted).joined()
     
-    guard let centsPerCoin = centsPerCoin?() else { return String() }
+    guard let centsPerCoin = wallet?.centsPerCoin else { return String() }
     
     switch currency {
     case .testBitcoin:
@@ -358,8 +366,8 @@ extension ReceiveViewController {
 extension ReceiveViewController: WalletListener {
   /** Wallet was updated
    */
-  func wallet(updated wallet: Wallet) {
-    guard let invoice = invoice, let currentInvoice = wallet.invoice(invoice), currentInvoice.isConfirmed else { return }
+  func walletUpdated() {
+    guard let invoice = invoice, let currentInvoice = wallet?.invoice(invoice), currentInvoice.isConfirmed else { return }
 
     paidInvoice = Transaction.lightning(LightningTransaction.invoice(currentInvoice))
     

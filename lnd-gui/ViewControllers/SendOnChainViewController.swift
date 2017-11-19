@@ -39,10 +39,6 @@ class SendOnChainViewController: NSViewController {
   @IBOutlet weak var tokensToSendTextField: NSTextField?
   
   // MARK: - Properties
-  
-  /** Cents per coin
-   */
-  var centsPerCoin: (() -> (Int?))?
 
   /** Clear send
    */
@@ -70,7 +66,9 @@ class SendOnChainViewController: NSViewController {
    */
   lazy var send: (Payment) -> () = { _ in }
   
-  var walletTokenBalance: (() -> (Tokens?))?
+  /** Wallet
+   */
+  var wallet: Wallet?
 }
 
 // MARK: - Failures
@@ -81,6 +79,7 @@ extension SendOnChainViewController {
     case expectedCurrencyTypeMenuItem
     case expectedCurrentEvent
     case expectedViewController
+    case expectedWallet
     case unexpectedSegue
   }
 }
@@ -110,10 +109,8 @@ extension SendOnChainViewController {
     
     self.commitSendViewController = commitSendViewController
     
-    commitSendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     commitSendViewController.clearDestination = { [weak self] in self?.clear() }
     commitSendViewController.commitSend = { [weak self] payment in self?.send(payment) }
-    commitSendViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
     commitSendViewController.reportError = { [weak self] error in self?.reportError(error) }
   }
 }
@@ -134,7 +131,7 @@ extension SendOnChainViewController: NSTextFieldDelegate {
       tokens = Tokens(from: amountString)
       
     case .testUnitedStatesDollars:
-      guard let centsPerCoin = centsPerCoin?() else { tokens = Tokens(); break }
+      guard let centsPerCoin = wallet?.centsPerCoin else { tokens = Tokens(); break }
       
       tokens = Tokens(from: amountString) / Tokens(centsPerCoin / 100)
     }
@@ -159,7 +156,19 @@ extension SendOnChainViewController {
       tokensToSendTextField?.stringValue = String()
       return
     }
-    
+
+    commitSendViewController?.wallet = wallet
+
     commitSendViewController?.paymentToSend = .chainSend(paymentToSend)
+  }
+}
+
+// MARK: - WalletListener
+extension SendOnChainViewController: WalletListener {
+  func walletUpdated() {
+    guard let wallet = wallet else { return reportError(Failure.expectedWallet) }
+    
+    commitSendViewController?.wallet = wallet
+    commitSendViewController?.walletUpdated()
   }
 }

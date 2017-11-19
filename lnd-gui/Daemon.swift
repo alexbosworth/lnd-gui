@@ -84,18 +84,28 @@ extension Daemon {
         
       case .exchangeRate(let currency):
         return URL(string: "\(route)\(currency.exchangeSymbol)/current_rate")
-
+        
       case .paymentRequest(let paymentRequest):
         return URL(string: "\(route)\(paymentRequest)")
       }
     }
-
+    
     var urlRequest: URLRequest? {
       guard let url = url else { return nil }
       
       let timeoutInterval: TimeInterval = 30
       
-      return URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: timeoutInterval)
+      var urlRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: timeoutInterval)
+      
+      // FIXME: - cleanup and abstract
+      let username = "user"
+      let password = "pass"
+      let loginString = String(format: "%@:%@", username, password)
+      guard let loginData = loginString.data(using: String.Encoding.utf8) else { return nil }
+      let base64LoginString = loginData.base64EncodedString()
+      urlRequest.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
+      
+      return urlRequest
     }
   }
   
@@ -131,12 +141,12 @@ extension Daemon {
   }
   
   static func get(from api: Api, completion: @escaping (GetJsonResult) -> ()) throws {
-    guard let url = api.url else { throw RequestFailure.expectedValidUrl }
+    guard let urlRequest = api.urlRequest else { throw RequestFailure.expectedValidUrl }
     
-    let getJsonTask = URLSession.shared.dataTask(with: URLRequest(url: url)) { data, _, error in
+    let getJsonTask = URLSession.shared.dataTask(with: urlRequest) { data, _, error in
       DispatchQueue.main.async {
         if let error = error { return completion(.error(error)) }
-       
+        
         guard let data = data else { return completion(.error(RequestFailure.expectedResponseData)) }
         
         return completion(.data(data))
@@ -173,11 +183,12 @@ extension Daemon {
   
   static func send(json: [String: Any], to: Api, completion: @escaping (SendJsonResult) -> ()) throws {
     let data = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
-
+    
     guard var urlRequest = to.urlRequest else { throw RequestFailure.expectedValidUrl }
-
+    
     urlRequest.httpMethod = HttpMethod.post.asString
     urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    urlRequest.timeoutInterval = TimeInterval(60)
     
     let task = URLSession.shared.uploadTask(with: urlRequest, from: data) { data, urlResponse, error in
       DispatchQueue.main.async {
@@ -186,7 +197,7 @@ extension Daemon {
         guard let httpUrlResponse = urlResponse as? HTTPURLResponse else {
           return completion(.error(RequestFailure.expectedHttpResponse))
         }
-
+        
         let statusCode: StatusCode
         
         do { statusCode = try StatusCode(from: httpUrlResponse) } catch { return completion(.error(error)) }
@@ -198,6 +209,125 @@ extension Daemon {
     }
     
     task.resume()
+  }
+}
+
+// MARK: - makePayment
+extension Daemon {
+  enum MakePaymentResult {
+    case error(Error)
+    case success
+  }
+
+  enum SendPaymentJsonAttribute: String {
+    case paymentRequest
+    
+    var key: String {
+      switch self {
+      case .paymentRequest:
+        return "payment_request"
+      }
+    }
+  }
+  
+  enum MakePaymentError: Error {
+    case expectedSerializedPaymentRequest
+  }
+
+  static func makePayment(_ payment: LightningPayment, completion: @escaping(MakePaymentResult) -> ()) throws {
+    guard let serializedPaymentRequest = payment.serializedPaymentRequest else {
+      throw MakePaymentError.expectedSerializedPaymentRequest
+    }
+    
+    let json: JsonDictionary = [SendPaymentJsonAttribute.paymentRequest.key: serializedPaymentRequest]
+
+    try send(json: json, to: .payments) { result in
+      switch result {
+      case .error(let error):
+        completion(.error(error))
+        
+      case .success:
+        completion(.success)
+      }
+    }
+  }
+}
+
+// MARK: - getExchangeRate
+extension Daemon {
+  enum GetExchangeRateResult {
+    case error(Error)
+    case centsPerCoin(Int)
+  }
+  
+  enum ExchangeRateResponseJsonKey: String {
+    case centsPerBitcoin = "cents_per_bitcoin"
+    
+    var key: String { return rawValue }
+  }
+  
+  static func getExchangeRate(currency: CurrencyType, completion: @escaping(GetExchangeRateResult) -> ()) throws {
+    try get(from: .exchangeRate(currency)) { result in
+      switch result {
+      case .data(let data):
+        let dataDownloadedAsJson: Any
+        
+        do {
+          dataDownloadedAsJson = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+        } catch {
+          return completion(.error(RequestFailure.expectedResponseData))
+        }
+        
+        guard
+          let json = dataDownloadedAsJson as? JsonDictionary,
+          let centsPerBitcoin = (json[ExchangeRateResponseJsonKey.centsPerBitcoin.key] as? NSNumber)?.intValue
+          else
+        {
+          return completion(.error(RequestFailure.expectedResponseData))
+        }
+        
+        completion(.centsPerCoin(centsPerBitcoin))
+        
+      case .error(let error):
+        completion(.error(error))
+      }
+    }
+  }
+}
+
+// MARK: - getHistory
+extension Daemon {
+  enum GetHistoryResult {
+    case error(Error)
+    case transactions(Set<Transaction>)
+  }
+  
+  enum RefreshHistoryFailure: Error {
+    case expectedHistoryData
+  }
+  
+  /** Get transaction history
+   */
+  static func getHistory(completion: @escaping(GetHistoryResult) -> ()) throws {
+    try get(from: .history) { result in
+      switch result {
+      case .data(let data):
+        let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
+        
+        guard let history = dataDownloadedAsJson as? [JsonDictionary] else {
+          return completion(.error(RefreshHistoryFailure.expectedHistoryData))
+        }
+        
+        do {
+          completion(.transactions(Set(try history.map { try Transaction(from: $0) })))
+        } catch {
+          completion(.error(error))
+        }
+        
+      case .error(let error):
+        completion(.error(error))
+      }
+    }
   }
 }
 
@@ -218,7 +348,7 @@ extension Daemon {
       case .data(let data):
         do {
           let jsonObject = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
-        
+          
           guard let jsonArray = jsonObject as? [JsonDictionary] else {
             return completion(.error(GetConnectionsFailure.expectedJson))
           }
@@ -250,7 +380,7 @@ extension Daemon {
         } catch {
           completion(.error(error))
         }
-
+        
       case .error(let error):
         completion(.error(error))
       }
@@ -263,15 +393,16 @@ extension Daemon {
     case error(Error)
     case success
   }
-
+  
   enum AddInvoiceJsonAttribute: String {
+    case description
     case includeAddress = "include_address"
     case memo
     case tokens
     
     var key: String { return rawValue }
   }
-
+  
   enum AddPeerJsonAttribute: String {
     case host
     case publicKey = "public_key"
@@ -284,10 +415,11 @@ extension Daemon {
     case error(Error)
   }
   
-  static func addInvoice(amount: Tokens, memo: String?, completion: @escaping (AddInvoiceResult) -> ()) throws {
+  static func addInvoice(amount: Tokens, description: String?, completion: @escaping (AddInvoiceResult) -> ()) throws {
     let json: JsonDictionary = [
+      AddInvoiceJsonAttribute.description.key: (description ?? String()) as String,
       AddInvoiceJsonAttribute.includeAddress.key: true,
-      AddInvoiceJsonAttribute.memo.key: (memo ?? String()) as String,
+      AddInvoiceJsonAttribute.memo.key: (description ?? String()) as String,
       AddInvoiceJsonAttribute.tokens.key: amount
     ]
     
@@ -302,9 +434,9 @@ extension Daemon {
     }
   }
   
-  static func addPeer(ip: IpAddress, publicKey: PublicKey, completion: @escaping (AddPeerResult) -> ()) throws {
-    let json = [AddPeerJsonAttribute.host.key: ip.serialized, AddPeerJsonAttribute.publicKey.key: publicKey.hexEncoded]
-
+  static func addPeer(ip: String, publicKey: PublicKey, completion: @escaping (AddPeerResult) -> ()) throws {
+    let json = [AddPeerJsonAttribute.host.key: ip, AddPeerJsonAttribute.publicKey.key: publicKey.hexEncoded]
+    
     try send(json: json, to: .peers) { result in
       switch result {
       case .error(let error):

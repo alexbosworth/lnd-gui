@@ -47,6 +47,8 @@ extension PaymentViewController: FiatConverting {}
 
 // MARK: - NSViewController
 extension PaymentViewController {
+  /** Updated payment
+   */
   func updatedPayment() throws {
     guard
       let payment = payment,

@@ -43,6 +43,10 @@ class TransactionsViewController: NSViewController {
   /** Transactions
    */
   lazy var transactions: [Transaction] = [Transaction]()
+  
+  /** Wallet
+   */
+  var wallet: Wallet?
 }
 
 // MARK: - NSViewController
@@ -118,6 +122,7 @@ extension TransactionsViewController: ErrorReporting {
   enum Failure: Error {
     case expectedKnownColumn
     case expectedTransactionForRow
+    case expectedWalletForTransactionsView
   }
 }
 
@@ -203,8 +208,8 @@ extension TransactionsViewController: NSTableViewDataSource {
       
     case .description:
       switch tx {
-      case .blockchain(let transaction):
-        title = transaction.id
+      case .blockchain(_):
+        title = "Received Blockchain Transaction"
         
       case .lightning(let transaction):
         switch transaction {
@@ -246,9 +251,13 @@ extension TransactionsViewController: NSTableViewDelegate {
 // MARK: - WalletListener
 extension TransactionsViewController: WalletListener {
   /** Wallet updated
+   
+    FIXME: - move sort to wallet, use tie breaking factor
    */
-  func wallet(updated wallet: Wallet) {
-    transactions = (wallet.transactions + wallet.unconfirmedTransactions).uniqueElements
+  func walletUpdated() {
+    guard let wallet = wallet else { return reportError(Failure.expectedWalletForTransactionsView) }
+    
+    transactions = Array(wallet.transactions)
 
     transactions.sort() { ($0.createdAt ?? Date()) as Date > ($1.createdAt ?? Date()) as Date }
 

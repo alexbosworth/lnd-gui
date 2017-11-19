@@ -10,12 +10,8 @@ import Cocoa
 
 /** Main Tab View Controller
  */
-class MainTabViewController: NSTabViewController, ErrorReporting {
+class MainTabViewController: NSTabViewController {
   // MARK: - Properties
-  
-  /** Cents per coin
-   */
-  var centsPerCoin: (() -> (Int?))?
   
   /** Connections view controller
    */
@@ -45,20 +41,19 @@ class MainTabViewController: NSTabViewController, ErrorReporting {
    */
   var transactionsViewController: TransactionsViewController?
   
-  /** updateBalance closure triggers a balance update
+  /** Wallet
    */
-  var updateBalance: (() -> ())?
-  
-  var walletTokenBalance: (() -> (Tokens?))?
+  var wallet: Wallet?
 }
 
-// MARK: - Failures
-extension MainTabViewController {
+// MARK: - ErrorReporting
+extension MainTabViewController: ErrorReporting {
   /** Failure defines an encountered error.
    */
   enum Failure: Error {
     case expectedTab(Tab)
     case expectedViewControllerForTab(Tab)
+    case expectedWalletForTabs
   }
 }
 
@@ -89,6 +84,20 @@ extension MainTabViewController {
         return "TransactionsTab"
       }
     }
+  }
+  
+  /** Show a payment to confirm
+   */
+  func showPayment(_ paymentRequest: SerializedPaymentRequest) throws {
+    guard let sendViewController = sendViewController else { throw Failure.expectedViewControllerForTab(.send) }
+
+    let sendTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.send.storyboardIdentifier)
+
+    selectedTabViewItemIndex = sendTabIndex
+    
+    sendViewController.destinationTextField?.stringValue = paymentRequest
+    sendViewController.didChangeDestination()
+    sendViewController.wallet = wallet
   }
   
   /** Show connections
@@ -163,7 +172,6 @@ extension MainTabViewController {
     
     self.receiveViewController = receiveViewController
 
-    receiveViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     receiveViewController.reportError = { [weak self] error in self?.reportError(error) }
     receiveViewController.showInvoice = { [weak self] invoice in self?.showInvoice(invoice) }
     
@@ -181,10 +189,8 @@ extension MainTabViewController {
     
     self.sendViewController = sendViewController
     
-    sendViewController.centsPerCoin = { [weak self] in self?.centsPerCoin?() }
     sendViewController.reportError = { [weak self] in self?.reportError($0) }
-    sendViewController.updateBalance = { [weak self] in self?.updateBalance?() }
-    sendViewController.walletTokenBalance = { [weak self] in self?.walletTokenBalance?() }
+    sendViewController.wallet = wallet
 
     let transactionsTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.transactions.storyboardIdentifier)
     
@@ -202,5 +208,17 @@ extension MainTabViewController {
     
     transactionsViewController.reportError = { [weak self] error in self?.reportError(error) }
     transactionsViewController.showTransaction = { [weak self] transaction in self?.showTransaction(transaction) }
+  }
+}
+
+// MARK: - Wallet Listener
+extension MainTabViewController: WalletListener {
+  func walletUpdated() {
+    guard let wallet = wallet else { return reportError(Failure.expectedWalletForTabs) }
+
+    sendViewController?.wallet = wallet
+    receiveViewController?.wallet = wallet
+    transactionsViewController?.wallet = wallet
+    transactionsViewController?.walletUpdated()
   }
 }

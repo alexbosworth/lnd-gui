@@ -80,6 +80,16 @@ enum LightningTransaction: TokenTransaction {
     }
   }
   
+  var memo: String? {
+    switch self {
+    case .invoice(let invoice):
+      return invoice.memo
+      
+    case .payment(_):
+      return nil
+    }
+  }
+  
   var tokens: Tokens {
     switch self {
     case .invoice(let invoice):
