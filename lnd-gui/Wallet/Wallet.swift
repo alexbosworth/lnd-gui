@@ -202,6 +202,8 @@ extension Wallet {
       
     case .transaction(let transaction):
       updateTransactions(with: transaction)
+      
+      didInsertTransaction?(transaction)
     }
   }
 }
