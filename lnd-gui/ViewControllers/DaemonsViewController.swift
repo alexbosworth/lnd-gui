@@ -55,13 +55,16 @@ class DaemonsViewController: NSViewController {
     switch connectivityStatus {
     case .connected:
       blockchainStatus = "Connected to the Bitcoin Network"
-      
+      updateConnectionsCount()
+
     case .disconnected:
       blockchainStatus = "Disconnected"
+      connectionsCountTextField?.stringValue = "Disconnected"
       connectivityStatusTextField?.stringValue = connectivityStatus.localizedDescription
       
     case .initializing:
       blockchainStatus = "Connecting..."
+      connectionsCountTextField?.stringValue = "Connecting to Lightning daemon"
       connectivityStatusTextField?.stringValue = connectivityStatus.localizedDescription
     }
     

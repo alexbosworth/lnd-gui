@@ -12,7 +12,6 @@
 		FA02FB541ECD3C6600FAC332 /* Payment.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA02FB531ECD3C6600FAC332 /* Payment.storyboard */; };
 		FA02FB561ECD44EB00FAC332 /* PaymentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA02FB551ECD44EB00FAC332 /* PaymentViewController.swift */; };
 		FA07DB401E84CDBD00FEC042 /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA07DB3F1E84CDBD00FEC042 /* Tokens.swift */; };
-		FA0E27AF1EC7896300734661 /* Payment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0E27AE1EC7896300734661 /* Payment.swift */; };
 		FA0E27BB1EC92EF500734661 /* InvoiceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0E27BA1EC92EF500734661 /* InvoiceViewController.swift */; };
 		FA0E27BE1EC92F7200734661 /* Invoice.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA0E27BD1EC92F7200734661 /* Invoice.storyboard */; };
 		FA35527E1F0C5D9F00BAE305 /* BlockchainInfo.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA35527D1F0C5D9F00BAE305 /* BlockchainInfo.storyboard */; };
@@ -46,6 +45,9 @@
 		FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */; };
 		FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857ED1E91F41A00E834D3 /* Invoice.swift */; };
 		FA79A1931FC209130092A478 /* Daemon+getDecodedPaymentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1921FC209120092A478 /* Daemon+getDecodedPaymentRequest.swift */; };
+		FA79A1951FC280880092A478 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = FA79A1941FC280880092A478 /* LICENSE.md */; };
+		FA79A1971FC280FF0092A478 /* ChainSend.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1961FC280FF0092A478 /* ChainSend.swift */; };
+		FA79A1991FC281400092A478 /* Payment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1981FC281400092A478 /* Payment.swift */; };
 		FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */; };
 		FA97BA5D1F11B082009F6A96 /* BlockchainTransactionOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA97BA5C1F11B082009F6A96 /* BlockchainTransactionOutput.swift */; };
 		FA97BA5F1F11B0AD009F6A96 /* BlockchainTransactionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA97BA5E1F11B0AD009F6A96 /* BlockchainTransactionInput.swift */; };
@@ -76,7 +78,6 @@
 		FA02FB531ECD3C6600FAC332 /* Payment.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Payment.storyboard; sourceTree = "<group>"; };
 		FA02FB551ECD44EB00FAC332 /* PaymentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PaymentViewController.swift; path = ViewControllers/PaymentViewController.swift; sourceTree = "<group>"; };
 		FA07DB3F1E84CDBD00FEC042 /* Tokens.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
-		FA0E27AE1EC7896300734661 /* Payment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Payment.swift; sourceTree = "<group>"; };
 		FA0E27BA1EC92EF500734661 /* InvoiceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InvoiceViewController.swift; path = ViewControllers/InvoiceViewController.swift; sourceTree = "<group>"; };
 		FA0E27BD1EC92F7200734661 /* Invoice.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Invoice.storyboard; path = Storyboards/Invoice.storyboard; sourceTree = "<group>"; };
 		FA35527D1F0C5D9F00BAE305 /* BlockchainInfo.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BlockchainInfo.storyboard; path = Storyboards/BlockchainInfo.storyboard; sourceTree = "<group>"; };
@@ -112,6 +113,9 @@
 		FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceivedPayment.swift; path = Lightning/ReceivedPayment.swift; sourceTree = "<group>"; };
 		FA7857ED1E91F41A00E834D3 /* Invoice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Invoice.swift; sourceTree = "<group>"; };
 		FA79A1921FC209120092A478 /* Daemon+getDecodedPaymentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Daemon+getDecodedPaymentRequest.swift"; path = "Daemon/Daemon+getDecodedPaymentRequest.swift"; sourceTree = "<group>"; };
+		FA79A1941FC280880092A478 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		FA79A1961FC280FF0092A478 /* ChainSend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChainSend.swift; path = Transactions/ChainSend.swift; sourceTree = "<group>"; };
+		FA79A1981FC281400092A478 /* Payment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Payment.swift; path = Transactions/Payment.swift; sourceTree = "<group>"; };
 		FA7A72231E94A1FD000DA993 /* ConnectionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionsViewController.swift; sourceTree = "<group>"; };
 		FA97BA5C1F11B082009F6A96 /* BlockchainTransactionOutput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BlockchainTransactionOutput.swift; path = Blockchain/BlockchainTransactionOutput.swift; sourceTree = "<group>"; };
 		FA97BA5E1F11B0AD009F6A96 /* BlockchainTransactionInput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlockchainTransactionInput.swift; sourceTree = "<group>"; };
@@ -188,6 +192,8 @@
 		FA496C3A1EBADD140080FC7C /* Transactions */ = {
 			isa = PBXGroup;
 			children = (
+				FA79A1961FC280FF0092A478 /* ChainSend.swift */,
+				FA79A1981FC281400092A478 /* Payment.swift */,
 				FA65A3741EA2965B002B2A17 /* Transaction.swift */,
 			);
 			name = Transactions;
@@ -216,6 +222,7 @@
 			isa = PBXGroup;
 			children = (
 				FAF93BB21EABE49600864A6F /* Frameworks */,
+				FA79A1941FC280880092A478 /* LICENSE.md */,
 				FA520AE21E6CC62D00AABE68 /* lnd-gui */,
 				FA520AE11E6CC62D00AABE68 /* Products */,
 				FAEDC31E1EB50AAD007DE94F /* README.md */,
@@ -286,7 +293,6 @@
 		FA65A37E1EA32A49002B2A17 /* Crypto */ = {
 			isa = PBXGroup;
 			children = (
-				FA0E27AE1EC7896300734661 /* Payment.swift */,
 				FA65A37F1EA32A60002B2A17 /* PublicKey.swift */,
 			);
 			name = Crypto;
@@ -427,6 +433,7 @@
 				FA520AEE1E6CC62D00AABE68 /* Main.storyboard in Resources */,
 				FABEE76C1F242AD500277A80 /* Connections.storyboard in Resources */,
 				FA35527E1F0C5D9F00BAE305 /* BlockchainInfo.storyboard in Resources */,
+				FA79A1951FC280880092A478 /* LICENSE.md in Resources */,
 				FA0E27BE1EC92F7200734661 /* Invoice.storyboard in Resources */,
 				FA02FB541ECD3C6600FAC332 /* Payment.storyboard in Resources */,
 				FA768BEE1F2D559900585388 /* Daemons.storyboard in Resources */,
@@ -454,6 +461,7 @@
 				FA520B171E6CDB1F00AABE68 /* SendViewController.swift in Sources */,
 				FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */,
 				FA719F3F1EB988E70080F67E /* PaymentHash.swift in Sources */,
+				FA79A1991FC281400092A478 /* Payment.swift in Sources */,
 				FA65A3801EA32A60002B2A17 /* PublicKey.swift in Sources */,
 				FAF017F41EBE9F21008FEA13 /* Daemon.swift in Sources */,
 				FAE422DF1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift in Sources */,
@@ -462,7 +470,6 @@
 				FABEE76E1F25718500277A80 /* FiatConverting.swift in Sources */,
 				FA79A1931FC209130092A478 /* Daemon+getDecodedPaymentRequest.swift in Sources */,
 				FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */,
-				FA0E27AF1EC7896300734661 /* Payment.swift in Sources */,
 				FAF017F61EC002EB008FEA13 /* SendOnChainViewController.swift in Sources */,
 				FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */,
 				FA0E27BB1EC92EF500734661 /* InvoiceViewController.swift in Sources */,
@@ -479,6 +486,7 @@
 				FA97BA611F11B16E009F6A96 /* BlockchainTransaction.swift in Sources */,
 				FA9C756D1EA86EFF00B881AF /* AddPeerViewController.swift in Sources */,
 				FA4097541ED12CC1000F667F /* Date+formatted.swift in Sources */,
+				FA79A1971FC280FF0092A478 /* ChainSend.swift in Sources */,
 				FAA6E3CB1F380462004A7889 /* ConnectivityStatus.swift in Sources */,
 				FAEDC31D1EB5080C007DE94F /* Data+asHexString.swift in Sources */,
 				FA97BA5D1F11B082009F6A96 /* BlockchainTransactionOutput.swift in Sources */,

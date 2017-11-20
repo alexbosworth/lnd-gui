@@ -197,6 +197,9 @@ extension Wallet {
     let walletObject = try WalletObject(from: message.data(using: .utf8, allowLossyConversion: false))
     
     switch walletObject {
+    case .invoice(_):
+      try updateTransactions()
+      
     case .transaction(let transaction):
       updateTransactions(with: transaction)
     }

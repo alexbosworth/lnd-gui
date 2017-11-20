@@ -11,6 +11,7 @@ import Foundation
 /** Wallet objects
  */
 enum WalletObject: JsonInitialized {
+  case invoice(LightningInvoice)
   case transaction(Transaction)
   
   enum JsonAttribute: JsonAttributeName {
@@ -26,6 +27,7 @@ enum WalletObject: JsonInitialized {
   enum RowType: String {
     case chainTransaction = "chain_transaction"
     case channelTransaction = "channel_transaction"
+    case paymentRequest = "payment_request"
     
     init?(from string: String?) {
       guard let string = string, let rowType = type(of: self).init(rawValue: string) else { return nil }
@@ -44,6 +46,9 @@ enum WalletObject: JsonInitialized {
     switch rowType {
     case .chainTransaction, .channelTransaction:
       self = .transaction(try Transaction(from: json))
+      
+    case .paymentRequest:
+      self = .invoice(try LightningInvoice(from: json))
     }
   }
 }
