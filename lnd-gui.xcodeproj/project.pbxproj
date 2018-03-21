@@ -44,7 +44,7 @@
 		FA768BF01F2D5FDD00585388 /* DaemonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA768BEF1F2D5FDD00585388 /* DaemonsViewController.swift */; };
 		FA7857EC1E91CE7800E834D3 /* ReceivedPayment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */; };
 		FA7857EE1E91F41A00E834D3 /* Invoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7857ED1E91F41A00E834D3 /* Invoice.swift */; };
-		FA79A1931FC209130092A478 /* Daemon+getDecodedPaymentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1921FC209120092A478 /* Daemon+getDecodedPaymentRequest.swift */; };
+		FA79A1931FC209130092A478 /* Daemon+getDecodedInvoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1921FC209120092A478 /* Daemon+getDecodedInvoice.swift */; };
 		FA79A1951FC280880092A478 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = FA79A1941FC280880092A478 /* LICENSE.md */; };
 		FA79A1971FC280FF0092A478 /* ChainSend.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1961FC280FF0092A478 /* ChainSend.swift */; };
 		FA79A1991FC281400092A478 /* Payment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA79A1981FC281400092A478 /* Payment.swift */; };
@@ -59,7 +59,7 @@
 		FABEE76C1F242AD500277A80 /* Connections.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FABEE76B1F242AD500277A80 /* Connections.storyboard */; };
 		FABEE76E1F25718500277A80 /* FiatConverting.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABEE76D1F25718500277A80 /* FiatConverting.swift */; };
 		FABF354D1EB8286C00D8AC13 /* TransactionStatusCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABF354C1EB8286C00D8AC13 /* TransactionStatusCell.swift */; };
-		FAD9C0931EC2B2AF00B10888 /* PaymentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */; };
+		FAD9C0931EC2B2AF00B10888 /* EncodedInvoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD9C0921EC2B2AF00B10888 /* EncodedInvoice.swift */; };
 		FAE422DF1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE422DE1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift */; };
 		FAEDC31B1EB503B5007DE94F /* String+asDataFromHexEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEDC31A1EB503B5007DE94F /* String+asDataFromHexEncoding.swift */; };
 		FAEDC31D1EB5080C007DE94F /* Data+asHexString.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEDC31C1EB5080C007DE94F /* Data+asHexString.swift */; };
@@ -112,7 +112,7 @@
 		FA768BEF1F2D5FDD00585388 /* DaemonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DaemonsViewController.swift; path = ViewControllers/DaemonsViewController.swift; sourceTree = "<group>"; };
 		FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceivedPayment.swift; path = Lightning/ReceivedPayment.swift; sourceTree = "<group>"; };
 		FA7857ED1E91F41A00E834D3 /* Invoice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Invoice.swift; sourceTree = "<group>"; };
-		FA79A1921FC209120092A478 /* Daemon+getDecodedPaymentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Daemon+getDecodedPaymentRequest.swift"; path = "Daemon/Daemon+getDecodedPaymentRequest.swift"; sourceTree = "<group>"; };
+		FA79A1921FC209120092A478 /* Daemon+getDecodedInvoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Daemon+getDecodedInvoice.swift"; path = "Daemon/Daemon+getDecodedInvoice.swift"; sourceTree = "<group>"; };
 		FA79A1941FC280880092A478 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		FA79A1961FC280FF0092A478 /* ChainSend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChainSend.swift; path = Transactions/ChainSend.swift; sourceTree = "<group>"; };
 		FA79A1981FC281400092A478 /* Payment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Payment.swift; path = Transactions/Payment.swift; sourceTree = "<group>"; };
@@ -127,7 +127,7 @@
 		FABEE76B1F242AD500277A80 /* Connections.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Connections.storyboard; path = Storyboards/Connections.storyboard; sourceTree = "<group>"; };
 		FABEE76D1F25718500277A80 /* FiatConverting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FiatConverting.swift; path = Currency/FiatConverting.swift; sourceTree = "<group>"; };
 		FABF354C1EB8286C00D8AC13 /* TransactionStatusCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransactionStatusCell.swift; path = Views/TransactionStatusCell.swift; sourceTree = "<group>"; };
-		FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PaymentRequest.swift; path = Lightning/PaymentRequest.swift; sourceTree = "<group>"; };
+		FAD9C0921EC2B2AF00B10888 /* EncodedInvoice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EncodedInvoice.swift; path = Lightning/EncodedInvoice.swift; sourceTree = "<group>"; };
 		FAE422DE1EF6FB3C006197A8 /* CurrencyTypeMenuItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CurrencyTypeMenuItem.swift; path = Views/CurrencyTypeMenuItem.swift; sourceTree = "<group>"; };
 		FAEDC31A1EB503B5007DE94F /* String+asDataFromHexEncoding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+asDataFromHexEncoding.swift"; path = "Types/String+asDataFromHexEncoding.swift"; sourceTree = "<group>"; };
 		FAEDC31C1EB5080C007DE94F /* Data+asHexString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Data+asHexString.swift"; sourceTree = "<group>"; };
@@ -305,7 +305,7 @@
 				FA65A3761EA3239C002B2A17 /* Connection.swift */,
 				FA7857ED1E91F41A00E834D3 /* Invoice.swift */,
 				FA719F3E1EB988E70080F67E /* PaymentHash.swift */,
-				FAD9C0921EC2B2AF00B10888 /* PaymentRequest.swift */,
+				FAD9C0921EC2B2AF00B10888 /* EncodedInvoice.swift */,
 				FA65A3721EA291D1002B2A17 /* Peer.swift */,
 				FA7857EB1E91CE7800E834D3 /* ReceivedPayment.swift */,
 			);
@@ -356,7 +356,7 @@
 			children = (
 				FAF017F31EBE9F21008FEA13 /* Daemon.swift */,
 				FAA6E3CA1F380462004A7889 /* ConnectivityStatus.swift */,
-				FA79A1921FC209120092A478 /* Daemon+getDecodedPaymentRequest.swift */,
+				FA79A1921FC209120092A478 /* Daemon+getDecodedInvoice.swift */,
 			);
 			name = Daemon;
 			sourceTree = "<group>";
@@ -449,7 +449,7 @@
 			files = (
 				FA97BA5F1F11B0AD009F6A96 /* BlockchainTransactionInput.swift in Sources */,
 				FA07DB401E84CDBD00FEC042 /* Tokens.swift in Sources */,
-				FAD9C0931EC2B2AF00B10888 /* PaymentRequest.swift in Sources */,
+				FAD9C0931EC2B2AF00B10888 /* EncodedInvoice.swift in Sources */,
 				FAF93BB61EABE4C600864A6F /* WebSocket.swift in Sources */,
 				FA496C391EBAD82C0080FC7C /* Sequence+Unique.swift in Sources */,
 				FA759F9F1E6E74C70024DF80 /* MainViewController.swift in Sources */,
@@ -468,7 +468,7 @@
 				FA5E64241ED544B500050C81 /* CurrencyType.swift in Sources */,
 				FA768BF01F2D5FDD00585388 /* DaemonsViewController.swift in Sources */,
 				FABEE76E1F25718500277A80 /* FiatConverting.swift in Sources */,
-				FA79A1931FC209130092A478 /* Daemon+getDecodedPaymentRequest.swift in Sources */,
+				FA79A1931FC209130092A478 /* Daemon+getDecodedInvoice.swift in Sources */,
 				FA65A3791EA3246B002B2A17 /* Channel.swift in Sources */,
 				FAF017F61EC002EB008FEA13 /* SendOnChainViewController.swift in Sources */,
 				FA7A72241E94A1FD000DA993 /* ConnectionsViewController.swift in Sources */,

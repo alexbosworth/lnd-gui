@@ -214,7 +214,7 @@ extension TransactionsViewController: NSTableViewDataSource {
       case .lightning(let transaction):
         switch transaction {
         case .invoice(let invoice):
-          title = (invoice.memo ?? invoice.id) as String
+          title = (invoice.description ?? invoice.id) as String
           
         case .payment(let payment):
           let destination = (payment.destination?.hexEncoded ?? String()) as String

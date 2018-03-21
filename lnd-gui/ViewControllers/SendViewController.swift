@@ -61,7 +61,9 @@ class SendViewController: NSViewController, ErrorReporting {
   */
   fileprivate var sendOnChainViewController: SendOnChainViewController?
   
-  var showPaymentRequest: SerializedPaymentRequest?
+  /** Showing invoice
+   */
+  var showInvoice: SerializedInvoice?
   
   /** Wallet
    */
@@ -146,20 +148,12 @@ extension SendViewController {
   override func viewDidAppear() {
     super.viewDidAppear()
     
-    if let payReq = self.showPaymentRequest {
-      destinationTextField?.stringValue = payReq
-      
-      didChangeDestination()
-    }
-  }
-  
-  /** View did load
-   */
-  override func viewDidLoad() {
-    super.viewDidLoad()
-
-//    destinationTextField?.formatter = OnlyValidPaymentRequestValueFormatter()
+    // Exit early when the invoice did not change
+    guard let invoice = self.showInvoice else { return }
     
+    destinationTextField?.stringValue = invoice
+      
+    didChangeDestination()
   }
   
   /** View will disappear
@@ -174,11 +168,11 @@ extension SendViewController {
 extension SendViewController {
   /** Show decoded payment request
    */
-  private func showDecodedPaymentRequest(_ data: Data, for paymentRequest: String) {
-    let payReq: LightningPayment
+  private func showDecodedInvoice(_ data: Data, for serializedInvoice: SerializedInvoice) {
+    let invoice: LightningPayment
     
     // Exit early on errors on payment request decoding.
-    do { payReq = try LightningPayment(from: data, paymentRequest: paymentRequest) } catch { return }
+    do { invoice = try LightningPayment(from: data, invoice: serializedInvoice) } catch { return }
     
     sendChannelPaymentContainerView?.isHidden = false
     
@@ -186,17 +180,17 @@ extension SendViewController {
 
     commitVc.wallet = wallet
     
-    commitVc.paymentToSend = .paymentRequest(payReq)
+    commitVc.paymentToSend = .invoice(invoice)
   }
   
   /** Get decoded payment request
    // FIXME: - see if this can be done natively
    */
-  func getDecoded(paymentRequest: SerializedPaymentRequest) throws {
-    try Daemon.get(from: Daemon.Api.paymentRequest(paymentRequest)) { [weak self] result in
+  func getDecoded(invoice: SerializedInvoice) throws {
+    try Daemon.get(from: Daemon.Api.invoices(invoice)) { [weak self] result in
       switch result {
       case .data(let data):
-        self?.showDecodedPaymentRequest(data, for: paymentRequest)
+        self?.showDecodedInvoice(data, for: invoice)
 
       // Errors are expected since we don't know if the payment request is valid.
       case .error(_):
@@ -216,8 +210,8 @@ extension SendViewController {
     case .chainSend(let chainSend):
       send(chainSend)
       
-    case .paymentRequest(let paymentRequest):
-      do { try send(paymentRequest) } catch { reportError(error) }
+    case .invoice(let invoice):
+      do { try send(invoice) } catch { reportError(error) }
     }
   }
   
@@ -290,19 +284,14 @@ extension SendViewController {
     let start = Date()
     
     enum SendPaymentJsonAttribute: String {
-      case paymentRequest
+      case invoice
       
-      var key: String {
-        switch self {
-        case .paymentRequest:
-          return "payment_request"
-        }
-      }
+      var key: String { return rawValue }
     }
     
-    guard let serializedPaymentRequest = payment.serializedPaymentRequest else { return }
+    guard let serializedInvoice = payment.serializedInvoice else { return }
     
-    let json: JsonDictionary = [SendPaymentJsonAttribute.paymentRequest.key: serializedPaymentRequest]
+    let json: JsonDictionary = [SendPaymentJsonAttribute.invoice.key: serializedInvoice]
     
     try Daemon.send(json: json, to: .payments) { [weak self] result in
       self?.commitSendViewController?.isSending = false
@@ -322,11 +311,11 @@ extension SendViewController {
 
 extension SendViewController {
   // FIXME: - Abstract
-  class OnlyValidPaymentRequestValueFormatter: NumberFormatter {
+  class OnlyValidInvoiceValueFormatter: NumberFormatter {
     override func isPartialStringValid(_ partialString: String, newEditingString newString: AutoreleasingUnsafeMutablePointer<NSString?>?, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
       guard !partialString.isEmpty else { return true }
       
-      guard let _ = URL(string: "http://localhost:10553/v0/payment_request/\(partialString)") else {
+      guard let _ = URL(string: "http://localhost:10553/v0/invoice/\(partialString)") else {
         return false
       }
       
@@ -367,7 +356,7 @@ extension SendViewController: NSTextFieldDelegate {
     sendOnChainContainerView?.isHidden = true
     
     // Swallow errors on get decoded, it is expected the destination may be invalid
-    do { try getDecoded(paymentRequest: destination) } catch {}
+    do { try getDecoded(invoice: destination) } catch {}
   }
   
   /** Control text did change

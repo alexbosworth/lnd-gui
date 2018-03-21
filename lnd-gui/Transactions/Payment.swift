@@ -12,5 +12,5 @@ import Foundation
  */
 enum Payment {
   case chainSend(ChainSend)
-  case paymentRequest(LightningPayment)
+  case invoice(LightningPayment)
 }

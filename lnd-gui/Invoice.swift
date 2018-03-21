@@ -19,17 +19,17 @@ struct LightningInvoice {
    */
   let createdAt: Date?
   
+  /** Description is the description of the invoice.
+   */
+  let description: String?
+
   /** id is the rhash identifier of the invoice.
    */
   let id: String
   
-  /** Memo is the description of the invoice.
+  /** invoice is the bech32 encoding of the invoice
    */
-  let memo: String?
-  
-  /** paymentRequest is the full encoding of the payment request.
-   */
-  let paymentRequest: String?
+  let invoice: String?
   
   /** Invoice settled state
    */
@@ -44,12 +44,22 @@ struct LightningInvoice {
   enum JsonParseError: Error {
     case invalidJson
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .invalidJson:
+        return "Expected valid JSON"
+        
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.asKey)"
+      }
+    }
   }
 
   /** Create from json data
    */
   init(from data: Data) throws {
-    guard let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+    guard let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? JsonDictionary else {
       throw JsonParseError.invalidJson
     }
     
@@ -58,27 +68,29 @@ struct LightningInvoice {
 
   enum JsonAttribute: JsonAttributeName {
     case chainAddress = "chain_address"
-    case confirmed
     case createdAt = "created_at"
+    case description
     case id
-    case memo
-    case paymentRequest = "payment_request"
+    case isConfirmed = "is_confirmed"
+    case invoice
     case tokens
-    
+
+    /** JSON Key
+     */
     var asKey: JsonAttributeName { return rawValue }
   }
   
   /** init creates an invoice from a JSON dictionary.
    */
-  init(from json: [String: Any]) throws {    
+  init(from json: JsonDictionary) throws {
     guard let invoiceId = json[JsonAttribute.id.asKey] as? String else {
       throw JsonParseError.missing(.id)
     }
     
-    if let invoicePaymentRequest = json[JsonAttribute.paymentRequest.asKey] as? String {
-      self.paymentRequest = invoicePaymentRequest
+    if let invoiceInvoice = json[JsonAttribute.invoice.asKey] as? String {
+      self.invoice = invoiceInvoice
     } else {
-      self.paymentRequest = nil
+      self.invoice = nil
     }
 
     guard let tokens = (json[JsonAttribute.tokens.asKey] as? NSNumber)?.tokensValue else {
@@ -86,9 +98,9 @@ struct LightningInvoice {
     }
     
     chainAddress = json[JsonAttribute.chainAddress.asKey] as? String
-    isConfirmed = (json[JsonAttribute.confirmed.asKey] as? Bool ?? false) as Bool
+    description = json[JsonAttribute.description.asKey] as? String
     id = invoiceId
-    memo = json[JsonAttribute.memo.asKey] as? String
+    isConfirmed = (json[JsonAttribute.isConfirmed.asKey] as? Bool ?? false) as Bool
     self.tokens = tokens
     
     let createdAtString = json[JsonAttribute.createdAt.asKey] as? String

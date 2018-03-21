@@ -8,6 +8,10 @@
 
 import Foundation
 
+/** Bytes: 8 bit data type
+ */
+typealias Byte = UInt8
+
 /** Hex string that represents a byte array.
  */
 typealias HexEncodedData = String
@@ -17,24 +21,40 @@ extension HexEncodedData {
   /** Convert hex serialized string to binary data
    */
   func asDataFromHexEncoding() throws -> Data {
-    var data = Data()
-    var hex = self
-    let hexCharactersPerByte = 2
+    let scalars = self.unicodeScalars
+    var bytes = Array<Byte>(repeating: 0, count: (scalars.count + 1) >> 1)
 
-    while(hex.characters.count > String().characters.count) {
-      let c = hex.substring(to: hex.index(hex.startIndex, offsetBy: hexCharactersPerByte))
+    try scalars.enumerated().forEach { index, scalar in
+      var nibble = try hexNibble(for: scalar)
 
-      hex = hex.substring(from: hex.index(hex.startIndex, offsetBy: hexCharactersPerByte))
+      if index & 1 == 0 {
+        nibble <<= 4
+      }
 
-      var ch = UInt32()
-
-      Scanner(string: c).scanHexInt32(&ch)
-
-      var char = UInt8(ch)
-
-      data.append(&char, count: 1)
+      bytes[index >> 1] |= nibble
     }
 
-    return data
+    return Data(bytes: bytes)
+  }
+
+  /** Failures
+   */
+  enum Failure: Error {
+    case invalidHexNibble(UnicodeScalar)
+  }
+  
+  /** Get byte for hex nibble
+   */
+  private func hexNibble(for scalar: UnicodeScalar) throws -> Byte {
+    switch scalar.value {
+    case 48...57:
+      return Byte(scalar.value - 48)
+    case 65...70:
+      return Byte(scalar.value - 55)
+    case 97...102:
+      return Byte(scalar.value - 87)
+    default:
+      throw Failure.invalidHexNibble(scalar)
+    }
   }
 }

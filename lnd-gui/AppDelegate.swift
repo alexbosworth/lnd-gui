@@ -111,7 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   
   /** Notify of transaction
    
-   FIXME: - when there is no memo, show a nicer received message
+   FIXME: - when there is no description, show a nicer received message
    FIXME: - show units and fiat conversion
    */
   func notify(of transaction: Transaction) throws {
@@ -169,8 +169,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     case (.lightning(let lightningTransaction), .incoming, .confirmed):
       let notification = NSUserNotification()
       
-      if let memo = lightningTransaction.memo {
-        notification.title = "Payment for \(memo)"
+      if let description = lightningTransaction.description {
+        notification.title = "Payment for \(description)"
       } else {
         notification.title = "Payment Received"
       }
@@ -358,7 +358,7 @@ extension AppDelegate {
     print(error)
    
     DispatchQueue.main.async {
-      print("ALERT", error)
+      print("ALERT", error, error.localizedDescription)
 //      NSAlert(error: error).runModal()
     }
   }
@@ -368,25 +368,25 @@ extension AppDelegate {
 extension AppDelegate {
   /** Handle a payment request
    */
-  func handlePayment(_ serializedPaymentRequest: SerializedPaymentRequest) throws {
-    try Daemon.getDecodedPaymentRequest(serializedPaymentRequest) { [weak self] result in
+  func handlePayment(_ serializedInvoice: SerializedInvoice) throws {
+    try Daemon.getDecodedInvoice(serializedInvoice) { [weak self] result in
       switch result {
       case .error(let error):
         self?.report(error)
         
-      case .paymentRequest(let paymentRequest):
+      case .invoice(let invoice):
         // Exit early on minimal payment amounts
         if let minimalPaymentAmount = self?.minimalPaymentAmount {
-          guard paymentRequest.tokens > minimalPaymentAmount else {
+          guard invoice.tokens > minimalPaymentAmount else {
             self?.hide()
             
-            do { try self?.makePayment(paymentRequest) } catch { self?.report(error) }
+            do { try self?.makePayment(invoice) } catch { self?.report(error) }
             
             return
           }
         }
         
-        do { try self?.presentPaymentConfirmation(serializedPaymentRequest) } catch { self?.report(error) }
+        do { try self?.presentPaymentConfirmation(serializedInvoice) } catch { self?.report(error) }
       }
     }
   }
@@ -398,9 +398,9 @@ extension AppDelegate {
     
     let scheme = ((URL(string: urlString)?.scheme ?? String()) as String) + ":"
     
-    let serializedPaymentRequest = urlString.substring(from: urlString.index(urlString.startIndex, offsetBy: scheme.utf8.count)).trimmingCharacters(in: NSCharacterSet(charactersIn: "/") as CharacterSet)
+    let serializedInvoice = urlString.substring(from: urlString.index(urlString.startIndex, offsetBy: scheme.utf8.count)).trimmingCharacters(in: NSCharacterSet(charactersIn: "/") as CharacterSet)
 
-    do { try handlePayment(serializedPaymentRequest) } catch { report(error) }
+    do { try handlePayment(serializedInvoice) } catch { report(error) }
   }
 
   /** Hide the Application
@@ -429,8 +429,8 @@ extension AppDelegate {
 
   /** Show a confirmation for a payment request
    */
-  func presentPaymentConfirmation(_ paymentRequest: SerializedPaymentRequest) throws {
-    try mainViewController?.mainTabViewController?.showPayment(paymentRequest)
+  func presentPaymentConfirmation(_ invoice: SerializedInvoice) throws {
+    try mainViewController?.mainTabViewController?.showPayment(invoice)
   }
   
   fileprivate func presentBlockchainViewController() throws {
@@ -507,10 +507,10 @@ extension AppDelegate {
 
 // MARK: - Payments
 extension AppDelegate {
-  func makePayment(_ paymentRequest: LightningPayment) throws {
-    let amount = try formatted(tokens: paymentRequest.tokens)
+  func makePayment(_ invoice: LightningPayment) throws {
+    let amount = try formatted(tokens: invoice.tokens)
     
-    try Daemon.makePayment(paymentRequest) { [weak self] response in
+    try Daemon.makePayment(invoice) { [weak self] response in
       switch response {
       case .error(let error):
         self?.report(error)

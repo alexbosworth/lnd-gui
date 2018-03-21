@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="3em-fp-Jf4">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="3em-fp-Jf4">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13771"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
         <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
     </dependencies>
@@ -16,6 +16,9 @@
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="245" y="310" width="480" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1050"/>
+                        <connections>
+                            <outlet property="delegate" destination="3em-fp-Jf4" id="3zQ-PU-pf5"/>
+                        </connections>
                     </window>
                     <connections>
                         <segue destination="kXk-MV-65v" kind="relationship" relationship="window.shadowedContentViewController" id="RQ9-Ho-1UO"/>
@@ -33,7 +36,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="480" height="278"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Z8N-8A-iIU">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Z8N-8A-iIU">
                                 <rect key="frame" x="18" y="230" width="444" height="28"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Unpaid Invoice" id="iUx-Jz-vlY">
                                     <font key="font" metaFont="systemBlack" size="23"/>
@@ -41,7 +44,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MnF-ss-Jxi">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="MnF-ss-Jxi">
                                 <rect key="frame" x="18" y="209" width="444" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="0.0013454 tBTC ($0.14 tUSD)" id="uEe-JP-yfm">
                                     <font key="font" metaFont="system"/>
@@ -49,7 +52,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ob4-CE-8cN">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ob4-CE-8cN">
                                 <rect key="frame" x="18" y="92" width="100" height="16"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="96" id="oG6-qv-mLa"/>
@@ -60,7 +63,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QeA-bB-FJ4">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="QeA-bB-FJ4">
                                 <rect key="frame" x="124" y="50" width="336" height="58"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="58" id="xce-lt-j5V"/>
@@ -71,7 +74,7 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="t9f-iP-XQK">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="t9f-iP-XQK">
                                 <rect key="frame" x="18" y="160" width="100" height="16"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="96" id="I3w-UG-DGW"/>
@@ -82,7 +85,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HZd-Qe-fik">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="HZd-Qe-fik">
                                 <rect key="frame" x="124" y="118" width="336" height="58"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="58" id="1Rz-Z0-Pht"/>
@@ -96,7 +99,7 @@
                             <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="xGf-oz-egh">
                                 <rect key="frame" x="20" y="190" width="440" height="5"/>
                             </box>
-                            <textField verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ifj-SZ-lop">
+                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ifj-SZ-lop">
                                 <rect key="frame" x="124" y="20" width="336" height="22"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="9Ej-tL-HQg">
                                     <font key="font" metaFont="system"/>
@@ -104,7 +107,7 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pH2-QD-pga">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pH2-QD-pga">
                                 <rect key="frame" x="18" y="23" width="100" height="16"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Chain Address:" id="CCK-jF-EOO">
                                     <font key="font" metaFont="cellTitle"/>
@@ -148,7 +151,7 @@
                         <outlet property="amountTextField" destination="MnF-ss-Jxi" id="bNh-FY-ur7"/>
                         <outlet property="descriptionTextField" destination="QeA-bB-FJ4" id="Nng-LQ-lsE"/>
                         <outlet property="headingTextField" destination="Z8N-8A-iIU" id="BiU-xd-t76"/>
-                        <outlet property="paymentRequestTextField" destination="HZd-Qe-fik" id="I15-Rz-Cl7"/>
+                        <outlet property="invoiceTextField" destination="HZd-Qe-fik" id="jhQ-it-OF7"/>
                     </connections>
                 </viewController>
                 <customObject id="p0i-J1-l1a" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

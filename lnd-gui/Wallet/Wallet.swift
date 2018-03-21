@@ -38,7 +38,7 @@ class Wallet {
    
    FIXME: - move this to configuration setup
    */
-  let realtimeHost = "localhost:10554"
+  let realtimeHost = "localhost:10553"
   
   /** Report async error
    */
@@ -106,14 +106,14 @@ extension Wallet {
 // MARK: - Realtime Sync
 extension Wallet {
   enum WalletCommand {
-    case sendChannelPayment(SerializedPaymentRequest)
+    case sendChannelPayment(SerializedInvoice)
     
     /** Get the wallet command as a JSON dictionary
      */
     private var asJson: JsonDictionary {
       switch self {
       case .sendChannelPayment(let payment):
-        return ["payment_request": payment]
+        return ["invoice": payment]
       }
     }
     

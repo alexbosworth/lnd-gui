@@ -32,8 +32,7 @@ extension Daemon {
     case connections
     case exchangeRate(CurrencyType)
     case history
-    case invoices
-    case paymentRequest(String)
+    case invoices(SerializedInvoice?)
     case payments
     case peers
     case transactions
@@ -55,11 +54,8 @@ extension Daemon {
       case .history:
         return "history"
         
-      case .invoices:
+      case .invoices(_):
         return "invoices"
-        
-      case .paymentRequest(_):
-        return "payment_request"
         
       case .payments:
         return "payments"
@@ -76,7 +72,7 @@ extension Daemon {
       let route = "http://localhost:10553/v0/\(type)/"
       
       switch self {
-      case .balance, .connections, .history, .invoices, .payments, .peers, .transactions:
+      case .balance, .connections, .history, .payments, .peers, .transactions:
         return URL(string: route)
         
       case .channels(let channelId):
@@ -85,8 +81,12 @@ extension Daemon {
       case .exchangeRate(let currency):
         return URL(string: "\(route)\(currency.exchangeSymbol)/current_rate")
         
-      case .paymentRequest(let paymentRequest):
-        return URL(string: "\(route)\(paymentRequest)")
+      case .invoices(let invoice):
+        guard let invoice = invoice else {
+          return URL(string: route)
+        }
+        
+        return URL(string: "\(route)\(invoice)")
       }
     }
     
@@ -220,26 +220,21 @@ extension Daemon {
   }
 
   enum SendPaymentJsonAttribute: String {
-    case paymentRequest
+    case invoice
     
-    var key: String {
-      switch self {
-      case .paymentRequest:
-        return "payment_request"
-      }
-    }
+    var key: String { return rawValue }
   }
   
   enum MakePaymentError: Error {
-    case expectedSerializedPaymentRequest
+    case expectedSerializedInvoice
   }
 
   static func makePayment(_ payment: LightningPayment, completion: @escaping(MakePaymentResult) -> ()) throws {
-    guard let serializedPaymentRequest = payment.serializedPaymentRequest else {
-      throw MakePaymentError.expectedSerializedPaymentRequest
+    guard let serializedInvoice = payment.serializedInvoice else {
+      throw MakePaymentError.expectedSerializedInvoice
     }
     
-    let json: JsonDictionary = [SendPaymentJsonAttribute.paymentRequest.key: serializedPaymentRequest]
+    let json: JsonDictionary = [SendPaymentJsonAttribute.invoice.key: serializedInvoice]
 
     try send(json: json, to: .payments) { result in
       switch result {
@@ -304,6 +299,7 @@ extension Daemon {
   
   enum RefreshHistoryFailure: Error {
     case expectedHistoryData
+    case expectedHistoryRecords
   }
   
   /** Get transaction history
@@ -314,8 +310,12 @@ extension Daemon {
       case .data(let data):
         let dataDownloadedAsJson = try? JSONSerialization.jsonObject(with: data, options: .allowFragments)
         
-        guard let history = dataDownloadedAsJson as? [JsonDictionary] else {
+        guard let historyResult = dataDownloadedAsJson as? JsonDictionary else {
           return completion(.error(RefreshHistoryFailure.expectedHistoryData))
+        }
+
+        guard let history = historyResult["history"] as? [JsonDictionary] else {
+          return completion(.error(RefreshHistoryFailure.expectedHistoryRecords))
         }
         
         do {
@@ -349,7 +349,7 @@ extension Daemon {
         do {
           let jsonObject = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
           
-          guard let jsonArray = jsonObject as? [JsonDictionary] else {
+          guard let jsonArray = (jsonObject as? JsonDictionary)?["connections"] as? [JsonDictionary] else {
             return completion(.error(GetConnectionsFailure.expectedJson))
           }
           
@@ -397,7 +397,6 @@ extension Daemon {
   enum AddInvoiceJsonAttribute: String {
     case description
     case includeAddress = "include_address"
-    case memo
     case tokens
     
     var key: String { return rawValue }
@@ -417,13 +416,12 @@ extension Daemon {
   
   static func addInvoice(amount: Tokens, description: String?, completion: @escaping (AddInvoiceResult) -> ()) throws {
     let json: JsonDictionary = [
-      AddInvoiceJsonAttribute.description.key: (description ?? String()) as String,
       AddInvoiceJsonAttribute.includeAddress.key: true,
-      AddInvoiceJsonAttribute.memo.key: (description ?? String()) as String,
+      AddInvoiceJsonAttribute.description.key: (description ?? String()) as String,
       AddInvoiceJsonAttribute.tokens.key: amount
     ]
     
-    try send(json: json, to: .invoices) { result in
+    try send(json: json, to: .invoices(nil)) { result in
       switch result {
       case .error(let error):
         completion(.error(error))

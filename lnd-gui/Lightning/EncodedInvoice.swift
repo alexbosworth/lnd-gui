@@ -1,5 +1,5 @@
 //
-//  PaymentRequest.swift
+//  EncodedInvoice.swift
 //  lnd-gui
 //
 //  Created by Alex Bosworth on 5/9/17.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-typealias SerializedPaymentRequest = String
+typealias SerializedInvoice = String
 
 /** Lightning Network payment request
  */
@@ -17,14 +17,14 @@ struct LightningPayment: JsonInitialized {
   let destination: PublicKey?
   let id: PaymentHash
   let isConfirmed: Bool?
-  let serializedPaymentRequest: SerializedPaymentRequest?
+  let serializedInvoice: SerializedInvoice?
   let tokens: Tokens
   
   enum JsonAttribute: JsonAttributeName {
-    case confirmed
     case createdAt = "created_at"
     case destination
     case id
+    case isConfirmed = "is_confirmed"
     case tokens
     
     var asKey: String { return rawValue }
@@ -32,18 +32,21 @@ struct LightningPayment: JsonInitialized {
   
   enum ParseJsonFailure: Error {
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.asKey)"
+      }
+    }
   }
 
-  init(from json: JsonDictionary, paymentRequest: SerializedPaymentRequest? = nil) throws {
+  init(from json: JsonDictionary, invoice: SerializedInvoice? = nil) throws {
     let createdAtString = json[JsonAttribute.createdAt.asKey] as? String
     
     if let str = createdAtString { createdAt = DateFormatter().date(fromIso8601: str) } else { createdAt = nil }
     
-    guard let confirmed = json[JsonAttribute.confirmed.asKey] as? Bool else {
-      throw ParseJsonFailure.missing(.confirmed)
-    }
-    
-    isConfirmed = confirmed
+    isConfirmed = json[JsonAttribute.isConfirmed.asKey] as? Bool
     
     if let hexEncodedDestinationPublicKey = json[JsonAttribute.destination.asKey] as? HexEncodedData {
       destination = try PublicKey(from: hexEncodedDestinationPublicKey)
@@ -51,20 +54,20 @@ struct LightningPayment: JsonInitialized {
       destination = nil
     }
     
-    guard let paymentRequestId = json[JsonAttribute.id.asKey] as? HexEncodedData else {
+    guard let invoiceId = json[JsonAttribute.id.asKey] as? HexEncodedData else {
       throw ParseJsonFailure.missing(.id)
     }
     
-    id = try PaymentHash(from: paymentRequestId)
+    id = try PaymentHash(from: invoiceId)
     
-    serializedPaymentRequest = paymentRequest
+    serializedInvoice = invoice
     
     guard let amount = json[JsonAttribute.tokens.asKey] as? NSNumber else { throw ParseJsonFailure.missing(.tokens) }
     
     tokens = amount.tokensValue
   }
   
-  init(from data: Data?, paymentRequest payReq: SerializedPaymentRequest) throws {
-    self = try type(of: self).init(from: try type(of: self).jsonDictionaryFromData(data), paymentRequest: payReq)
+  init(from data: Data?, invoice: SerializedInvoice) throws {
+    self = try type(of: self).init(from: try type(of: self).jsonDictionaryFromData(data), invoice: invoice)
   }
 }

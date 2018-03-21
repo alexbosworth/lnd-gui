@@ -43,15 +43,15 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   @IBAction func pressedInvoiceBlockchainItem(_ item: NSMenuItem) {
     guard let chainAddress = invoice?.chainAddress else { return reportError(Failure.expectedChainAddress) }
     
-    paymentRequestTextField?.stringValue = chainAddress
+    invoiceTextField?.stringValue = chainAddress
   }
 
   /** Pressed lightning item
    */
   @IBAction func pressedInvoiceLightningItem(_ item: NSMenuItem) {
-    guard let paymentRequest = invoice?.paymentRequest else { return reportError(Failure.expectedPaymentRequest) }
+    guard let invoice = invoice?.invoice else { return reportError(Failure.expectedInvoice) }
     
-    paymentRequestTextField?.stringValue = paymentRequest
+    invoiceTextField?.stringValue = invoice
   }
   
   /** Pressed request button to trigger the creation of a new request
@@ -96,7 +96,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
     
     guard amount > Tokens() else { return }
     
-    do { try addInvoice(amount: amount, description: memoTextField?.stringValue) } catch { reportError(error) }
+    do { try addInvoice(amount: amount, description: descriptionTextField?.stringValue) } catch { reportError(error) }
   }
 
   // MARK: - @IBOutlets
@@ -115,9 +115,9 @@ class ReceiveViewController: NSViewController, ErrorReporting {
    */
   @IBOutlet weak var invoiceTypeButton: NSPopUpButton?
 
-  /** memoTextField is the input text field for the memo.
+  /** descriptionTextField is the input text field for the description.
    */
-  @IBOutlet weak var memoTextField: NSTextField?
+  @IBOutlet weak var descriptionTextField: NSTextField?
   
   /** Invoice date text field
    */
@@ -135,13 +135,13 @@ class ReceiveViewController: NSViewController, ErrorReporting {
    */
   @IBOutlet weak var paymentReceivedDescription: NSTextField?
   
-  /** paymentRequestHeadingTextField is the label showing the payment request header.
+  /** invoiceHeadingTextField is the label showing the invoice header.
    */
-  @IBOutlet weak var paymentRequestHeadingTextField: NSTextField?
+  @IBOutlet weak var invoiceHeadingTextField: NSTextField?
   
-  /** paymentRequestTextField is the label showing the full payment request.
+  /** invoiceTextField is the label showing the full serialized invoice.
    */
-  @IBOutlet weak var paymentRequestTextField: NSTextField?
+  @IBOutlet weak var invoiceTextField: NSTextField?
   
   /** requestButton is the button that triggers the creation of a new payment request
    */
@@ -159,7 +159,7 @@ class ReceiveViewController: NSViewController, ErrorReporting {
   
   /** invoice is the created invoice to receive funds to.
    */
-  var invoice: LightningInvoice? { didSet { updatedPaymentRequest() } }
+  var invoice: LightningInvoice? { didSet { updatedInvoice() } }
 
   /** Paid invoice
    */
@@ -184,8 +184,8 @@ extension ReceiveViewController {
     case expectedChainAddress
     case expectedCurrencyTypeMenuItem
     case expectedCurrentEvent
+    case expectedInvoice
     case expectedInvoiceCreationDate
-    case expectedPaymentRequest
   }
 }
 
@@ -199,7 +199,7 @@ extension ReceiveViewController {
       amountTextField?.isEditable = true
       clearButton?.isEnabled = true
       clearButton?.state = NSOnState
-      memoTextField?.isEditable = true
+      descriptionTextField?.isEditable = true
       requestButton?.isEnabled = true
       requestButton?.state = NSOnState
       requestButton?.title = NSLocalizedString("Request Payment", comment: "Create new invoice button")
@@ -208,7 +208,7 @@ extension ReceiveViewController {
       amountTextField?.isEditable = false
       clearButton?.isEnabled = false
       clearButton?.state = NSOffState
-      memoTextField?.isEditable = false
+      descriptionTextField?.isEditable = false
       requestButton?.isEnabled = false
       requestButton?.state = NSOffState
       requestButton?.title = NSLocalizedString("Creating Invoice", comment: "Created invoice, waiting for invoice")
@@ -249,8 +249,8 @@ extension ReceiveViewController {
   /** clear eliminates the input and previous created invoice from the view.
    */
   fileprivate func clear() {
-    let addedInvoiceViews: [NSView?] = [paymentRequestHeadingTextField, paymentRequestTextField, invoiceTypeButton]
-    let inputTextFields = [amountTextField, memoTextField]
+    let addedInvoiceViews: [NSView?] = [invoiceHeadingTextField, invoiceTextField, invoiceTypeButton]
+    let inputTextFields = [amountTextField, descriptionTextField]
     
     inputTextFields.forEach { $0?.stringValue = String() }
     addedInvoiceViews.forEach { $0?.isHidden = true }
@@ -279,7 +279,7 @@ extension ReceiveViewController {
         paymentInvoiceDate?.stringValue = invoiceDate.formatted(dateStyle: .short, timeStyle: .short)
         paymentReceivedAmount?.stringValue = paidInvoice.tokens.formatted(with: .testBitcoin)
         paymentReceivedBox?.isHidden = false
-        paymentReceivedDescription?.stringValue = (paidInvoice.memo ?? String()) as String
+        paymentReceivedDescription?.stringValue = (paidInvoice.description ?? String()) as String
         
       case .payment(_):
         break
@@ -329,17 +329,17 @@ extension ReceiveViewController {
   
   /** Updated the payment request
    */
-  fileprivate func updatedPaymentRequest() {
-    paymentRequestTextField?.stringValue = (invoice?.paymentRequest ?? String()) as String
+  fileprivate func updatedInvoice() {
+    invoiceTextField?.stringValue = (invoice?.invoice ?? String()) as String
     
-    let hasNoPaymentRequest = invoice?.paymentRequest == nil
+    let hasNoInvoice = invoice?.invoice == nil
     
-    invoiceTypeButton?.isHidden = hasNoPaymentRequest
+    invoiceTypeButton?.isHidden = hasNoInvoice
     
     guard let _ = invoice else { return }
     
-    paymentRequestHeadingTextField?.isHidden = false
-    paymentRequestTextField?.isHidden = false
+    invoiceHeadingTextField?.isHidden = false
+    invoiceTextField?.isHidden = false
     requestButton?.isEnabled = true
     requestButton?.state = NSOnState
     requestButton?.title = NSLocalizedString("Request Payment", comment: "Button to add a new payment request")

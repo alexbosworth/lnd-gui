@@ -88,14 +88,14 @@ extension MainTabViewController {
   
   /** Show a payment to confirm
    */
-  func showPayment(_ paymentRequest: SerializedPaymentRequest) throws {
+  func showPayment(_ invoice: SerializedInvoice) throws {
     guard let sendViewController = sendViewController else { throw Failure.expectedViewControllerForTab(.send) }
 
     let sendTabIndex = tabView.indexOfTabViewItem(withIdentifier: Tab.send.storyboardIdentifier)
 
     selectedTabViewItemIndex = sendTabIndex
     
-    sendViewController.destinationTextField?.stringValue = paymentRequest
+    sendViewController.destinationTextField?.stringValue = invoice
     sendViewController.didChangeDestination()
     sendViewController.wallet = wallet
   }

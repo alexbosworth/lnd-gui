@@ -67,14 +67,14 @@ class BlockchainInfoViewController: NSViewController {
     var code: Int { return rawValue }
   }
   
-  func pay(paymentRequest: String, completion: @escaping (Error?) -> ()) {
+  func pay(invoice: SerializedInvoice, completion: @escaping (Error?) -> ()) {
     let session = URLSession.shared
     let sendUrl = URL(string: "http://localhost:10553/v0/payments/")!
     var sendUrlRequest = URLRequest(url: sendUrl, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 30)
     sendUrlRequest.httpMethod = "POST"
     sendUrlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
     
-    let data = "{\"payment_request\": \"\(paymentRequest)\"}".data(using: .utf8)
+    let data = "{\"invoice\": \"\(invoice)\"}".data(using: .utf8)
     
     let sendTask = session.uploadTask(with: sendUrlRequest, from: data) { data, urlResponse, error in
       if let error = error {
@@ -143,7 +143,7 @@ class BlockchainInfoViewController: NSViewController {
     queue.tasks += { [weak self] _, completion in
       let payReq = "ypn496i5mq1qszjykswo9d88na575nyncyq3gtm3pe11qfuje7ttpb3zpo77c6rjer1owsi1xxt1umip9em1faqzx1869guitab5pm78yyyyyyyyyyeqdx5szwky"
 
-      self?.pay(paymentRequest: payReq) { error in
+      self?.pay(invoice: payReq) { error in
         if let error = error { return hasError(error) }
 
         DispatchQueue.main.async { self?.purchaseProgressIndicator?.increment(by: 33) }

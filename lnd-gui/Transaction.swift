@@ -19,7 +19,7 @@ enum LightningTransaction: TokenTransaction {
   case payment(LightningPayment)
 
   init(from json: JsonDictionary) throws {
-    guard let outgoing = json[JsonAttribute.outgoing.asKey] as? Bool else { throw JsonParseFailure.missing(.outgoing) }
+    guard let outgoing = json[JsonAttribute.isOutgoing.asKey] as? Bool else { throw JsonParseFailure.missing(.isOutgoing) }
 
     switch outgoing {
     case false:
@@ -31,13 +31,20 @@ enum LightningTransaction: TokenTransaction {
   }
   
   enum JsonAttribute: JsonAttributeName {
-    case outgoing
+    case isOutgoing = "is_outgoing"
     
     var asKey: JsonAttributeName { return rawValue }
   }
   
   enum JsonParseFailure: Error {
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.asKey)"
+      }
+    }
   }
   
   var createdAt: Date? {
@@ -80,10 +87,10 @@ enum LightningTransaction: TokenTransaction {
     }
   }
   
-  var memo: String? {
+  var description: String? {
     switch self {
     case .invoice(let invoice):
-      return invoice.memo
+      return invoice.description
       
     case .payment(_):
       return nil
@@ -114,7 +121,7 @@ enum Transaction {
     }
   }
   
-  init(from json: [String: Any]) throws {
+  init(from json: JsonDictionary) throws {
     guard let t = json[JsonAttribute.type.asKey] as? String, let type = TransactionType(from: t) else {
       throw JsonParseError.missing(.type)
     }
@@ -191,11 +198,11 @@ enum Transaction {
   }
 
   enum JsonAttribute: JsonAttributeName {
-    case confirmed
     case createdAt = "created_at"
     case destination
     case id
-    case outgoing
+    case isConfirmed = "is_confirmed"
+    case isOutgoing = "is_outgoing"
     case tokens
     case type
 
@@ -204,6 +211,13 @@ enum Transaction {
 
   enum JsonParseError: Error {
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.asKey)"
+      }
+    }
   }
   
   var sendTokens: Tokens? {

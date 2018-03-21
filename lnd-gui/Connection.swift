@@ -47,16 +47,23 @@ struct Connection {
    */
   enum ParseJsonFailure: Error {
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.key)"
+      }
+    }
   }
   
   /** Create from JSON representation
    */
   init(from json: JsonDictionary) throws {
-    guard let channels = json[JsonAttribute.channels.key] as? [[String: Any]] else {
+    guard let channels = json[JsonAttribute.channels.key] as? [JsonDictionary] else {
       throw ParseJsonFailure.missing(.channels)
     }
 
-    guard let peers = json[JsonAttribute.peers.key] as? [[String: Any]] else {
+    guard let peers = json[JsonAttribute.peers.key] as? [JsonDictionary] else {
       throw ParseJsonFailure.missing(.peers)
     }
     

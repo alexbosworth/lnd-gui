@@ -11,7 +11,6 @@ import Foundation
 /** Peer
  */
 struct Peer {
-  let id: Int
   let networkAddress: String
   let ping: TimeInterval
   let transferedBytes: ByteTransfer
@@ -29,6 +28,13 @@ struct Peer {
   
   enum ParseJsonFailure: Error {
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.asKey)"
+      }
+    }
   }
 
   enum JsonAttribute: JsonAttributeName {
@@ -44,7 +50,7 @@ struct Peer {
     var asKey: JsonAttributeName { return rawValue }
   }
   
-  init(from json: [String: Any]) throws {
+  init(from json: JsonDictionary) throws {
     guard let bytesReceived = json[JsonAttribute.bytesReceived.asKey] as? NSNumber else {
       throw ParseJsonFailure.missing(.bytesReceived)
     }
@@ -52,8 +58,6 @@ struct Peer {
     guard let bytesSent = json[JsonAttribute.bytesSent.asKey] as? NSNumber else {
       throw ParseJsonFailure.missing(.bytesSent)
     }
-    
-    guard let id = json[JsonAttribute.id.asKey] as? NSNumber else { throw ParseJsonFailure.missing(.id) }
     
     guard let networkAddress = json[JsonAttribute.networkAddress.asKey] as? String else {
       throw ParseJsonFailure.missing(.networkAddress)
@@ -71,7 +75,6 @@ struct Peer {
       throw ParseJsonFailure.missing(.tokensSent)
     }
     
-    self.id = id.intValue
     self.networkAddress = networkAddress
     self.ping = pingTime.doubleValue
     self.transferedBytes = ByteTransfer(received: bytesReceived.uintValue, sent: bytesSent.uintValue)

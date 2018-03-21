@@ -83,7 +83,7 @@ class CommitSendViewController: NSViewController {
   
   /** Payment to send
    */
-  var paymentToSend: Payment? { didSet { do { try updatedPaymentRequest() } catch { reportError(error) } } }
+  var paymentToSend: Payment? { didSet { do { try updatedInvoice() } catch { reportError(error) } } }
 
   /** Report error
    */
@@ -109,7 +109,7 @@ extension CommitSendViewController {
 extension CommitSendViewController {
   /** Update payment request
    */
-  fileprivate func updatedPaymentRequest() throws {
+  fileprivate func updatedInvoice() throws {
     guard let wallet = wallet else {
       sendAmountTextField?.stringValue = String()
       sendFeeTextField?.stringValue = String()
@@ -138,9 +138,9 @@ extension CommitSendViewController {
       localBalance = (wallet.balances?.spendableBalance ?? Tokens()) as Tokens
       settlementTimeString = "10-20 min"
       
-    case .paymentRequest(let paymentRequest):
-      amount = paymentRequest.tokens
-      destination = (paymentRequest.destination?.hexEncoded ?? String()) as String
+    case .invoice(let invoice):
+      amount = invoice.tokens
+      destination = (invoice.destination?.hexEncoded ?? String()) as String
       destinationLabel?.stringValue = "Lightning Address"
       fee = Tokens()
       localBalance = (wallet.balances?.channelTokens ?? Tokens()) as Tokens
@@ -191,6 +191,6 @@ extension CommitSendViewController {
 
 extension CommitSendViewController: WalletListener {
   func walletUpdated() {
-    do { try updatedPaymentRequest() } catch { reportError(error) }
+    do { try updatedInvoice() } catch { reportError(error) }
   }
 }

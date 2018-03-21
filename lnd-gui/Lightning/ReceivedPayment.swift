@@ -13,9 +13,9 @@ import Foundation
  FIXME: - eliminate and use Transaction instead
  */
 struct ReceivedPayment {
-  let confirmed: Bool
   let createdAt: Date
-  let memo: String
-  let payment: SerializedPaymentRequest
+  let description: String
+  let isConfirmed: Bool
+  let invoice: SerializedInvoice
   let tokens: Tokens
 }

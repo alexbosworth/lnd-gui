@@ -27,7 +27,7 @@ enum WalletObject: JsonInitialized {
   enum RowType: String {
     case chainTransaction = "chain_transaction"
     case channelTransaction = "channel_transaction"
-    case paymentRequest = "payment_request"
+    case invoice
     
     init?(from string: String?) {
       guard let string = string, let rowType = type(of: self).init(rawValue: string) else { return nil }
@@ -47,7 +47,7 @@ enum WalletObject: JsonInitialized {
     case .chainTransaction, .channelTransaction:
       self = .transaction(try Transaction(from: json))
       
-    case .paymentRequest:
+    case .invoice:
       self = .invoice(try LightningInvoice(from: json))
     }
   }

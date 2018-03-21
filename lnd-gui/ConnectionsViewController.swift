@@ -116,8 +116,8 @@ extension ConnectionsViewController {
   /** Show connections
    */
   private func show(connections: [Connection]) throws {
-    self.connections = connections
-        
+    self.connections = connections.sorted { $0.publicKey.hexEncoded > $1.publicKey.hexEncoded }
+    
     connectionsTableView?.reloadData()
   }
 

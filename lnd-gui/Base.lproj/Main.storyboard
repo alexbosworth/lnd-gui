@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="13529" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="ltG-db-gIL">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="ltG-db-gIL">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13529"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13771"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
         <capability name="system font weights other than Regular or Bold" minToolsVersion="7.0"/>
@@ -915,7 +915,7 @@ DQ
                         <outlet property="amountTextField" destination="J1v-J2-xfd" id="hDt-TE-kkc"/>
                         <outlet property="clearButton" destination="loM-cL-T30" id="9v9-Xx-lMI"/>
                         <outlet property="currencyConversionTextField" destination="hMc-Tw-ZND" id="3OT-Kv-KB2"/>
-                        <outlet property="memoTextField" destination="4YA-zg-jIv" id="h33-WQ-ikb"/>
+                        <outlet property="descriptionTextField" destination="4YA-zg-jIv" id="gDK-Sj-pql"/>
                         <outlet property="requestButton" destination="TIi-SZ-sJ0" id="9Pn-be-38Z"/>
                     </connections>
                 </viewController>

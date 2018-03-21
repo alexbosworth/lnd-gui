@@ -27,6 +27,13 @@ struct WalletBalances: JsonInitialized {
   
   enum JsonParseFailure: Error {
     case missing(JsonAttribute)
+
+    var localizedDescription: String {
+      switch self {
+      case .missing(let attr):
+        return "Expected Attribute Not Found: \(attr.asKey)"
+      }
+    }
   }
   
   init(from data: Data?) throws {

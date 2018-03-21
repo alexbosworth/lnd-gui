@@ -35,7 +35,7 @@ class InvoiceViewController: NSViewController {
   
   /** Payment request text field
    */
-  @IBOutlet weak var paymentRequestTextField: NSTextField?
+  @IBOutlet weak var invoiceTextField: NSTextField?
   
   // MARK: - Properties
   
@@ -82,14 +82,14 @@ extension InvoiceViewController {
 
     let localizedInvoiceState = NSLocalizedString(invoiceLabel, comment: invoiceLabelComment)
     
-    descriptionTextField?.stringValue = (invoice.memo ?? String()) as String
-    paymentRequestTextField?.stringValue = (invoice.paymentRequest ?? String()) as String
+    descriptionTextField?.stringValue = (invoice.description ?? String()) as String
+    invoiceTextField?.stringValue = (invoice.invoice ?? String()) as String
     headingTextField?.stringValue = localizedInvoiceState
-    paymentRequestTextField?.textColor = invoice.isConfirmed ? .disabledControlTextColor : .controlTextColor
-    paymentRequestTextField?.isSelectable = !invoice.isConfirmed
+    invoiceTextField?.textColor = invoice.isConfirmed ? .disabledControlTextColor : .controlTextColor
+    invoiceTextField?.isSelectable = !invoice.isConfirmed
     
     // Deselect text in payment request text field
-    if invoice.isConfirmed { paymentRequestTextField?.currentEditor()?.selectedRange = NSMakeRange(Int(), Int()) }
+    if invoice.isConfirmed { invoiceTextField?.currentEditor()?.selectedRange = NSMakeRange(Int(), Int()) }
     
     guard let centsPerCoin = self.centsPerCoin?() else { return }
     
@@ -105,15 +105,15 @@ extension InvoiceViewController {
   override func viewDidAppear() {
     super.viewDidLoad()
     
-    paymentRequestTextField?.isEditable = true
-    paymentRequestTextField?.becomeFirstResponder()
-    paymentRequestTextField?.isEditable = false
+    invoiceTextField?.isEditable = true
+    invoiceTextField?.becomeFirstResponder()
+    invoiceTextField?.isEditable = false
     
     do { try updatedInvoice() } catch { reportError(error) }
     
     guard let invoice = invoice, invoice.isConfirmed else { return }
     
-    DispatchQueue.main.async { [weak self] in self?.paymentRequestTextField?.resignFirstResponder() }
+    DispatchQueue.main.async { [weak self] in self?.invoiceTextField?.resignFirstResponder() }
   }
 }
 
